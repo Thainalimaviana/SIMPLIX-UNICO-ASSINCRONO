@@ -347,6 +347,32 @@ def simplix_passo12():
         print(f"❌ Erro no /simplix-passo12: {e}")
         return jsonify({"erro": str(e)}), 500
 
+@app.route("/simplix-cadastrar", methods=["POST"])
+def simplix_cadastrar():
+    try:
+        data = request.get_json()
+        print(" Dados recebidos para cadastro:", data)
+
+        headers = {
+            "Authorization": f"Bearer {TOKEN}",
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+        }
+
+        response = requests.post(
+            "https://simplix-integration.partner1.com.br/api/Proposal/Create",
+            json=data,
+            headers=headers,
+            timeout=30
+        )
+
+        print("📨 Retorno da API Simplix:", response.text)
+        return jsonify(response.json()), response.status_code
+
+    except Exception as e:
+        print("❌ Erro ao cadastrar:", str(e))
+        return jsonify({"erro": str(e)}), 500
+
 @app.route("/fila")
 def visualizar_fila():
     if "user" not in session:

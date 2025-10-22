@@ -583,9 +583,16 @@ table.tabela-fila tbody tr:hover {
 .btn-simular:hover {
   background: #34d058;
 }
+.tabelas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 18px;
+  margin-top: 25px;
+}
+
 .tabela-item {
   background: rgba(255,255,255,0.08);
-  border-radius: 12px;
+  border-radius: 14px;
   padding: 15px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.3);
   text-align: center;
@@ -594,11 +601,37 @@ table.tabela-fila tbody tr:hover {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  height: 220px;
+  align-items: center;
+  height: 240px;
+}
+
+.tabela-item:hover {
+  background: rgba(255,255,255,0.15);
+  transform: translateY(-4px);
+}
+
+.tabela-item b {
+  font-size: 15px;
+  display: block;
+  margin-bottom: 3px;
+  white-space: nowrap;
+}
+
+.tabela-item small {
+  display: block;
+  margin-bottom: 8px;
+  color: #bbb;
+}
+
+.tabela-item p {
+  margin: 5px 0;
+  font-size: 14px;
 }
 
 .tabela-item .btn {
-  margin: 0 auto;
+  margin-top: auto;
+  margin-bottom: 5px;
   display: block;
-  width: 80%;
+  width: 85%;
+  text-align: center;
 }
