@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Editar Usuário</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tomorrow&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}">
+    <style>
+        .editar-container {
+            max-width: 420px;
+            width: 90%;
+            margin: 120px auto;
+            padding: 40px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(12px) saturate(180%);
+            -webkit-backdrop-filter: blur(12px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+            text-align: center;
+            color: #fff;
+            animation: fadeIn 0.6s ease-in-out;
+        }
+
+        .editar-container h2 {
+            font-family: 'Tomorrow', sans-serif;
+            margin-bottom: 25px;
+            font-size: 28px;
+        }
+
+        .editar-container input {
+            width: 100%;
+            padding: 12px 15px;
+            margin: 10px 0;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            font-size: 16px;
+            outline: none;
+            box-sizing: border-box;
+        }
+
+        .editar-container input:focus {
+            border: 2px solid #4cafef;
+            box-shadow: 0 0 8px rgba(76, 175, 239, 0.6);
+        }
+
+        .editar-container button {
+            margin-top: 15px;
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: none;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            background-color: #4c94e7;
+            color: white;
+            transition: 0.3s;
+            box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
+        }
+
+        .editar-container button:hover {
+            background-color: #1565c0;
+        }
+
+        .btn-voltar {
+            margin-top: 20px;
+            display: inline-block;
+            padding: 10px 20px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px) saturate(180%);
+            -webkit-backdrop-filter: blur(10px) saturate(180%);
+            color: #fff;
+            font-size: 15px;
+            font-weight: bold;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-voltar:hover {
+            background: #4c94e7;
+            border-color: #1565c0;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+        }
+    </style>
+</head>
+
+<body class="pagina">
+    {% extends "base.html" %}
+    {% block titulo %}Editar Usuário{% endblock %}
+    {% block conteudo %}
+    <div class="editar-container">
+        <h2>Editar Usuário</h2>
+        <form method="post">
+            <input type="text" name="nome" value="{{ user[1] }}" required>
+            <input type="password" name="senha" placeholder="Nova Senha (opcional)">
+            <button type="submit" class="azul"><i class="fa fa-save"></i> Salvar Alterações</button>
+        </form>
+    </div>
+    {% endblock %}
+</body>
+
+</html>

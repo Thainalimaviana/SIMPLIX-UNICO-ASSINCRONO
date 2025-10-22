@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Simulação - Simplix FGTS</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Tomorrow&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" rel="stylesheet">
+</head>
+
+<body class="pagina">
+  <button class="menu-toggle" id="menuToggle"><i class="fa fa-bars"></i></button>
+
+  <div class="sidebar" id="sidebar">
+    <div>
+      <div class="logo">SIMPLIX 🎃</div>
+      <div class="user-info">
+        <h3>{{ session["user"] }}</h3>
+        <span>{{ session["role"] }}</span>
+      </div>
+      <ul class="menu">
+        <li><a href="/index">▸ Dashboard</a></li>
+        <li><a href="/cadastrar">▸ Cadastrar Cliente</a></li>
+        <li><a href="/esteira">▸ Esteira</a></li>
+        {% if session['role'] == 'admin' %}
+        <li><a href="/usuarios">▸ Gerenciar Usuários</a></li>
+        <li><a href="/register">▸ Criar Usuário</a></li>
+        {% endif %}
+      </ul>
+    </div>
+    <div class="menu-footer">
+      <button id="toggle-theme"><i class="fa fa-moon"></i> Tema</button>
+      <a href="/logout" class="logout">▸ Sair</a>
+    </div>
+  </div>
+
+  <div class="content">
+    <h1 class="titulo-tomorrow">Simulação Simplix - FGTS 👻</h1>
+
+    <div class="container" id="container-simulacao">
+      <p><strong>Transaction ID:</strong> {{ transaction_id }}</p>
+
+      {% if mensagem %}
+      <div style="text-align:center; margin-bottom:15px;">
+        <p style="font-weight:600; {% if 'Simulação' in mensagem or 'Tabelas' in mensagem %}color:#00ff88;{% else %}color:#ff6464;{% endif %}">
+          {{ mensagem }}
+        </p>
+      </div>
+      {% endif %}
+
+      {% if tabelas %}
+      <div id="resultado-simulacao">
+        <div class="tabelas-grid">
+          {% for t in tabelas %}
+          <div class="tabela-item">
+            <b>{{ t.tabelaTitulo }}</b> <br>
+            <small>({{ t.bancarizadora }})</small><br>
+            <p><strong>Valor Líquido:</strong> R$ {{ "%.2f"|format(t.valorLiquido) }}</p>
+            <p><strong>Taxa:</strong> {{ "%.2f"|format(t.taxa) }}%</p>
+            <button class="btn azul"
+              onclick="cadastrarCliente('{{ transaction_id }}', '{{ t.tabelaId }}', '{{ t.bancarizadora }}')">
+              <i class="fa fa-user-plus"></i> Cadastrar Cliente
+            </button>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% else %}
+      <div id="mensagem-sem-saldo" style="text-align:center; margin-top:30px;">
+        <p><strong>⚠️ Nenhum saldo disponível para este cliente.</strong></p>
+        <p>Verifique se ele é elegível para outra data de aniversário.</p>
+        <a href="/index" class="btn azul" style="margin-top:20px;">← Voltar para Fila</a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <script>
+    const menuToggle = document.getElementById("menuToggle");
+    const sidebar = document.getElementById("sidebar");
+    const content = document.querySelector(".content");
+
+    menuToggle.addEventListener("click", () => {
+      sidebar.classList.toggle("active");
+      content.classList.toggle("active");
+      menuToggle.classList.toggle("mover");
+    });
+
+    const toggleTheme = document.getElementById("toggle-theme");
+    toggleTheme.addEventListener("click", () => {
+      document.body.classList.toggle("dark-mode");
+      const icon = toggleTheme.querySelector("i");
+      icon.classList.toggle("fa-moon");
+      icon.classList.toggle("fa-sun");
+    });
+
+    function cadastrarCliente(transactionId, tabelaId, bancarizadora) {
+      const confirmar = confirm(`Deseja cadastrar o cliente para ${bancarizadora}?`);
+      if (!confirmar) return;
+      window.location.href = `/cadastrar?transactionId=${transactionId}&tabelaId=${tabelaId}`;
+    }
+  </script>
+
+  <style>
+    .tabelas-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+    .tabela-item {
+      background: rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 15px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      text-align: center;
+      color: #fff;
+      transition: 0.3s;
+    }
+    .tabela-item:hover {
+      background: rgba(255,255,255,0.15);
+      transform: translateY(-4px);
+    }
+  </style>
+</body>
+</html>

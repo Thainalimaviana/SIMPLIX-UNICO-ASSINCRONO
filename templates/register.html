@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Criar Usuário</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Tomorrow&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}">
+  <style>
+    .register-container {
+      max-width: 400px;
+      width: 90%;
+      margin: 120px auto;
+      padding: 40px;
+      border-radius: 20px;
+      background: var(--bg-container);
+      backdrop-filter: blur(12px) saturate(180%);
+      -webkit-backdrop-filter: blur(12px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+      text-align: center;
+      color: var(--cor-texto);
+      animation: fadeIn 0.6s ease-in-out;
+    }
+
+    .register-container h2 {
+      font-family: 'Tomorrow', sans-serif;
+      margin-bottom: 25px;
+      font-size: 28px;
+    }
+
+    .register-container input,
+    .register-container select {
+      width: 100%;
+      padding: 12px 15px;
+      margin: 10px 0;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.171);
+      background: rgba(161, 161, 161, 0.35);
+      color: #3d3d3d;
+      font-size: 16px;
+      outline: none;
+      box-sizing: border-box;
+      cursor: pointer;
+      appearance: none;
+    }
+
+    .register-container button {
+      margin-top: 15px;
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      background-color: #4c94e7;
+      color: white;
+      transition: 0.3s;
+      box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
+    }
+
+    .register-container button:hover {
+      background-color: #1565c0;
+    }
+
+    .link {
+      margin-top: 15px;
+      display: block;
+      color: #fff;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    .link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+
+<body class="pagina">
+  <div class="register-container">
+    <h2>Criar Usuário</h2>
+    {% if erro %}<p class="erro">{{ erro }}</p>{% endif %}
+    <form method="post">
+      <input type="text" name="nome" placeholder="Usuário" required>
+      <input type="password" name="senha" placeholder="Senha" required>
+      <select name="role" required>
+        <option value="user">Usuário</option>
+        <option value="admin">Administrador</option>
+      </select>
+      <button type="submit">Registrar</button>
+    </form>
+    <a class="link" href="/usuarios">Gerenciar Usuários</a>
+  </div>
+  <a href="/index" class="btn-voltar-topo">
+    <i class="fa fa-arrow-left"></i> Voltar
+  </a>
+
+</body>
+
+</html>

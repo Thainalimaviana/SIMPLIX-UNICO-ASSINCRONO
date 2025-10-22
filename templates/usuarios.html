@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Gerenciar Usuários</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Tomorrow&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}">
+  <style>
+    body {
+      background: linear-gradient(40deg, var(--gradiente-inicio), var(--gradiente-fim));
+      font-family: 'Poppins', sans-serif;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      margin: 0;
+      padding: 40px 0;
+    }
+
+    .container {
+      width: 90%;
+      max-width: 850px;
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(12px);
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+      text-align: center;
+      overflow: hidden;
+    }
+
+    h1 {
+      font-size: 32px;
+      margin-bottom: 20px;
+      font-weight: bold;
+    }
+
+    table.dataTable {
+      width: 100%;
+      border-collapse: collapse;
+      border-radius: 12px;
+      overflow: hidden;
+      color: #fff;
+      font-size: 15px;
+    }
+
+    table.dataTable thead {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    table.dataTable th,
+    table.dataTable td {
+      padding: 12px;
+      text-align: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .acoes-btns {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn {
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .btn-editar {
+      background: #4cafef;
+      color: white;
+    }
+
+    .btn-editar:hover {
+      background: #1565c0;
+    }
+
+    .btn-excluir {
+      background: #e53935;
+      color: white;
+    }
+
+    .btn-excluir:hover {
+      background: #b71c1c;
+    }
+
+    .btn-voltar {
+      margin-top: 20px;
+      display: inline-block;
+      padding: 10px 20px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: #fff;
+      font-size: 15px;
+      font-weight: bold;
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+
+    .btn-voltar:hover {
+      background: #4c94e7;
+      border-color: #1565c0;
+    }
+
+    .dataTables_length select {
+      background: rgba(255, 255, 255, 0.15) !important;
+      color: #fff !important;
+      border: 1px solid rgba(255, 255, 255, 0.3) !important;
+      border-radius: 8px !important;
+      padding: 6px 12px !important;
+    }
+
+    .dataTables_filter {
+      float: right !important;
+      margin-top: 10px !important;
+      margin-bottom: 10px !important;
+    }
+
+    .dataTables_filter label {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: flex-end !important;
+      gap: 10px !important;
+    }
+
+    .dataTables_filter input[type="search"] {
+      background: rgba(255, 255, 255, 0.15) !important;
+      color: #fff !important;
+      border: 1px solid rgba(255, 255, 255, 0.3) !important;
+      border-radius: 8px !important;
+      padding: 8px 14px !important;
+      margin-left: 10px !important;
+      min-width: 180px;
+    }
+
+    .dataTables_wrapper .dataTables_paginate {
+      margin-top: 25px;
+      text-align: center;
+    }
+
+    .dataTables_wrapper .dataTables_paginate .paginate_button {
+      display: inline-block;
+      min-width: 35px;
+      padding: 6px 14px;
+      margin: 0 5px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      color: #ffffff !important;
+      font-weight: 500;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(8px);
+    }
+
+    .dataTables_wrapper .dataTables_paginate .paginate_button:not(.current):not(.disabled):hover {
+      background: rgba(255, 255, 255, 0.25);
+      border-color: rgba(255, 255, 255, 0.4);
+      color: #fff !important;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+      background: rgba(76, 144, 231, 0.9);
+      border-color: rgba(76, 144, 231, 1);
+      color: #fff !important;
+      font-weight: bold;
+      box-shadow: 0 2px 10px rgba(76, 144, 231, 0.5);
+    }
+
+    .dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      color: #ddd !important;
+      box-shadow: none;
+    }
+
+    .dataTables_info {
+      text-align: left !important;
+      margin-top: 10px !important;
+      font-weight: 500;
+    }
+  </style>
+</head>
+
+<body class="pagina">
+  <button class="menu-toggle" id="menuToggle"><i class="fa fa-bars"></i></button>
+  <div class="sidebar" id="sidebar">
+    <div>
+      <div class="logo">SIMPLIX 🎃</div>
+      <div class="user-info">
+        <h3>{{ session["user"] }}</h3>
+        <span>{{ session["role"] }}</span>
+      </div>
+
+      <ul class="menu">
+        <li><a href="/index">▸ Dashboard</a></li>
+        <li><a href="/cadastrar">▸ Cadastrar Cliente</a></li>
+        {% if session['role'] == 'admin' %}
+        <li><a href="/esteira">▸ Esteira</a></li>
+        <li><a href="/usuarios">▸ Gerenciar Usuários</a></li>
+        <li><a href="/register">▸ Criar Usuário</a></li>
+        {% endif %}
+      </ul>
+    </div>
+
+    <div class="menu-footer">
+      <button id="toggle-theme"><i class="fa fa-moon"></i> Tema</button>
+      <a href="/logout" class="logout">▸ Sair</a>
+    </div>
+  </div>
+
+  <div class="container">
+    <h1>Gerenciar Usuários</h1>
+
+    <table id="usuarios" class="display">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Nome</th>
+          <th>Função</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for user in usuarios %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td>{{ user[1] }}</td>
+          <td>{{ user[2] }}</td>
+          <td>
+            <div class="acoes-btns">
+              <a href="/editar/{{ user[0] }}" class="btn btn-editar">Editar</a>
+              <form method="post" action="/excluir/{{ user[0] }}">
+                <button type="submit" class="btn btn-excluir">Excluir</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/js/all.min.js"></script>
+
+  <script>
+    const menuToggle = document.getElementById("menuToggle");
+    const sidebar = document.getElementById("sidebar");
+    const content = document.querySelector(".container");
+
+    menuToggle.addEventListener("click", () => {
+      sidebar.classList.toggle("active");
+      content.classList.toggle("active");
+      menuToggle.classList.toggle("mover");
+    });
+
+    const toggleTheme = document.getElementById("toggle-theme");
+    toggleTheme.addEventListener("click", () => {
+      document.body.classList.toggle("dark-mode");
+      localStorage.setItem("modoEscuro", document.body.classList.contains("dark-mode"));
+      const icon = toggleTheme.querySelector("i");
+      icon.classList.toggle("fa-moon");
+      icon.classList.toggle("fa-sun");
+    });
+
+    if (localStorage.getItem("modoEscuro") === "true") {
+      document.body.classList.add("dark-mode");
+      const icon = document.querySelector("#toggle-theme i");
+      if (icon) {
+        icon.classList.remove("fa-moon");
+        icon.classList.add("fa-sun");
+      }
+    }
+
+    $(document).ready(function () {
+      $('#usuarios').DataTable({
+        paging: true,
+        pageLength: 20,
+        lengthChange: false,
+        language: {
+          search: "🔍 Pesquisar nome ou ID:",
+          zeroRecords: "Nenhum usuário encontrado",
+          infoEmpty: "Nenhum usuário",
+          paginate: {
+            previous: "Anterior",
+            next: "Próximo"
+          }
+        },
+        infoCallback: function (settings, start, end, max, total, pre) {
+          const exibindo = end - start + 1;
+          const porPagina = settings._iDisplayLength;
+          const qtdPagina = Math.min(exibindo, porPagina);
+          return `${qtdPagina} de ${porPagina} usuários`;
+        }
+      });
+    });
+  </script>
+</body>
+</html>

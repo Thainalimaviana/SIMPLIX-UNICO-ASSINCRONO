@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Fila Simplix - FGTS</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+
+<body class="pagina">
+    <div class="container" id="fila-tabela">
+        <h2 class="titulo-tabela">Fila de Consultas Simplix</h2>
+
+        {% if registros and registros|length > 0 %}
+        <div class="tabela-wrapper">
+            <table class="tabela-fila">
+                <thead>
+                    <tr>
+                        <th>Transaction ID</th>
+                        <th>CPF</th>
+                        <th>Status</th>
+                        <th>Ação</th>
+                        <th>Usuário</th>
+                        <th>Incluído em</th>
+                        <th>Atualizado em</th>
+                        <th>Excluir</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in registros %}
+                    <tr>
+                        <td title="{{ item[0] }}">{{ item[0][:10] }}...</td>
+                        <td>{{ item[1] }}</td>
+                        <td>
+                            {% if "Simulação disponível" in item[2] %}
+                            <span class="status sucesso">{{ item[2] }}</span>
+                            {% elif "Erro" in item[2] %}
+                            <span class="status erro">{{ item[2] }}</span>
+                            {% else %}
+                            <span class="status aguardando">{{ item[2] }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if "Simulação disponível" in item[2] %}
+                            <a href="/simulate/{{ item[0] }}" class="btn-simular">
+                                <i class="fa fa-play"></i> Simular
+                            </a>
+                            {% else %}
+                            <button class="btn-simular desativado" disabled>
+                                <i class="fa fa-play"></i> Simular
+                            </button>
+                            {% endif %}
+                        </td>
+                        <td>{{ item[3] }}</td>
+                        <td>{{ item[4] }}</td>
+                        <td>{{ item[5] or "-" }}</td>
+                        <td>
+                            <button class="btn-excluir" onclick="excluirDaFila('{{ item[0] }}')">
+                                <i class="fa fa-times"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="paginacao">
+            {% if pagina > 1 %}
+            <a href="/fila?pagina={{ pagina - 1 }}" class="btn azul pequeno">← Anterior</a>
+            {% endif %}
+            <span>Página {{ pagina }}</span>
+            {% if total_paginas > pagina %}
+            <a href="/fila?pagina={{ pagina + 1 }}" class="btn azul pequeno">Próxima →</a>
+            {% endif %}
+        </div>
+        {% else %}
+        <p class="sem-dados">Nenhum item na fila no momento.</p>
+        {% endif %}
+    </div>
+
+    <script>
+        window.addEventListener("DOMContentLoaded", function () {
+            window.excluirDaFila = function (transactionId) {
+                const linha = document.querySelector(`button[onclick="excluirDaFila('${transactionId}')"]`).closest("tr");
+                if (linha) linha.remove();
+
+                fetch(`/excluir-fila/${transactionId}`, { method: "POST" })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (!data.success) alert('Erro ao excluir: ' + (data.erro || 'Erro desconhecido'));
+                    })
+                    .catch(err => console.error("❌ Erro ao excluir:", err));
+            };
+        });
+    </script>
+</body>
+
+</html>
