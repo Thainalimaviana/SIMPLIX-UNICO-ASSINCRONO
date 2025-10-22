@@ -575,3 +575,11 @@ table.tabela-fila tbody tr:hover {
   cursor: not-allowed;
   box-shadow: none;
 }
+.btn-simular {
+  background: #28a745;
+  color: white;
+  transition: 0.3s;
+}
+.btn-simular:hover {
+  background: #34d058;
+}

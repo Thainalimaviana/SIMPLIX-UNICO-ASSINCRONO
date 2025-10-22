@@ -44,7 +44,7 @@
                         <td title="{{ item[0] }}">{{ item[0][:10] }}...</td>
                         <td>{{ item[1] }}</td>
                         <td>
-                            {% if "Simulação disponível" in item[2] %}
+                            {% if "simulacao disponivel" in item[2]|lower|replace("ã","a")|replace("ç","c") %}
                             <span class="status sucesso">{{ item[2] }}</span>
                             {% elif "Erro" in item[2] %}
                             <span class="status erro">{{ item[2] }}</span>
@@ -53,7 +53,7 @@
                             {% endif %}
                         </td>
                         <td>
-                            {% if "Simulação disponível" in item[2] %}
+                            {% if "simulacao disponivel" in item[2]|lower|replace("ã","a")|replace("ç","c") %}
                             <a href="/simulate/{{ item[0] }}" class="btn-simular">
                                 <i class="fa fa-play"></i> Simular
                             </a>
@@ -93,7 +93,6 @@
 
     <script>
         window.addEventListener("DOMContentLoaded", function () {
-            // Função de exclusão
             window.excluirDaFila = function (transactionId) {
                 const linha = document.querySelector(`button[onclick="excluirDaFila('${transactionId}')"]`).closest("tr");
                 if (linha) linha.remove();

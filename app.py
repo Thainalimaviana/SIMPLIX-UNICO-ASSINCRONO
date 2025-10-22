@@ -17,9 +17,6 @@ app = Flask(__name__)
 app.secret_key = "chave_secreta"
 
 API_LOGIN = "https://simplix-integration.partner1.com.br/api/Login"
-API_SIMULATE = "https://simplix-integration.partner1.com.br/api/Proposal/Simulate"
-API_ASYNC_RESULT = "https://simplix-integration.partner1.com.br/api/Proposal/SimulateAsyncResult"
-API_BALANCE = "https://simplix-integration.partner1.com.br/api/Fgts/balance-request"
 WEBHOOK_URL = "https://simplix-unico-assincrono.onrender.com/webhook-simplix"
 
 TOKEN = ""
@@ -536,6 +533,62 @@ def atualizar_status(transaction_id, descricao):
 @app.route("/health")
 def health():
     return "OK", 200
+
+@app.route("/simulate/<transaction_id>")
+def simulate(transaction_id):
+    try:
+        token = garantir_token() 
+        url = "https://simplix-integration.partner1.com.br/api/Fgts/simulate"
+
+        payload = {"transactionId": transaction_id}
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        }
+
+        resp = requests.post(url, json=payload, headers=headers, timeout=20)
+        data = resp.json()
+
+        if not data.get("success"):
+            mensagem = f"Erro: {data.get('message', 'Falha na simulação')}"
+            return render_template("simular.html", transaction_id=transaction_id, mensagem=mensagem)
+
+        simulacoes = data.get("objectReturn", {}).get("retornoSimulacao", [])
+        if not simulacoes:
+            return render_template(
+                "simular.html",
+                transaction_id=transaction_id,
+                mensagem="Cliente sem saldo disponível.",
+                tabelas=[]
+            )
+
+        tabelas = []
+        for s in simulacoes:
+            tabela = {
+                "bancarizadora": s.get("bancarizadora"),
+                "tabelaId": s.get("tabelaId"),
+                "tabelaTitulo": s.get("tabelaTitulo"),
+                "valorLiquido": s.get("valorLiquido"),
+                "taxa": s.get("detalhes", {}).get("taxa")
+            }
+            tabelas.append(tabela)
+
+        return render_template(
+            "simular.html",
+            transaction_id=transaction_id,
+            mensagem="Tabelas disponíveis para simulação",
+            tabelas=tabelas
+        )
+
+    except Exception as e:
+        print(f"❌ Erro ao simular transaction {transaction_id}: {e}")
+        return render_template(
+            "simular.html",
+            transaction_id=transaction_id,
+            mensagem=f"Erro ao processar simulação: {e}",
+            tabelas=[]
+        )
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=8600)

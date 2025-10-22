@@ -140,8 +140,8 @@
                 dados.forEach(item => {
                     const statusClass =
                         item.status.includes("Simulação disponível") ? "sucesso" :
-                        item.status.includes("Erro") ? "erro" :
-                        "aguardando";
+                            item.status.includes("Erro") ? "erro" :
+                                "aguardando";
 
                     html += `
                         <tr data-tid="${item.transaction_id}">
@@ -149,7 +149,7 @@
                             <td>${item.cpf}</td>
                             <td><span class="status ${statusClass}">${item.status}</span></td>
                             <td>
-                                ${item.status.includes("Simulação disponível")
+                                ${item.status.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().includes("simulacao disponivel")
                                     ? `<a href="/simulate/${item.transaction_id}" class="btn-simular"><i class="fa fa-play"></i> Simular</a>`
                                     : `<button class="btn-simular desativado" disabled><i class="fa fa-play"></i> Simular</button>`
                                 }
@@ -190,4 +190,5 @@
     </script>
 
 </body>
+
 </html>
