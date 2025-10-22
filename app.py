@@ -18,6 +18,7 @@ app.secret_key = "chave_secreta"
 
 API_LOGIN = "https://simplix-integration.partner1.com.br/api/Login"
 WEBHOOK_URL = "https://simplix-unico-assincrono.onrender.com/webhook-simplix"
+API_BALANCE = "https://simplix-integration.partner1.com.br/api/Fgts/balance-request"
 
 TOKEN = ""
 TOKEN_EXPIRA = 0
@@ -85,6 +86,19 @@ def init_db():
             bancarizadora TEXT,
             data_hora TEXT,
             valor_contrato REAL
+        )
+    """)
+
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS simulacoes (
+            id SERIAL PRIMARY KEY,
+            transaction_id TEXT UNIQUE,
+            simulation_id TEXT,
+            periodos TEXT,
+            cpf TEXT,
+            bancarizadora TEXT,
+            tabela_id TEXT,
+            criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
 
@@ -309,7 +323,7 @@ def simplix_passo12():
         "callBackBalance": {
             "url": "https://simplix-unico-assincrono.onrender.com/webhook-simplix",
             "method": "POST"
-}
+        }
     }
 
     try:
@@ -331,10 +345,18 @@ def simplix_passo12():
             VALUES ({ph}, {ph}, {ph}, {ph}, {ph}, {ph})
         """
         c.execute(query, (transaction_id, cpf, "Aguardando Webhook", usuario, agora, agora))
+
+        query_sim = f"""
+            INSERT INTO simulacoes (transaction_id, cpf, bancarizadora, tabela_id, periodos)
+            VALUES ({ph}, {ph}, {ph}, {ph}, {ph})
+            ON CONFLICT (transaction_id) DO NOTHING
+        """
+        c.execute(query_sim, (transaction_id, cpf, None, None, "[]"))
+
         conn.commit()
         conn.close()
 
-        print(f"✅ CPF {cpf} inserido na fila (TransactionID={transaction_id})")
+        print(f"✅ CPF {cpf} inserido na fila e registrado em simulacoes (TransactionID={transaction_id})")
         limpar_fila_antiga()
 
         return jsonify({
@@ -481,7 +503,6 @@ def index():
                            total_fila=total_fila,
                            total_esteira=total_esteira)
 
-
 @app.route("/cadastrar")
 def cadastrar():
     if "user" not in session:
@@ -493,13 +514,15 @@ def cadastrar():
 
     conn = get_conn()
     cur = conn.cursor()
+    ph = get_placeholder(conn)  # ← adiciona esta linha
 
-    cur.execute("""
+    query = f"""
         SELECT simulation_id, periodos, cpf
         FROM simulacoes
-        WHERE transaction_id = %s
+        WHERE transaction_id = {ph}
         LIMIT 1
-    """, (transaction_id,))
+    """
+    cur.execute(query, (transaction_id,))
     row = cur.fetchone()
     conn.close()
 
@@ -515,7 +538,7 @@ def cadastrar():
         bancarizadora=bancarizadora,
         simulation_id=simulation_id,
         cpf=cpf,
-        periodos=periodos_json 
+        periodos=periodos_json
     )
 
 @app.route("/excluir-proposta/<cpf>", methods=["POST"])
