@@ -491,11 +491,31 @@ def cadastrar():
     tabela_id = request.args.get("tabelaId")
     bancarizadora = request.args.get("bancarizadora")
 
+    conn = get_conn()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT simulation_id, periodos, cpf
+        FROM simulacoes
+        WHERE transaction_id = %s
+        LIMIT 1
+    """, (transaction_id,))
+    row = cur.fetchone()
+    conn.close()
+
+    if not row:
+        return "Simulação não encontrada. Refaça o processo.", 404
+
+    simulation_id, periodos_json, cpf = row
+
     return render_template(
         "cadastrar.html",
         transaction_id=transaction_id,
         tabela_id=tabela_id,
-        bancarizadora=bancarizadora
+        bancarizadora=bancarizadora,
+        simulation_id=simulation_id,
+        cpf=cpf,
+        periodos=periodos_json 
     )
 
 @app.route("/excluir-proposta/<cpf>", methods=["POST"])

@@ -182,16 +182,49 @@
 
     btnFinalizar.addEventListener("click", async () => {
       const form = document.getElementById("form-cadastro");
-      const dados = Object.fromEntries(new FormData(form).entries());
+      const formData = Object.fromEntries(new FormData(form).entries());
 
       btnFinalizar.disabled = true;
       btnFinalizar.innerHTML = `<div class="loader"></div> Enviando...`;
 
       const payload = {
-        cliente: dados,
-        transactionId: "{{ transaction_id }}",
-        tabelaId: "{{ tabela_id }}",
-        bancarizadora: "{{ bancarizadora }}"
+        cliente: {
+          rg: formData.rg,
+          cpf: "{{ cpf }}",
+          nome: formData.nome,
+          email: formData.email,
+          endereco: {
+            cep: formData.cep,
+            bairro: formData.bairro,
+            cidade: formData.cidade,
+            estado: formData.estado,
+            numero: formData.numero,
+            logradouro: formData.logradouro,
+            complemento: formData.complemento
+          },
+          ocupacao: formData.ocupacao,
+          telefone: formData.telefone,
+          estadoCivil: formData.estadoCivil,
+          contaBancaria: {
+            conta: formData.conta,
+            agencia: formData.agencia,
+            tipoDeConta: formData.tipoDeConta,
+            codigoDoBanco: formData.codigoDoBanco,
+            digitoDaConta: formData.digitoDaConta,
+            tipoDeOperacao: formData.tipoDeOperacao
+          },
+          nacionalidade: formData.nacionalidade,
+          dataDeNascimento: formData.dataDeNascimento
+        },
+        operacao: {
+          simulationId: "{{ simulation_id }}",
+          periodos: {{ periodos|safe }}
+        },
+        loginDigitador: "477f702a-4a6f-4b02-b5eb-afcd38da99f8",
+        callback: {
+          url: "{{ request.host_url }}webhook-simplix",
+          method: "POST"
+        }
       };
 
       try {
@@ -200,13 +233,14 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)
         });
+
         const data = await resp.json();
 
         if (data.success) {
           alert("✅ Cliente cadastrado com sucesso!");
           window.location.href = "/index";
         } else {
-          alert("❌ Erro: " + (data.message || "Falha ao cadastrar."));
+          alert("❌ Erro: " + (data.message || data.mensagem || "Falha ao cadastrar."));
         }
       } catch (err) {
         alert("Erro ao conectar com o servidor.");
