@@ -489,10 +489,13 @@ def home():
 def webhook_simplix():
     try:
         data = request.get_json(force=True)
+        print(f"📬 Webhook recebido Simplix:\n{json.dumps(data, indent=2, ensure_ascii=False)}")
+
         transaction_id = (
             data.get("transactionId")
             or data.get("objectReturn", {}).get("transactionId")
         )
+
         descricao = (
             data.get("objectReturn", {}).get("description")
             or data.get("description")
@@ -505,27 +508,30 @@ def webhook_simplix():
         return jsonify({"success": True}), 200
 
     except Exception as e:
-        print("❌ Erro no webhook Simplix:", e)
+        print(f"❌ Erro no webhook Simplix: {e}")
         return jsonify({"erro": str(e)}), 500
 
 
 def atualizar_status(transaction_id, descricao):
     try:
         if not transaction_id:
-            print("⚠️ Webhook sem transactionId.")
+            print("⚠️ Webhook sem transactionId, ignorando.")
             return
+
         conn = get_conn()
         c = conn.cursor()
+        ph = get_placeholder(conn)
         agora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        c.execute(
-            "UPDATE fila_async SET status=?, ultima_atualizacao=? WHERE transaction_id=?",
-            (descricao, agora, transaction_id)
-        )
+
+        query = "UPDATE fila_async SET status={p}, ultima_atualizacao={p} WHERE transaction_id={p}".format(p=ph)
+        c.execute(query, (descricao, agora, transaction_id))
         conn.commit()
         conn.close()
-        print(f"✅ Fila atualizada: {transaction_id} → {descricao}")
+
+        print(f"✅ Transaction {transaction_id} atualizada com: {descricao}")
+
     except Exception as e:
-        print(f"⚠️ Erro no update assíncrono: {e}")
+        print(f"❌ Erro no update assíncrono: {e}")
 
 @app.route("/health")
 def health():
