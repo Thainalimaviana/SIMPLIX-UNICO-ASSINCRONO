@@ -57,9 +57,9 @@ def init_db():
     c = conn.cursor()
     ph = get_placeholder(conn)
 
-    c.execute(f"""
+    c.execute("""
         CREATE TABLE IF NOT EXISTS users (
-            id {'INTEGER PRIMARY KEY AUTOINCREMENT' if isinstance(conn, sqlite3.Connection) else 'SERIAL PRIMARY KEY'},
+            id SERIAL PRIMARY KEY,
             nome TEXT NOT NULL UNIQUE,
             senha TEXT NOT NULL,
             role TEXT DEFAULT 'user',
@@ -67,9 +67,9 @@ def init_db():
         )
     """)
 
-    c.execute(f"""
+    c.execute("""
         CREATE TABLE IF NOT EXISTS fila_async (
-            id {'INTEGER PRIMARY KEY AUTOINCREMENT' if isinstance(conn, sqlite3.Connection) else 'SERIAL PRIMARY KEY'},
+            id SERIAL PRIMARY KEY,
             transaction_id TEXT,
             cpf TEXT,
             status TEXT DEFAULT 'Aguardando Webhook',
@@ -79,9 +79,9 @@ def init_db():
         )
     """)
 
-    c.execute(f"""
+    c.execute("""
         CREATE TABLE IF NOT EXISTS esteira (
-            id {'INTEGER PRIMARY KEY AUTOINCREMENT' if isinstance(conn, sqlite3.Connection) else 'SERIAL PRIMARY KEY'},
+            id SERIAL PRIMARY KEY,
             digitador TEXT NOT NULL,
             cpf TEXT NOT NULL,
             bancarizadora TEXT,
@@ -105,7 +105,6 @@ def init_db():
     conn.commit()
     conn.close()
 
-
 @app.before_request
 def ensure_db():
     if not hasattr(app, "_db_initialized"):
@@ -115,7 +114,6 @@ def ensure_db():
         except Exception as e:
             print(f"⚠️ Erro ao inicializar banco: {e}")
         app._db_initialized = True
-
 
 @app.route("/", methods=["GET", "POST"])
 def login():
@@ -140,6 +138,7 @@ def login():
 
     return render_template("login.html")
 
+
 @app.route("/logout")
 def logout():
     session.clear()
@@ -156,11 +155,13 @@ def register():
         senha = hash_senha(request.form["senha"])
         role = request.form.get("role", "user")
 
+        conn = get_conn()
+        c = conn.cursor()
+        ph = get_placeholder(conn)
+
         try:
-            conn = get_conn()
-            c = conn.cursor()
-            c.execute("INSERT INTO users (nome, senha, role) VALUES (?, ?, ?)",
-                      (nome, senha, role))
+            query = f"INSERT INTO users (nome, senha, role) VALUES ({ph}, {ph}, {ph})"
+            c.execute(query, (nome, senha, role))
             conn.commit()
             conn.close()
             return redirect(url_for("gerenciar_usuarios"))
@@ -189,7 +190,9 @@ def editar_usuario(user_id):
 
     conn = get_conn()
     c = conn.cursor()
-    c.execute("SELECT id, nome, role, background FROM users WHERE id = ?", (user_id,))
+    ph = get_placeholder(conn)
+    query = f"SELECT id, nome, role, background FROM users WHERE id={ph}"
+    c.execute(query, (user_id,))
     user = c.fetchone()
 
     if not user:
@@ -203,11 +206,11 @@ def editar_usuario(user_id):
 
         if nova_senha.strip():
             senha_hash = hash_senha(nova_senha)
-            c.execute("UPDATE users SET nome = ?, senha = ?, background = ? WHERE id = ?",
-                      (novo_nome, senha_hash, novo_background, user_id))
+            query = f"UPDATE users SET nome={ph}, senha={ph}, background={ph} WHERE id={ph}"
+            c.execute(query, (novo_nome, senha_hash, novo_background, user_id))
         else:
-            c.execute("UPDATE users SET nome = ?, background = ? WHERE id = ?",
-                      (novo_nome, novo_background, user_id))
+            query = f"UPDATE users SET nome={ph}, background={ph} WHERE id={ph}"
+            c.execute(query, (novo_nome, novo_background, user_id))
 
         conn.commit()
         conn.close()
@@ -224,7 +227,9 @@ def excluir_usuario(user_id):
 
     conn = get_conn()
     c = conn.cursor()
-    c.execute("DELETE FROM users WHERE id = ?", (user_id,))
+    ph = get_placeholder(conn)
+    query = f"DELETE FROM users WHERE id={ph}"
+    c.execute(query, (user_id,))
     conn.commit()
     conn.close()
     return redirect(url_for("gerenciar_usuarios"))
@@ -268,19 +273,19 @@ def obter_token():
         TOKEN = gerar_token()
     return TOKEN
 
-
 def limpar_fila_antiga():
     try:
         conn = get_conn()
         c = conn.cursor()
+        ph = get_placeholder(conn)
         limite = (datetime.now() - timedelta(days=2)).strftime("%Y-%m-%d %H:%M:%S")
-        c.execute("DELETE FROM fila_async WHERE data_inclusao < ?", (limite,))
+        query = f"DELETE FROM fila_async WHERE data_inclusao < {ph}"
+        c.execute(query, (limite,))
         conn.commit()
         conn.close()
-        print("🧹 Fila limpa (registros antigos removidos).")
+        print(" Fila limpa (registros antigos removidos).")
     except Exception as e:
-        print(f"⚠️ Erro ao limpar fila: {e}")
-
+        print(f" Erro ao limpar fila: {e}")
 
 @app.route("/simplix-passo12", methods=["POST"])
 def simplix_passo12():
@@ -318,10 +323,13 @@ def simplix_passo12():
         agora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         conn = get_conn()
         c = conn.cursor()
-        c.execute("""
+        ph = get_placeholder(conn)
+
+        query = f"""
             INSERT INTO fila_async (transaction_id, cpf, status, usuario, data_inclusao, ultima_atualizacao)
-            VALUES (?, ?, ?, ?, ?, ?)
-        """, (transaction_id, cpf, "Aguardando Webhook", usuario, agora, agora))
+            VALUES ({ph}, {ph}, {ph}, {ph}, {ph}, {ph})
+        """
+        c.execute(query, (transaction_id, cpf, "Aguardando Webhook", usuario, agora, agora))
         conn.commit()
         conn.close()
 
@@ -338,49 +346,6 @@ def simplix_passo12():
         print(f"❌ Erro no /simplix-passo12: {e}")
         return jsonify({"erro": str(e)}), 500
 
-@app.route("/webhook-simplix", methods=["POST"])
-def webhook_simplix():
-    try:
-        data = request.get_json(force=True)
-        print(f"📬 Webhook recebido: {json.dumps(data, indent=2, ensure_ascii=False)}")
-
-        transaction_id = data.get("transactionId") or data.get("objectReturn", {}).get("transactionId")
-
-        descricao = (
-            data.get("objectReturn", {}).get("description")
-            or data.get("description")
-            or data.get("observacao")
-            or "Sem descrição"
-        )
-
-        if "Simulação disponível" in descricao:
-            retorno = data.get("objectReturn", {}).get("retornoSimulacao", [])
-            if retorno and isinstance(retorno, list):
-                bancas = [item.get("bancarizadora") for item in retorno if item.get("bancarizadora")]
-                if bancas:
-                    descricao = f"Simulação disponível {bancas[0].upper()}"
-
-        if not transaction_id:
-            print("⚠️ Webhook sem transactionId.")
-            return jsonify({"erro": "Webhook inválido"}), 400
-
-        conn = get_conn()
-        c = conn.cursor()
-        agora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        c.execute(
-            "UPDATE fila_async SET status=?, ultima_atualizacao=? WHERE transaction_id=?",
-            (descricao, agora, transaction_id)
-        )
-        conn.commit()
-        conn.close()
-
-        print(f"✅ Fila atualizada: {transaction_id} → {descricao}")
-        return jsonify({"success": True}), 200
-
-    except Exception as e:
-        print(f"❌ Erro no webhook Simplix: {e}")
-        return jsonify({"erro": str(e)}), 500
-
 @app.route("/fila")
 def visualizar_fila():
     if "user" not in session:
@@ -392,15 +357,18 @@ def visualizar_fila():
 
     conn = get_conn()
     c = conn.cursor()
+    ph = get_placeholder(conn)
+
     c.execute("SELECT COUNT(*) FROM fila_async")
     total_registros = c.fetchone()[0]
 
-    c.execute("""
+    query = f"""
         SELECT transaction_id, cpf, status, usuario, data_inclusao, ultima_atualizacao
         FROM fila_async
         ORDER BY id DESC
-        LIMIT ? OFFSET ?
-    """, (por_pagina, offset))
+        LIMIT {ph} OFFSET {ph}
+    """
+    c.execute(query, (por_pagina, offset))
     registros = c.fetchall()
     conn.close()
 
@@ -410,134 +378,29 @@ def visualizar_fila():
                            pagina=pagina,
                            total_paginas=total_paginas)
 
-
-@app.route("/simulate/<transaction_id>")
-def simulate(transaction_id):
-    if "user" not in session:
-        return redirect(url_for("login"))
-
-    token = obter_token()
-    headers = {"Authorization": f"Bearer {token}", "Accept": "application/json"}
-
+@app.route("/excluir-fila/<transaction_id>", methods=["POST"])
+def excluir_fila(transaction_id):
     try:
+        transaction_id = transaction_id.strip()
         conn = get_conn()
         c = conn.cursor()
-        c.execute("SELECT status FROM fila_async WHERE transaction_id=?", (transaction_id,))
-        row = c.fetchone()
+        ph = get_placeholder(conn)
+        query = f"DELETE FROM fila_async WHERE TRIM(transaction_id)={ph}"
+        c.execute(query, (transaction_id,))
+        conn.commit()
+        linhas = c.rowcount
         conn.close()
 
-        status = row[0] if row else "Status desconhecido"
-        print(f"🔍 TransactionID={transaction_id} | Status={status}")
-
-        if not status or not any(palavra in status.lower() for palavra in ["simulação disponível", "saldo", "autorizado"]):
-            return render_template(
-                "simulate.html",
-                mensagem=f"❌ {status}",
-                tabelas=None,
-                transaction_id=transaction_id
-            )
-
-        banco_alvo = None
-        if "simulação disponível" in status.lower():
-            partes = status.split()
-            banco_alvo = partes[-1].strip().upper() if len(partes) > 2 else None
-
-        resp = requests.get(f"{API_ASYNC_RESULT}?transactionId={transaction_id}", headers=headers, timeout=60)
-        data = resp.json()
-        retorno = data.get("objectReturn", {}).get("retornoSimulacao", [])
-        descricao = data.get("objectReturn", {}).get("description", "Sem descrição")
-
-        if not retorno:
-            return render_template(
-                "simulate.html",
-                mensagem=f"⚠️ {descricao or 'Nenhuma simulação encontrada.'}",
-                tabelas=None,
-                transaction_id=transaction_id
-            )
-
-        tabelas = []
-        for t in retorno:
-            bancarizadora = t.get("bancarizadora", "").upper()
-            if banco_alvo and banco_alvo not in bancarizadora:
-                continue
-            tabelas.append({
-                "bancarizadora": bancarizadora,
-                "tabelaTitulo": t.get("tabelaTitulo"),
-                "tabelaId": t.get("tabelaId"),
-                "simulationId": t.get("simulationId"),
-                "valorLiquido": t.get("valorLiquido", 0),
-                "taxa": (t.get("detalhes") or {}).get("taxa", 0),
-                "parcelas": (t.get("detalhes") or {}).get("parcelas", [])
-            })
-
-        if not tabelas:
-            return render_template(
-                "simulate.html",
-                mensagem=f"⚠️ Nenhuma tabela disponível para {banco_alvo or 'essa simulação'}.",
-                tabelas=None,
-                transaction_id=transaction_id
-            )
-
-        print(f"✅ {len(tabelas)} tabelas carregadas para {banco_alvo or 'todas as bancarizadoras'}")
-        return render_template(
-            "simulate.html",
-            tabelas=tabelas,
-            transaction_id=transaction_id,
-            mensagem=f"Tabelas disponíveis para {banco_alvo or 'todas as bancarizadoras'}"
-        )
+        if linhas > 0:
+            print(f"🗑️ CPF removido da fila: {transaction_id}")
+            return jsonify({"success": True, "mensagem": f"Registro {transaction_id} removido com sucesso."}), 200
+        else:
+            print(f"⚠️ Nenhum registro encontrado com TransactionID={transaction_id}")
+            return jsonify({"success": False, "erro": "Registro não encontrado."}), 404
 
     except Exception as e:
-        print(f"❌ Erro ao buscar simulação: {e}")
-        return render_template(
-            "simulate.html",
-            mensagem=f"Erro ao buscar simulação: {e}",
-            tabelas=None
-        )
-
-@app.route("/simplix-cadastrar", methods=["POST"])
-def simplix_cadastrar():
-    try:
-        payload = request.get_json(force=True)
-        token = obter_token()
-        headers = {
-            "Authorization": f"Bearer {token}",
-            "Accept": "application/json",
-            "Content-Type": "application/json"
-        }
-
-        print("\n📤 Enviando para /Proposal/Create Simplix...")
-        print(json.dumps(payload, indent=2, ensure_ascii=False))
-
-        resp = requests.post("https://simplix-integration.partner1.com.br/api/Proposal/Create",
-                             headers=headers, json=payload, timeout=90)
-        print(f"📥 Status: {resp.status_code}")
-        print(f"📥 Resposta: {resp.text}")
-
-        data = resp.json()
-
-        if resp.status_code == 200 and data.get("success", False):
-            conn = get_conn()
-            c = conn.cursor()
-            digitador = session.get("user", "Desconhecido")
-            cpf = payload["cliente"]["cpf"]
-            tabela_nome = payload.get("operacao", {}).get("tabelaTitulo", "Não informado")
-            valor_contrato = payload.get("operacao", {}).get("valorLiquido", 0)
-            data_hora = datetime.now().strftime("%d/%m/%Y %H:%M")
-
-            c.execute("""
-                INSERT INTO esteira (digitador, cpf, bancarizadora, data_hora, valor_contrato)
-                VALUES (?, ?, ?, ?, ?)
-            """, (digitador, cpf, tabela_nome, data_hora, valor_contrato))
-            conn.commit()
-            conn.close()
-            print(f"📦 Proposta salva na esteira: {cpf} ({valor_contrato})")
-
-        return jsonify(data), resp.status_code
-
-    except Exception as e:
-        print(f"❌ Erro no /simplix-cadastrar: {e}")
-        return jsonify({"erro": str(e)}), 500
-
+        print(f"❌ Erro ao excluir da fila: {e}")
+        return jsonify({"success": False, "erro": str(e)}), 500
 
 @app.route("/index")
 def index():
@@ -569,13 +432,14 @@ def cadastrar():
         return redirect(url_for("login"))
     return render_template("cadastrar.html")
 
-
 @app.route("/excluir-proposta/<cpf>", methods=["POST"])
 def excluir_proposta(cpf):
     try:
         conn = get_conn()
         c = conn.cursor()
-        c.execute("DELETE FROM esteira WHERE cpf = ?", (cpf,))
+        ph = get_placeholder(conn)
+        query = f"DELETE FROM esteira WHERE cpf={ph}"
+        c.execute(query, (cpf,))
         conn.commit()
         conn.close()
         print(f"🗑️ Proposta excluída: {cpf}")
@@ -584,32 +448,9 @@ def excluir_proposta(cpf):
         print(f"❌ Erro ao excluir proposta: {e}")
         return jsonify({"success": False, "erro": str(e)}), 500
 
-
 @app.route("/home")
 def home():
     return redirect(url_for("index"))
-
-@app.route("/excluir-fila/<transaction_id>", methods=["POST"])
-def excluir_fila(transaction_id):
-    try:
-        transaction_id = transaction_id.strip() 
-        conn = get_conn()
-        c = conn.cursor()
-        c.execute("DELETE FROM fila_async WHERE TRIM(transaction_id) = ?", (transaction_id,))
-        conn.commit()
-        linhas = c.rowcount
-        conn.close()
-
-        if linhas > 0:
-            print(f"🗑️ CPF removido da fila: {transaction_id}")
-            return jsonify({"success": True, "mensagem": f"Registro {transaction_id} removido com sucesso."}), 200
-        else:
-            print(f"⚠️ Nenhum registro encontrado com TransactionID={transaction_id}")
-            return jsonify({"success": False, "erro": "Registro não encontrado."}), 404
-
-    except Exception as e:
-        print(f"❌ Erro ao excluir da fila: {e}")
-        return jsonify({"success": False, "erro": str(e)}), 500
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=8600)
