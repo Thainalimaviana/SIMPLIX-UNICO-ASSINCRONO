@@ -460,7 +460,17 @@ def index():
 def cadastrar():
     if "user" not in session:
         return redirect(url_for("login"))
-    return render_template("cadastrar.html")
+
+    transaction_id = request.args.get("transactionId")
+    tabela_id = request.args.get("tabelaId")
+    bancarizadora = request.args.get("bancarizadora")
+
+    return render_template(
+        "cadastrar.html",
+        transaction_id=transaction_id,
+        tabela_id=tabela_id,
+        bancarizadora=bancarizadora
+    )
 
 @app.route("/excluir-proposta/<cpf>", methods=["POST"])
 def excluir_proposta(cpf):

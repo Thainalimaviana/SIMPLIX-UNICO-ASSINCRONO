@@ -2,193 +2,196 @@
 <html lang="pt-BR">
 
 <head>
-    <meta charset="UTF-8">
-    <title>Fila Simplix - FGTS</title>
-    <link rel="stylesheet" href="/static/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Tomorrow&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <title>Fila Simplix - FGTS</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Tomorrow&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" rel="stylesheet">
 </head>
 
 <body class="pagina">
-    <button class="menu-toggle" id="menuToggle"><i class="fa fa-bars"></i></button>
+  <button class="menu-toggle" id="menuToggle"><i class="fa fa-bars"></i></button>
 
-    <div class="sidebar" id="sidebar">
-        <div>
-            <div class="logo">SIMPLIX 🎃</div>
-            <div class="user-info">
-                <h3>{{ session["user"] }}</h3>
-                <span>{{ session["role"] }}</span>
-            </div>
-            <ul class="menu">
-                <li><a href="/index">▸ Dashboard</a></li>
-                <li><a href="/cadastrar">▸ Cadastrar Cliente</a></li>
-                <li><a href="/esteira">▸ Esteira</a></li>
-                {% if session['role'] == 'admin' %}
-                <li><a href="/usuarios">▸ Gerenciar Usuários</a></li>
-                <li><a href="/register">▸ Criar Usuário</a></li>
-                {% endif %}
-            </ul>
-        </div>
-        <div class="menu-footer">
-            <button id="toggle-theme"><i class="fa fa-moon"></i> Tema</button>
-            <a href="/logout" class="logout">▸ Sair</a>
-        </div>
+  <div class="sidebar" id="sidebar">
+    <div>
+      <div class="logo">SIMPLIX 🎃</div>
+      <div class="user-info">
+        <h3>{{ session["user"] }}</h3>
+        <span>{{ session["role"] }}</span>
+      </div>
+      <ul class="menu">
+        <li><a href="/index">▸ Dashboard</a></li>
+        <li><a href="/esteira">▸ Esteira</a></li>
+        {% if session['role'] == 'admin' %}
+        <li><a href="/usuarios">▸ Gerenciar Usuários</a></li>
+        <li><a href="/register">▸ Criar Usuário</a></li>
+        {% endif %}
+      </ul>
     </div>
-
-    <div class="content">
-        <h1 class="titulo-tomorrow">Fila Simplix - FGTS 👻</h1>
-
-        <div class="container">
-            <form id="form-consulta">
-                <div class="input-wrapper">
-                    <input type="text" id="cpf" name="cpf" class="barra-cpf" placeholder="Digite o CPF" required>
-                    <span id="loading" class="loading-spinner"></span>
-                </div>
-
-                <div class="button-group">
-                    <button class="azul" type="submit"><i class="fa fa-play"></i> Enviar para Fila</button>
-                    <button id="btn-limpar" class="vermelho" type="button"><i class="fa fa-trash"></i> Limpar</button>
-                </div>
-            </form>
-
-            <div id="mensagem-status" style="margin-top:15px;font-weight:600;"></div>
-
-            <div class="resultado" id="fila-container">
-                <h3>📋 Fila de Consultas</h3>
-                <div class="area-tabelas" id="lista-fila"></div>
-            </div>
-        </div>
+    <div class="menu-footer">
+      <button id="toggle-theme"><i class="fa fa-moon"></i> Tema</button>
+      <a href="/logout" class="logout">▸ Sair</a>
     </div>
+  </div>
 
-    <script>
-        const menuToggle = document.getElementById("menuToggle");
-        const sidebar = document.getElementById("sidebar");
-        const content = document.querySelector(".content");
-        menuToggle.addEventListener("click", () => {
-            sidebar.classList.toggle("active");
-            content.classList.toggle("active");
-            menuToggle.classList.toggle("mover");
+  <div class="content">
+    <h1 class="titulo-tomorrow">Fila Simplix - FGTS 👻</h1>
+
+    <div class="container">
+      <form id="form-consulta">
+        <div class="input-wrapper">
+          <input type="text" id="cpf" name="cpf" class="barra-cpf" placeholder="Digite o CPF" required>
+          <span id="loading" class="loading-spinner"></span>
+        </div>
+
+        <div class="button-group">
+          <button class="azul" type="submit"><i class="fa fa-play"></i> Enviar para Fila</button>
+          <button id="btn-limpar" class="vermelho" type="button"><i class="fa fa-trash"></i> Limpar</button>
+        </div>
+      </form>
+
+      <div id="mensagem-status" style="margin-top:15px;font-weight:600;"></div>
+
+      <div class="resultado" id="fila-container">
+        <h3> Fila de Consultas</h3>
+        <div class="area-tabelas" id="lista-fila"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const menuToggle = document.getElementById("menuToggle");
+    const sidebar = document.getElementById("sidebar");
+    const content = document.querySelector(".content");
+
+    menuToggle.addEventListener("click", () => {
+      sidebar.classList.toggle("active");
+      content.classList.toggle("active");
+      menuToggle.classList.toggle("mover");
+    });
+
+    const toggleTheme = document.getElementById("toggle-theme");
+    toggleTheme.addEventListener("click", () => {
+      document.body.classList.toggle("dark-mode");
+      const icon = toggleTheme.querySelector("i");
+      icon.classList.toggle("fa-moon");
+      icon.classList.toggle("fa-sun");
+    });
+
+    const form = document.getElementById("form-consulta");
+    const spinner = document.getElementById("loading");
+    const mensagemStatus = document.getElementById("mensagem-status");
+    const listaFila = document.getElementById("lista-fila");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const cpf = document.getElementById("cpf").value.replace(/\D/g, "");
+      if (!cpf) return alert("Digite um CPF válido!");
+      spinner.style.display = "inline-block";
+
+      try {
+        const res = await fetch("/simplix-passo12", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ cpf })
         });
-        document.getElementById("toggle-theme").addEventListener("click", () => {
-            document.body.classList.toggle("dark-mode");
-            const icon = toggleTheme.querySelector("i");
-            icon.classList.toggle("fa-moon");
-            icon.classList.toggle("fa-sun");
-        });
+        const data = await res.json();
 
-        const form = document.getElementById("form-consulta");
-        const spinner = document.getElementById("loading");
-        const mensagemStatus = document.getElementById("mensagem-status");
-        const listaFila = document.getElementById("lista-fila");
+        if (res.ok) {
+          mensagemStatus.textContent = `✅ CPF ${cpf} adicionado à fila (Transaction ID: ${data.transactionId})`;
+          carregarFila();
+        } else {
+          mensagemStatus.textContent = `❌ Erro: ${data.mensagem || data.erro || 'Falha ao adicionar à fila.'}`;
+        }
+      } catch (err) {
+        mensagemStatus.textContent = "Erro de conexão com o servidor.";
+      } finally {
+        spinner.style.display = "none";
+      }
+    });
 
-        form.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const cpf = document.getElementById("cpf").value.replace(/\D/g, "");
-            if (!cpf) return alert("Digite um CPF válido!");
-            spinner.style.display = "inline-block";
+    async function carregarFila() {
+      try {
+        const res = await fetch("/api/fila-atualizada");
+        const dados = await res.json();
 
-            try {
-                const res = await fetch("/simplix-passo12", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ cpf })
-                });
-                const data = await res.json();
-
-                if (res.ok) {
-                    mensagemStatus.textContent = `✅ CPF ${cpf} adicionado à fila (Transaction ID: ${data.transactionId})`;
-                    carregarFila();
-                } else {
-                    mensagemStatus.textContent = `❌ Erro: ${data.mensagem || data.erro || 'Falha ao adicionar à fila.'}`;
-                }
-            } catch (err) {
-                mensagemStatus.textContent = "Erro de conexão com o servidor.";
-            } finally {
-                spinner.style.display = "none";
-            }
-        });
-
-        async function carregarFila() {
-            try {
-                const res = await fetch("/api/fila-atualizada");
-                const dados = await res.json();
-
-                if (!dados.length) {
-                    listaFila.innerHTML = "<p>Nenhum item na fila.</p>";
-                    return;
-                }
-
-                let html = `
-                    <table class="tabela-fila">
-                        <thead>
-                            <tr>
-                                <th>Transaction ID</th>
-                                <th>CPF</th>
-                                <th>Status</th>
-                                <th>Ação</th>
-                                <th>Usuário</th>
-                                <th>Incluído em</th>
-                                <th>Atualizado em</th>
-                                <th>Excluir</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                `;
-
-                dados.forEach(item => {
-                    const statusClass =
-                        item.status.includes("Simulação disponível") ? "sucesso" :
-                            item.status.includes("Erro") ? "erro" :
-                                "aguardando";
-
-                    html += `
-                        <tr data-tid="${item.transaction_id}">
-                            <td title="${item.transaction_id}">${item.transaction_id.slice(0, 10)}...</td>
-                            <td>${item.cpf}</td>
-                            <td><span class="status ${statusClass}">${item.status}</span></td>
-                            <td>
-                                ${item.status.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().includes("simulacao disponivel")
-                                    ? `<a href="/simulate/${item.transaction_id}" class="btn-simular"><i class="fa fa-play"></i> Simular</a>`
-                                    : `<button class="btn-simular desativado" disabled><i class="fa fa-play"></i> Simular</button>`
-                                }
-                            </td>
-                            <td>${item.usuario}</td>
-                            <td>${item.data_inclusao}</td>
-                            <td>${item.ultima_atualizacao || "-"}</td>
-                            <td><button class="btn-excluir" onclick="excluirDaFila('${item.transaction_id}')"><i class="fa fa-times"></i></button></td>
-                        </tr>
-                    `;
-                });
-
-                html += "</tbody></table>";
-                listaFila.innerHTML = html;
-            } catch (err) {
-                listaFila.innerHTML = "⚠️ Erro ao carregar fila.";
-                console.error("Erro carregarFila:", err);
-            }
+        if (!dados.length) {
+          listaFila.innerHTML = "<p>Nenhum item na fila.</p>";
+          return;
         }
 
-        setInterval(carregarFila, 8000);
-        window.onload = carregarFila;
+        let html = `
+          <table class="tabela-fila">
+            <thead>
+              <tr>
+                <th>Transaction ID</th>
+                <th>CPF</th>
+                <th>Status</th>
+                <th>Ação</th>
+                <th>Usuário</th>
+                <th>Incluído em</th>
+                <th>Atualizado em</th>
+                <th>Excluir</th>
+              </tr>
+            </thead>
+            <tbody>
+        `;
 
-        document.getElementById("btn-limpar").addEventListener("click", () => {
-            document.getElementById("cpf").value = "";
-            mensagemStatus.textContent = "";
+        dados.forEach(item => {
+          const statusClass =
+            item.status.includes("Simulação disponível") ? "sucesso" :
+            item.status.includes("Erro") ? "erro" :
+            "aguardando";
+
+          html += `
+            <tr data-tid="${item.transaction_id}">
+              <td title="${item.transaction_id}">${item.transaction_id.slice(0, 10)}...</td>
+              <td>${item.cpf}</td>
+              <td><span class="status ${statusClass}">${item.status}</span></td>
+              <td>
+                ${item.status.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().includes("simulacao disponivel")
+                  ? `<a href="/simulate/${item.transaction_id}" class="btn-simular"><i class="fa fa-play"></i> Simular</a>`
+                  : `<button class="btn-simular desativado" disabled><i class="fa fa-play"></i> Simular</button>`}
+              </td>
+              <td>${item.usuario}</td>
+              <td>${item.data_inclusao}</td>
+              <td>${item.ultima_atualizacao || "-"}</td>
+              <td>
+                <button class="btn-excluir" onclick="excluirDaFila('${item.transaction_id}')">
+                  <i class="fa fa-times"></i>
+                </button>
+              </td>
+            </tr>
+          `;
         });
 
-        window.excluirDaFila = function (transactionId) {
-            fetch(`/excluir-fila/${transactionId}`, { method: "POST" })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) carregarFila();
-                    else console.warn("Erro ao excluir:", data.erro);
-                })
-                .catch(err => console.error("❌ Erro ao excluir:", err));
-        };
-    </script>
+        html += "</tbody></table>";
+        listaFila.innerHTML = html;
+      } catch (err) {
+        listaFila.innerHTML = "⚠️ Erro ao carregar fila.";
+        console.error("Erro carregarFila:", err);
+      }
+    }
 
+    setInterval(carregarFila, 8000);
+    window.onload = carregarFila;
+
+    document.getElementById("btn-limpar").addEventListener("click", () => {
+      document.getElementById("cpf").value = "";
+      mensagemStatus.textContent = "";
+    });
+
+    window.excluirDaFila = function (transactionId) {
+      fetch(`/excluir-fila/${transactionId}`, { method: "POST" })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) carregarFila();
+          else console.warn("Erro ao excluir:", data.erro);
+        })
+        .catch(err => console.error("❌ Erro ao excluir:", err));
+    };
+  </script>
 </body>
-
 </html>

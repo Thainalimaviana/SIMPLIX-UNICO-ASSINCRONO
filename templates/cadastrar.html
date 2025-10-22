@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
   <meta charset="UTF-8">
   <title>Cadastrar Cliente</title>
@@ -11,10 +10,11 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
+      min-height: 100vh;
       background: linear-gradient(40deg, var(--gradiente-inicio), var(--gradiente-fim));
       font-family: 'Poppins', sans-serif;
       color: #fff;
+      padding: 20px;
     }
 
     .container {
@@ -23,16 +23,13 @@
       padding: 30px;
       border-radius: 20px;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-      width: 600px;
+      width: 700px;
       text-align: center;
       overflow-y: auto;
       max-height: 95vh;
-      margin-top: 40px;
     }
 
-    input,
-    select,
-    button {
+    input, select, button {
       width: 100%;
       margin: 8px 0;
       padding: 12px 18px;
@@ -43,150 +40,65 @@
       box-sizing: border-box;
     }
 
-    input,
-    select {
+    input, select {
       background: rgba(255, 255, 255, 0.137);
       color: #fff;
       border: 1px solid rgba(255, 255, 255, 0.15);
       outline: none;
     }
 
-    input::placeholder {
-      color: #ccc;
-    }
+    input::placeholder { color: #ccc; }
 
-    input:focus,
-    select:focus {
+    input:focus, select:focus {
       background: rgb(14, 14, 14);
       border-color: rgba(255, 255, 255, 0.35);
       transform: scale(1.02);
     }
 
     button {
-      background-color: #4c94e7;
+      background-color: #00c853;
       color: white;
       font-weight: bold;
       cursor: pointer;
       transition: 0.3s;
+      margin-top: 15px;
     }
 
     button:hover {
-      background-color: #1d6ed8;
+      background-color: #00963d;
       transform: scale(1.03);
     }
 
-    .hidden {
-      display: none;
-    }
-
-    .periodos {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-      gap: 12px;
-      margin-top: 20px;
-      max-height: 400px;
-      overflow-y: auto;
-      padding-right: 8px;
-    }
-
-    .tabela-card {
-      background: rgba(255, 255, 255, 0.08);
-      border-radius: 10px;
-      padding: 10px 14px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-      transition: all 0.25s ease;
-      text-align: center;
-    }
-
-    .tabela-card:hover {
-      background: rgba(255, 255, 255, 0.15);
-      transform: translateY(-3px);
-    }
-
-    .tabela-info h4 {
-      margin: 0;
-      font-size: 14px;
-      color: #fff;
-      font-weight: 600;
-    }
-
-    .tabela-info p {
-      margin: 3px 0;
-      font-size: 12.5px;
-      color: #e0e0e0;
-    }
-
-    .btn-selecionar {
-      background: #4c94e7;
-      border: none;
-      padding: 6px 10px;
-      border-radius: 6px;
-      color: #fff;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      margin-top: 6px;
-      transition: 0.3s;
-      width: 100%;
-    }
-
-    .btn-selecionar:hover {
-      background: #1d6ed8;
-    }
-
-    form#form-cadastro {
-      margin-top: 20px;
-    }
-
-    form#form-cadastro h3,
-    form#form-cadastro h4 {
-      margin-top: 15px;
+    h1 {
+      font-size: 26px;
       margin-bottom: 10px;
+      font-weight: 700;
     }
 
-    form#form-cadastro input,
-    form#form-cadastro select {
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      color: #fff;
-      font-size: 14px;
-      padding: 10px;
-      border-radius: 8px;
-      transition: 0.3s;
-    }
-
-    form#form-cadastro input:focus,
-    form#form-cadastro select:focus {
-      background: rgba(255, 255, 255, 0.22);
-      border-color: rgba(255, 255, 255, 0.35);
-    }
-
-    #btnFinalizar {
-      margin-top: 15px;
-      background-color: #00c853;
-    }
-
-    #btnFinalizar:hover {
-      background-color: #00a043;
-      transform: scale(1.03);
-    }
-
-    .btn-copiar {
-      margin-top: 10px;
-      background: #111;
-      color: #fff;
-      border: none;
-      padding: 12px;
-      width: 100%;
-      border-radius: 10px;
+    h3, h4 {
+      margin-top: 25px;
       font-weight: 600;
-      cursor: pointer;
-      transition: 0.3s;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
     }
 
-    .btn-copiar:hover {
-      background: #333;
+    select option {
+      background-color: #4b0082 !important;
+      color: #fff !important;
+    }
+
+    .btn-voltar {
+      display: inline-block;
+      margin-top: 20px;
+      background: #4c94e7;
+      color: white;
+      padding: 12px 25px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: 0.3s;
+    }
+
+    .btn-voltar:hover {
+      background: #1d6ed8;
     }
 
     .loader {
@@ -201,262 +113,85 @@
       margin-right: 6px;
     }
 
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
-    }
-
-    h1 {
-      font-size: 26px;
-      margin-bottom: 20px;
-      font-weight: 700;
-      text-align: center;
-    }
-
-    select option {
-      background-color: #4b0082 !important;
-      color: #fff !important;
-    }
-
-    select {
-      background-color: rgba(255, 255, 255, 0.15);
-      color: #fff;
-      border: 1px solid rgba(255, 255, 255, 0.25);
-    }
-
-    select:focus {
-      background-color: rgba(255, 255, 255, 0.25);
-      border-color: rgba(255, 255, 255, 0.5);
-      outline: none;
-      transform: scale(1.02);
-    }
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 
 <body>
-  <a href="/index" class="btn-voltar-topo">
-    <i class="fa fa-arrow-left"></i> Voltar
-  </a>
-
   <div class="container">
     <h1>Cadastrar Cliente</h1>
+    <p><strong>Tabela:</strong> {{ tabela_id }} — <strong>{{ bancarizadora }}</strong></p>
+    <p><strong>Transaction ID:</strong> {{ transaction_id }}</p>
 
-    <div id="passo1">
-      <input type="text" id="cpfBusca" placeholder="Digite o CPF do cliente">
-      <button id="btnBuscarCpf">Buscar CPF</button>
-    </div>
-
-    <div id="passo2" class="hidden">
-      <h3>Selecione os períodos disponíveis:</h3>
-      <div id="lista-periodos" class="periodos"></div>
-      <button class="btn-voltar" id="voltar1">Voltar</button>
-    </div>
-
-    <form id="form-cadastro" class="hidden">
+    <form id="form-cadastro">
       <h3>Dados do Cliente</h3>
-      <div class="form-grid">
-        <input type="text" name="rg" id="rg" placeholder="RG" required>
-        <input type="text" name="nome" placeholder="Nome completo" required>
-        <input type="email" name="email" id="email" placeholder="Email" required>
-        <input type="text" name="telefone" id="telefone" placeholder="Telefone (ex: 5511999999999)" required>
-        <input type="text" name="ocupacao" placeholder="Cargo" required>
-        <select name="estadoCivil" id="estadoCivil" required>
-          <option value="">Estado civil</option>
-          <option value="Solteiro">Solteiro</option>
-          <option value="Casado">Casado</option>
-          <option value="Divorciado">Divorciado</option>
-          <option value="Viúvo">Viúvo</option>
-          <option value="União Estável">União Estável</option>
-        </select>
-        <select name="nacionalidade" id="nacionalidade" required>
-          <option value="">Nacionalidade</option>
-          <option value="Brasileiro">Brasileiro</option>
-          <option value="Estrangeiro">Estrangeiro</option>
-        </select>
-        <input type="date" name="dataDeNascimento" required>
-      </div>
+      <input type="text" name="rg" placeholder="RG" required>
+      <input type="text" name="nome" placeholder="Nome completo" required>
+      <input type="email" name="email" placeholder="Email" required>
+      <input type="text" name="telefone" placeholder="Telefone (ex: 5511999999999)" required>
+      <input type="text" name="ocupacao" placeholder="Cargo" required>
+      <select name="estadoCivil" required>
+        <option value="">Estado civil</option>
+        <option value="Solteiro">Solteiro</option>
+        <option value="Casado">Casado</option>
+        <option value="Divorciado">Divorciado</option>
+        <option value="Viúvo">Viúvo</option>
+        <option value="União Estável">União Estável</option>
+      </select>
+      <select name="nacionalidade" required>
+        <option value="">Nacionalidade</option>
+        <option value="Brasileiro">Brasileiro</option>
+        <option value="Estrangeiro">Estrangeiro</option>
+      </select>
+      <input type="date" name="dataDeNascimento" required>
 
       <h4>Endereço</h4>
-      <div class="form-grid">
-        <input type="text" name="cep" placeholder="CEP" required>
-        <input type="text" name="logradouro" placeholder="Rua / Logradouro" required>
-        <input type="text" name="numero" placeholder="Número" required>
-        <input type="text" name="bairro" placeholder="Bairro" required>
-        <input type="text" name="cidade" placeholder="Cidade" required>
-        <input type="text" name="estado" placeholder="UF" maxlength="2" required>
-        <input type="text" name="complemento" placeholder="Complemento / Observação">
-      </div>
+      <input type="text" name="cep" placeholder="CEP" required>
+      <input type="text" name="logradouro" placeholder="Rua / Logradouro" required>
+      <input type="text" name="numero" placeholder="Número" required>
+      <input type="text" name="bairro" placeholder="Bairro" required>
+      <input type="text" name="cidade" placeholder="Cidade" required>
+      <input type="text" name="estado" placeholder="UF" maxlength="2" required>
+      <input type="text" name="complemento" placeholder="Complemento / Observação">
 
       <h4>Conta Bancária</h4>
-      <div class="form-grid">
-        <input type="text" name="codigoDoBanco" placeholder="Código do Banco (ex: 001)" required>
-        <input type="text" name="agencia" placeholder="Agência" required>
-        <input type="text" name="conta" placeholder="Conta" required>
-        <input type="text" name="digitoDaConta" placeholder="Dígito da Conta" required>
-        <select name="tipoDeConta" id="tipoDeConta" required>
-          <option value="">Tipo de conta</option>
-          <option value="ContaCorrente">Conta Corrente</option>
-          <option value="Poupança">Poupança</option>
-          <option value="Salário">Salário</option>
-        </select>
-        <select name="tipoDeOperacao" required>
-          <option value="">Tipo de operação</option>
-          <option value="Transferencia">Transferência</option>
-          <option value="TED">TED</option>
-          <option value="DOC">DOC</option>
-        </select>
-      </div>
+      <input type="text" name="codigoDoBanco" placeholder="Código do Banco (ex: 001)" required>
+      <input type="text" name="agencia" placeholder="Agência" required>
+      <input type="text" name="conta" placeholder="Conta" required>
+      <input type="text" name="digitoDaConta" placeholder="Dígito da Conta" required>
+      <select name="tipoDeConta" required>
+        <option value="">Tipo de conta</option>
+        <option value="ContaCorrente">Conta Corrente</option>
+        <option value="Poupança">Poupança</option>
+        <option value="Salário">Salário</option>
+      </select>
+      <select name="tipoDeOperacao" required>
+        <option value="">Tipo de operação</option>
+        <option value="Transferencia">Transferência</option>
+        <option value="TED">TED</option>
+        <option value="DOC">DOC</option>
+      </select>
 
       <button type="button" id="btnFinalizar">Finalizar Cadastro</button>
-      <button type="button" class="btn-voltar" id="voltar2">Seleção de Tabelas</button>
+      <a href="/index" class="btn-voltar">Voltar</a>
     </form>
-
-    <div id="linkBox" class="hidden">
-      <button id="btnCopiar" class="btn-copiar">Copiar Link</button>
-    </div>
-
-    <pre id="saida" style="margin-top:20px; text-align:left; display:none;"></pre>
   </div>
 
   <script>
-    const passo1 = document.getElementById("passo1");
-    const passo2 = document.getElementById("passo2");
-    const passo3 = document.getElementById("form-cadastro");
-    const listaPeriodos = document.getElementById("lista-periodos");
-    const saida = document.getElementById("saida");
-    const linkBox = document.getElementById("linkBox");
-    const btnCopiar = document.getElementById("btnCopiar");
-    const voltar1 = document.getElementById("voltar1");
-    const voltar2 = document.getElementById("voltar2");
+    const btnFinalizar = document.getElementById("btnFinalizar");
 
-    let tabelaSelecionada = null;
-    let linkProposta = "";
-
-    voltar1.addEventListener("click", () => {
-      passo2.classList.add("hidden");
-      passo1.classList.remove("hidden");
-    });
-
-    voltar2.addEventListener("click", () => {
-      passo3.classList.add("hidden");
-      passo2.classList.remove("hidden");
-    });
-
-    function normalizarCampos() {
-      const rg = document.getElementById("rg");
-      const telefone = document.getElementById("telefone");
-      rg.value = rg.value.replace(/\D/g, "");
-      let tel = telefone.value.replace(/\D/g, "");
-      if (tel.startsWith("0")) tel = tel.slice(1);
-      if (!tel.startsWith("55")) tel = "55" + tel;
-      telefone.value = tel;
-    }
-
-    document.getElementById("btnBuscarCpf").addEventListener("click", async () => {
-      const btn = document.getElementById("btnBuscarCpf");
-      const cpf = document.getElementById("cpfBusca").value.replace(/\D/g, "").trim();
-      if (!cpf) return alert("Digite um CPF válido!");
-
-      btn.disabled = true;
-      btn.innerHTML = `<div class="loader"></div> Consultando...`;
-      saida.textContent = "";
-
-      try {
-        const res = await fetch("/simplix-passo12", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ cpf })
-        });
-        const data = await res.json();
-
-        if (!data.sucesso) {
-          saida.textContent = "❌ Erro: " + (data.mensagem || "Falha na consulta");
-          return;
-        }
-
-        listaPeriodos.innerHTML = "";
-        data.tabelas.forEach((tab, i) => {
-          const card = document.createElement("div");
-          card.classList.add("tabela-card");
-          card.innerHTML = `
-        <div class="tabela-info">
-          <h4>${tab.tabelaTitulo}</h4>
-          <p><strong>Valor Líquido:</strong> R$ ${tab.valorLiquido.toFixed(2)}</p>
-          <p><strong>Taxa:</strong> ${tab.taxa}% | <strong>TC:</strong> ${tab.tc}%</p>
-        </div>
-        <button data-index="${i}" class="btn-selecionar">Selecionar</button>`;
-          listaPeriodos.appendChild(card);
-        });
-
-        passo1.classList.add("hidden");
-        passo2.classList.remove("hidden");
-
-        document.querySelectorAll(".btn-selecionar").forEach(btn => {
-          btn.addEventListener("click", (e) => {
-            const index = e.target.getAttribute("data-index");
-            tabelaSelecionada = data.tabelas[index];
-            passo2.classList.add("hidden");
-            passo3.classList.remove("hidden");
-          });
-        });
-
-      } catch (err) {
-        saida.textContent = "❌ Erro de conexão ou servidor indisponível.";
-      } finally {
-        btn.disabled = false;
-        btn.innerHTML = "Buscar CPF";
-      }
-    });
-
-    document.getElementById("btnFinalizar").addEventListener("click", async () => {
-      normalizarCampos();
-
-      const formData = Object.fromEntries(new FormData(passo3).entries());
-      const cpf = document.getElementById("cpfBusca").value.trim();
-      const btnFinalizar = document.getElementById("btnFinalizar");
+    btnFinalizar.addEventListener("click", async () => {
+      const form = document.getElementById("form-cadastro");
+      const dados = Object.fromEntries(new FormData(form).entries());
 
       btnFinalizar.disabled = true;
-      btnFinalizar.innerHTML = `<div class="loader"></div> Enviando proposta...`;
+      btnFinalizar.innerHTML = `<div class="loader"></div> Enviando...`;
 
       const payload = {
-        cliente: {
-          rg: formData.rg,
-          cpf: cpf,
-          nome: formData.nome,
-          email: formData.email,
-          telefone: formData.telefone,
-          ocupacao: formData.ocupacao,
-          estadoCivil: formData.estadoCivil,
-          nacionalidade: formData.nacionalidade,
-          dataDeNascimento: formData.dataDeNascimento,
-          endereco: {
-            cep: formData.cep,
-            bairro: formData.bairro,
-            cidade: formData.cidade,
-            estado: formData.estado,
-            numero: formData.numero,
-            logradouro: formData.logradouro,
-            complemento: formData.complemento
-          },
-          contaBancaria: {
-            conta: formData.conta,
-            agencia: formData.agencia,
-            tipoDeConta: formData.tipoDeConta,
-            codigoDoBanco: formData.codigoDoBanco,
-            digitoDaConta: formData.digitoDaConta,
-            tipoDeOperacao: formData.tipoDeOperacao
-          }
-        },
-        operacao: {
-          simulationId: tabelaSelecionada.simulationId,
-          periodos: tabelaSelecionada.periodos || tabelaSelecionada.parcelas || []
-        },
-        loginDigitador: "477f702a-4a6f-4b02-b5eb-afcd38da99f8",
-        callback: {
-          url: "https://webhook.site/82d16202-0406-4088-bfd7-82edf9d23497",
-          method: "POST"
-        }
+        cliente: dados,
+        transactionId: "{{ transaction_id }}",
+        tabelaId: "{{ tabela_id }}",
+        bancarizadora: "{{ bancarizadora }}"
       };
 
       try {
@@ -465,33 +200,21 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)
         });
-
         const data = await resp.json();
-        linkProposta = data?.objectReturn?.link || "";
 
-        if (linkProposta) {
+        if (data.success) {
           alert("✅ Cliente cadastrado com sucesso!");
-          linkBox.classList.remove("hidden");
+          window.location.href = "/index";
         } else {
-          alert("Cadastro concluído, mas sem link retornado.");
+          alert("❌ Erro: " + (data.message || "Falha ao cadastrar."));
         }
-
       } catch (err) {
-        alert("❌ Erro ao finalizar o cadastro. Tente novamente.");
+        alert("Erro ao conectar com o servidor.");
       } finally {
         btnFinalizar.disabled = false;
         btnFinalizar.innerHTML = "Finalizar Cadastro";
       }
     });
-
-    btnCopiar.addEventListener("click", () => {
-      if (!linkProposta) return alert("Nenhum link disponível!");
-      navigator.clipboard.writeText(linkProposta).then(() => {
-        btnCopiar.textContent = "Link Copiado!";
-        setTimeout(() => (btnCopiar.textContent = "Copiar Link"), 2000);
-      });
-    });
   </script>
 </body>
-
 </html>

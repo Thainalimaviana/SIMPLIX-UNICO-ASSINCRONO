@@ -60,7 +60,7 @@
             <p><strong>Valor Líquido:</strong> R$ {{ "%.2f"|format(t.valorLiquido) }}</p>
             <p><strong>Taxa:</strong> {{ "%.2f"|format(t.taxa) }}%</p>
             <button class="btn azul"
-              onclick="cadastrarCliente('{{ transaction_id }}', '{{ t.tabelaId }}', '{{ t.bancarizadora }}')">
+              onclick="abrirCadastro('{{ transaction_id }}', '{{ t.tabelaId }}', '{{ t.bancarizadora }}')">
               <i class="fa fa-user-plus"></i> Cadastrar Cliente
             </button>
           </div>
@@ -69,7 +69,7 @@
       </div>
       {% else %}
       <div id="mensagem-sem-saldo" style="text-align:center; margin-top:30px;">
-        <p><strong>Nenhum saldo disponível para este cliente.</strong></p>
+        <p><strong>⚠️ Nenhum saldo disponível para este cliente.</strong></p>
         <p>Verifique se ele é elegível para outra data de aniversário.</p>
         <a href="/index" class="btn azul" style="margin-top:20px;">← Voltar para Fila</a>
       </div>
@@ -78,6 +78,7 @@
   </div>
 
   <script>
+    // Menu lateral
     const menuToggle = document.getElementById("menuToggle");
     const sidebar = document.getElementById("sidebar");
     const content = document.querySelector(".content");
@@ -96,10 +97,10 @@
       icon.classList.toggle("fa-sun");
     });
 
-    function cadastrarCliente(transactionId, tabelaId, bancarizadora) {
+    function abrirCadastro(transactionId, tabelaId, bancarizadora) {
       const confirmar = confirm(`Deseja cadastrar o cliente para ${bancarizadora}?`);
       if (!confirmar) return;
-      window.location.href = `/cadastrar?transactionId=${transactionId}&tabelaId=${tabelaId}`;
+      window.location.href = `/cadastrar?transactionId=${transactionId}&tabelaId=${tabelaId}&bancarizadora=${encodeURIComponent(bancarizadora)}`;
     }
   </script>
 
