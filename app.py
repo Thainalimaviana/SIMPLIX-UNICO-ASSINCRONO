@@ -537,7 +537,7 @@ def health():
 @app.route("/simulate/<transaction_id>")
 def simulate(transaction_id):
     try:
-        token = garantir_token() 
+        token = obter_token()
         url = "https://simplix-integration.partner1.com.br/api/Fgts/simulate"
 
         payload = {"transactionId": transaction_id}
