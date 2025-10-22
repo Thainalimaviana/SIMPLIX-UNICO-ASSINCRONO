@@ -34,6 +34,12 @@ def get_conn():
     return sqlite3.connect(DB_FILE, check_same_thread=False)
 
 
+def get_placeholder(conn):
+    if isinstance(conn, sqlite3.Connection):
+        return "?"
+    return "%s"
+
+
 def hash_senha(senha):
     return generate_password_hash(senha)
 
@@ -45,13 +51,15 @@ def verificar_senha(senha_digitada, senha_hash):
 def is_admin():
     return session.get("role") == "admin"
 
+
 def init_db():
     conn = get_conn()
     c = conn.cursor()
+    ph = get_placeholder(conn)
 
     c.execute("""
         CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             nome TEXT NOT NULL UNIQUE,
             senha TEXT NOT NULL,
             role TEXT DEFAULT 'user',
@@ -61,7 +69,7 @@ def init_db():
 
     c.execute("""
         CREATE TABLE IF NOT EXISTS fila_async (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             transaction_id TEXT,
             cpf TEXT,
             status TEXT DEFAULT 'Aguardando Webhook',
@@ -73,7 +81,7 @@ def init_db():
 
     c.execute("""
         CREATE TABLE IF NOT EXISTS esteira (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             digitador TEXT NOT NULL,
             cpf TEXT NOT NULL,
             bancarizadora TEXT,
@@ -82,37 +90,41 @@ def init_db():
         )
     """)
 
-    c.execute("SELECT * FROM users WHERE role = 'admin'")
+    query = f"SELECT * FROM users WHERE role = {ph}"
+    c.execute(query, ("admin",))
     if not c.fetchone():
         admin_user = "Leonardo"
         admin_pass = hash_senha("Tech@2026")
-        c.execute("INSERT INTO users (nome, senha, role) VALUES (?, ?, ?)",
-                  (admin_user, admin_pass, "admin"))
+        query_insert = f"INSERT INTO users (nome, senha, role) VALUES ({ph}, {ph}, {ph})"
+        c.execute(query_insert, (admin_user, admin_pass, "admin"))
         print("✅ Usuário admin criado: login=Leonardo senha=Tech@2026")
 
     conn.commit()
     conn.close()
 
-
 @app.before_request
 def ensure_db():
+    """Inicializa o banco automaticamente na primeira requisição"""
     if not hasattr(app, "_db_initialized"):
         try:
             init_db()
-            print("✅ Banco inicializado")
+            print("✅ Banco inicializado com sucesso.")
         except Exception as e:
             print(f"⚠️ Erro ao inicializar banco: {e}")
         app._db_initialized = True
-
 
 @app.route("/", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
         nome = request.form["nome"]
         senha = request.form["senha"]
+
         conn = get_conn()
         c = conn.cursor()
-        c.execute("SELECT * FROM users WHERE nome = ?", (nome,))
+        ph = get_placeholder(conn)
+
+        query = f"SELECT * FROM users WHERE nome = {ph}"
+        c.execute(query, (nome,))
         user = c.fetchone()
         conn.close()
 
@@ -123,7 +135,6 @@ def login():
         return render_template("login.html", erro="Login inválido")
 
     return render_template("login.html")
-
 
 @app.route("/logout")
 def logout():
