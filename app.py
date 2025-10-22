@@ -19,7 +19,7 @@ API_LOGIN = "https://simplix-integration.partner1.com.br/api/Login"
 API_SIMULATE = "https://simplix-integration.partner1.com.br/api/Proposal/Simulate"
 API_ASYNC_RESULT = "https://simplix-integration.partner1.com.br/api/Proposal/SimulateAsyncResult"
 API_BALANCE = "https://simplix-integration.partner1.com.br/api/Fgts/balance-request"
-WEBHOOK_URL = "https://webhook.site/b1348a3c-d2fd-45a9-93e3-282c83633587"
+WEBHOOK_URL = "https://simplix-unico-assincrono.onrender.com/webhook-simplix"
 
 TOKEN = ""
 TOKEN_EXPIRA = 0
@@ -308,7 +308,10 @@ def simplix_passo12():
 
     payload = {
         "cpf": cpf,
-        "callBackBalance": {"url": WEBHOOK_URL, "method": "POST"}
+        "callBackBalance": {
+            "url": "https://simplix-unico-assincrono.onrender.com/webhook-simplix",
+            "method": "POST"
+}
     }
 
     try:
@@ -451,6 +454,40 @@ def excluir_proposta(cpf):
 @app.route("/home")
 def home():
     return redirect(url_for("index"))
+
+@app.route("/webhook-simplix", methods=["POST"])
+def webhook_simplix():
+    try:
+        data = request.get_json(force=True)
+        print("📬 Webhook recebido Simplix:")
+        print(json.dumps(data, indent=2, ensure_ascii=False))
+
+        transaction_id = data.get("transactionId") or data.get("objectReturn", {}).get("transactionId")
+        descricao = (
+            data.get("objectReturn", {}).get("description")
+            or data.get("description")
+            or data.get("observacao")
+            or "Sem descrição"
+        )
+
+        conn = get_conn()
+        c = conn.cursor()
+        ph = get_placeholder(conn)
+        agora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        query = f"UPDATE fila_async SET status={ph}, ultima_atualizacao={ph} WHERE transaction_id={ph}"
+        c.execute(query, (descricao, agora, transaction_id))
+        conn.commit()
+        conn.close()
+
+        print(f"✅ Transaction {transaction_id} atualizada com: {descricao}")
+        return jsonify({"success": True}), 200
+
+    except Exception as e:
+        print(f"❌ Erro no webhook Simplix: {e}")
+        return jsonify({"erro": str(e)}), 500
+
+
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=8600)
