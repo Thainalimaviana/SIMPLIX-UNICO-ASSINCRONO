@@ -4,6 +4,7 @@ import requests
 import time
 import json
 import sqlite3
+import threading
 import os
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -381,6 +382,35 @@ def visualizar_fila():
                            pagina=pagina,
                            total_paginas=total_paginas)
 
+@app.route("/api/fila-atualizada")
+def fila_atualizada():
+    try:
+        conn = get_conn()
+        c = conn.cursor()
+        c.execute("""
+            SELECT transaction_id, cpf, status, usuario, data_inclusao, ultima_atualizacao
+            FROM fila_async
+            ORDER BY id DESC
+        """)
+        registros = c.fetchall()
+        conn.close()
+
+        return jsonify([
+            {
+                "transaction_id": r[0],
+                "cpf": r[1],
+                "status": r[2],
+                "usuario": r[3],
+                "data_inclusao": r[4],
+                "ultima_atualizacao": r[5]
+            }
+            for r in registros
+        ])
+    except Exception as e:
+        print(f"❌ Erro ao buscar fila atualizada: {e}")
+        return jsonify([])
+
+
 @app.route("/excluir-fila/<transaction_id>", methods=["POST"])
 def excluir_fila(transaction_id):
     try:
@@ -459,35 +489,47 @@ def home():
 def webhook_simplix():
     try:
         data = request.get_json(force=True)
-        print("📬 Webhook recebido Simplix:")
-        print(json.dumps(data, indent=2, ensure_ascii=False))
-
-        transaction_id = data.get("transactionId") or data.get("objectReturn", {}).get("transactionId")
+        transaction_id = (
+            data.get("transactionId")
+            or data.get("objectReturn", {}).get("transactionId")
+        )
         descricao = (
             data.get("objectReturn", {}).get("description")
             or data.get("description")
             or data.get("observacao")
+            or data.get("statusDescription")
             or "Sem descrição"
         )
 
-        conn = get_conn()
-        c = conn.cursor()
-        ph = get_placeholder(conn)
-        agora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-        query = f"UPDATE fila_async SET status={ph}, ultima_atualizacao={ph} WHERE transaction_id={ph}"
-        c.execute(query, (descricao, agora, transaction_id))
-        conn.commit()
-        conn.close()
-
-        print(f"✅ Transaction {transaction_id} atualizada com: {descricao}")
+        threading.Thread(target=atualizar_status, args=(transaction_id, descricao)).start()
         return jsonify({"success": True}), 200
 
     except Exception as e:
-        print(f"❌ Erro no webhook Simplix: {e}")
+        print("❌ Erro no webhook Simplix:", e)
         return jsonify({"erro": str(e)}), 500
 
 
+def atualizar_status(transaction_id, descricao):
+    try:
+        if not transaction_id:
+            print("⚠️ Webhook sem transactionId.")
+            return
+        conn = get_conn()
+        c = conn.cursor()
+        agora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        c.execute(
+            "UPDATE fila_async SET status=?, ultima_atualizacao=? WHERE transaction_id=?",
+            (descricao, agora, transaction_id)
+        )
+        conn.commit()
+        conn.close()
+        print(f"✅ Fila atualizada: {transaction_id} → {descricao}")
+    except Exception as e:
+        print(f"⚠️ Erro no update assíncrono: {e}")
+
+@app.route("/health")
+def health():
+    return "OK", 200
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=8600)

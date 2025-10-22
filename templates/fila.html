@@ -7,6 +7,16 @@
     <link rel="stylesheet" href="/static/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <style>
+        @keyframes pulse {
+            0% { background-color: rgba(0, 255, 255, 0.3); }
+            100% { background-color: transparent; }
+        }
+        .status.atualizado {
+            animation: pulse 1s ease;
+        }
+    </style>
 </head>
 
 <body class="pagina">
@@ -30,7 +40,7 @@
                 </thead>
                 <tbody>
                     {% for item in registros %}
-                    <tr>
+                    <tr data-tid="{{ item[0] }}">
                         <td title="{{ item[0] }}">{{ item[0][:10] }}...</td>
                         <td>{{ item[1] }}</td>
                         <td>
@@ -83,6 +93,7 @@
 
     <script>
         window.addEventListener("DOMContentLoaded", function () {
+            // Função de exclusão
             window.excluirDaFila = function (transactionId) {
                 const linha = document.querySelector(`button[onclick="excluirDaFila('${transactionId}')"]`).closest("tr");
                 if (linha) linha.remove();
@@ -94,8 +105,30 @@
                     })
                     .catch(err => console.error("❌ Erro ao excluir:", err));
             };
+
+            async function atualizarFila() {
+                try {
+                    const res = await fetch("/api/fila-atualizada");
+                    const dados = await res.json();
+
+                    dados.forEach(item => {
+                        const row = document.querySelector(`[data-tid="${item.transaction_id}"]`);
+                        if (row) {
+                            const statusSpan = row.querySelector(".status");
+                            if (statusSpan && statusSpan.innerText.trim() !== item.status.trim()) {
+                                statusSpan.innerText = item.status;
+                                statusSpan.classList.add("atualizado");
+                                setTimeout(() => statusSpan.classList.remove("atualizado"), 1200);
+                            }
+                        }
+                    });
+                } catch (e) {
+                    console.error("Erro ao atualizar fila:", e);
+                }
+            }
+
+            setInterval(atualizarFila, 10000);
         });
     </script>
 </body>
-
 </html>

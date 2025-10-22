@@ -66,15 +66,12 @@
         const menuToggle = document.getElementById("menuToggle");
         const sidebar = document.getElementById("sidebar");
         const content = document.querySelector(".content");
-
         menuToggle.addEventListener("click", () => {
             sidebar.classList.toggle("active");
             content.classList.toggle("active");
             menuToggle.classList.toggle("mover");
         });
-
-        const toggleTheme = document.getElementById("toggle-theme");
-        toggleTheme.addEventListener("click", () => {
+        document.getElementById("toggle-theme").addEventListener("click", () => {
             document.body.classList.toggle("dark-mode");
             const icon = toggleTheme.querySelector("i");
             icon.classList.toggle("fa-moon");
@@ -115,47 +112,82 @@
 
         async function carregarFila() {
             try {
-                const res = await fetch("/fila?pagina=1");
-                const html = await res.text();
+                const res = await fetch("/api/fila-atualizada");
+                const dados = await res.json();
 
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, "text/html");
-                const tabela = doc.querySelector("table") || doc.querySelector("#fila-tabela");
-                listaFila.innerHTML = tabela ? tabela.outerHTML : "Nenhum item na fila.";
+                if (!dados.length) {
+                    listaFila.innerHTML = "<p>Nenhum item na fila.</p>";
+                    return;
+                }
+
+                let html = `
+                    <table class="tabela-fila">
+                        <thead>
+                            <tr>
+                                <th>Transaction ID</th>
+                                <th>CPF</th>
+                                <th>Status</th>
+                                <th>Ação</th>
+                                <th>Usuário</th>
+                                <th>Incluído em</th>
+                                <th>Atualizado em</th>
+                                <th>Excluir</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                dados.forEach(item => {
+                    const statusClass =
+                        item.status.includes("Simulação disponível") ? "sucesso" :
+                        item.status.includes("Erro") ? "erro" :
+                        "aguardando";
+
+                    html += `
+                        <tr data-tid="${item.transaction_id}">
+                            <td title="${item.transaction_id}">${item.transaction_id.slice(0, 10)}...</td>
+                            <td>${item.cpf}</td>
+                            <td><span class="status ${statusClass}">${item.status}</span></td>
+                            <td>
+                                ${item.status.includes("Simulação disponível")
+                                    ? `<a href="/simulate/${item.transaction_id}" class="btn-simular"><i class="fa fa-play"></i> Simular</a>`
+                                    : `<button class="btn-simular desativado" disabled><i class="fa fa-play"></i> Simular</button>`
+                                }
+                            </td>
+                            <td>${item.usuario}</td>
+                            <td>${item.data_inclusao}</td>
+                            <td>${item.ultima_atualizacao || "-"}</td>
+                            <td><button class="btn-excluir" onclick="excluirDaFila('${item.transaction_id}')"><i class="fa fa-times"></i></button></td>
+                        </tr>
+                    `;
+                });
+
+                html += "</tbody></table>";
+                listaFila.innerHTML = html;
             } catch (err) {
-                listaFila.innerHTML = "Erro ao carregar fila.";
+                listaFila.innerHTML = "⚠️ Erro ao carregar fila.";
+                console.error("Erro carregarFila:", err);
             }
         }
 
-        setInterval(carregarFila, 10000);
+        setInterval(carregarFila, 8000);
         window.onload = carregarFila;
 
         document.getElementById("btn-limpar").addEventListener("click", () => {
             document.getElementById("cpf").value = "";
             mensagemStatus.textContent = "";
         });
-    </script>
-    <script>
+
         window.excluirDaFila = function (transactionId) {
-            console.log("🧨 Clicado:", transactionId);
-
-            const botao = document.querySelector(`button[onclick="excluirDaFila('${transactionId}')"]`);
-            const linha = botao ? botao.closest("tr") : null;
-            if (linha) linha.remove();
-
             fetch(`/excluir-fila/${transactionId}`, { method: "POST" })
                 .then(res => res.json())
                 .then(data => {
-                    if (data.success) {
-                        console.log(`🗑️ Registro ${transactionId} removido da fila.`);
-                    } else {
-                        console.warn(`⚠️ Erro ao excluir: ${data.erro || "Erro desconhecido"}`);
-                    }
+                    if (data.success) carregarFila();
+                    else console.warn("Erro ao excluir:", data.erro);
                 })
                 .catch(err => console.error("❌ Erro ao excluir:", err));
         };
     </script>
 
 </body>
-
 </html>
