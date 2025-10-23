@@ -430,6 +430,7 @@ def visualizar_fila():
 @app.route("/api/fila-atualizada")
 def fila_atualizada():
     try:
+        reprocessar_consultas_travadas()
         conn = get_conn()
         c = conn.cursor()
         c.execute("""
@@ -514,7 +515,7 @@ def cadastrar():
 
     conn = get_conn()
     cur = conn.cursor()
-    ph = get_placeholder(conn)  # ← adiciona esta linha
+    ph = get_placeholder(conn)
 
     query = f"""
         SELECT simulation_id, periodos, cpf
@@ -668,6 +669,71 @@ def simulate(transaction_id):
             mensagem=f"Erro ao processar simulação: {e}",
             tabelas=[]
         )
+    
+def reprocessar_consultas_travadas():
+    try:
+        conn = get_conn()
+        c = conn.cursor()
+        ph = get_placeholder(conn)
+
+        limite = (datetime.now() - timedelta(minutes=20)).strftime("%Y-%m-%d %H:%M:%S")
+        query = f"""
+            SELECT transaction_id, cpf, usuario, status
+            FROM fila_async
+            WHERE ultima_atualizacao < {ph}
+            AND (status LIKE 'EM CONSULTA%' OR status LIKE 'Reprocessando%')
+        """
+        c.execute(query, (limite,))
+        travados = c.fetchall()
+
+        if not travados:
+            conn.close()
+            return
+
+        token = obter_token()
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        }
+
+        for t_id, cpf, usuario, status in travados:
+            if not status.startswith("EM CONSULTA"):
+                continue
+
+            payload = {
+                "cpf": cpf,
+                "callBackBalance": {
+                    "url": WEBHOOK_URL,
+                    "method": "POST"
+                }
+            }
+            print(f"♻️ Reprocessando CPF {cpf} (Transaction antigo={t_id})...")
+
+            try:
+                resp = requests.post(API_BALANCE, json=payload, headers=headers, timeout=30)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    novo_transaction = data.get("objectReturn", {}).get("transactionId")
+                    if novo_transaction:
+                        agora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        update_q = f"""
+                            UPDATE fila_async
+                            SET transaction_id={ph}, status={ph}, data_inclusao={ph}, ultima_atualizacao={ph}
+                            WHERE cpf={ph}
+                        """
+                        c.execute(update_q, (novo_transaction, "Reprocessando...", agora, agora, cpf))
+                        print(f"✅ CPF {cpf} reprocessado (novo TransactionID={novo_transaction})")
+                else:
+                    print(f"⚠️ Falha ao reprocessar CPF {cpf}: {resp.text}")
+            except Exception as e:
+                print(f"❌ Erro ao reprocessar {cpf}: {e}")
+
+        conn.commit()
+        conn.close()
+
+    except Exception as e:
+        print(f"⚠️ Erro geral no reprocessamento automático: {e}")    
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=8600)
