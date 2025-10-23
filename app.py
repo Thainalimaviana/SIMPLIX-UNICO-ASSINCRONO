@@ -32,6 +32,10 @@ def get_conn():
         return psycopg.connect(DATABASE_URL)
     return sqlite3.connect(DB_FILE, check_same_thread=False)
 
+def adapt_queries_for_db(conn, query):
+    if isinstance(conn, sqlite3.Connection):
+        return query.replace("%s", "?")
+    return query
 
 def get_placeholder(conn):
     if isinstance(conn, sqlite3.Connection):
@@ -104,6 +108,7 @@ def init_db():
 
     try:
         query = f"SELECT * FROM users WHERE nome = {ph}"
+        query = adapt_queries_for_db(conn, query)
         c.execute(query, ("Leonardo",))
         if not c.fetchone():
             admin_user = "Leonardo"
@@ -344,6 +349,7 @@ def simplix_passo12():
             INSERT INTO fila_async (transaction_id, cpf, status, usuario, data_inclusao, ultima_atualizacao)
             VALUES ({ph}, {ph}, {ph}, {ph}, {ph}, {ph})
         """
+        query = adapt_queries_for_db(conn, query)
         c.execute(query, (transaction_id, cpf, "Aguardando Webhook", usuario, agora, agora))
 
         query_sim = f"""
@@ -417,6 +423,7 @@ def visualizar_fila():
         ORDER BY id DESC
         LIMIT {ph} OFFSET {ph}
     """
+    query = adapt_queries_for_db(conn, query)
     c.execute(query, (por_pagina, offset))
     registros = c.fetchall()
     conn.close()
@@ -465,6 +472,7 @@ def excluir_fila(transaction_id):
         c = conn.cursor()
         ph = get_placeholder(conn)
         query = f"DELETE FROM fila_async WHERE TRIM(transaction_id)={ph}"
+        query = adapt_queries_for_db(conn, query)
         c.execute(query, (transaction_id,))
         conn.commit()
         linhas = c.rowcount
@@ -601,6 +609,7 @@ def atualizar_status(transaction_id, descricao):
         agora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         query = "UPDATE fila_async SET status={p}, ultima_atualizacao={p} WHERE transaction_id={p}".format(p=ph)
+        query = adapt_queries_for_db(conn, query)
         c.execute(query, (descricao, agora, transaction_id))
         conn.commit()
         conn.close()
@@ -681,8 +690,9 @@ def reprocessar_consultas_travadas():
             SELECT transaction_id, cpf, usuario, status
             FROM fila_async
             WHERE ultima_atualizacao < {ph}
-            AND (status LIKE 'EM CONSULTA%' OR status LIKE 'Reprocessando%')
+            AND (status LIKE 'EM CONSULTA%%' OR status LIKE 'Reprocessando%%')
         """
+        query = adapt_queries_for_db(conn, query)
         c.execute(query, (limite,))
         travados = c.fetchall()
 
@@ -722,6 +732,7 @@ def reprocessar_consultas_travadas():
                             SET transaction_id={ph}, status={ph}, data_inclusao={ph}, ultima_atualizacao={ph}
                             WHERE cpf={ph}
                         """
+                        update_q = adapt_queries_for_db(conn, update_q)
                         c.execute(update_q, (novo_transaction, "Reprocessando...", agora, agora, cpf))
                         print(f"✅ CPF {cpf} reprocessado (novo TransactionID={novo_transaction})")
                 else:
