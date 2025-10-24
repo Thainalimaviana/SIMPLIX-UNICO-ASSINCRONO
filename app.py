@@ -378,18 +378,51 @@ def simplix_passo12():
 @app.route("/simplix-cadastrar", methods=["POST"])
 def simplix_cadastrar():
     try:
-        data = request.get_json() or {}
+        form = request.form
         simulation_id = request.args.get("simulationId")
-        print("📥 Dados recebidos para cadastro:", json.dumps(data, indent=2, ensure_ascii=False))
 
-        if "operacao" in data:
-            if not data["operacao"].get("simulationId") or data["operacao"]["simulationId"] in ["None", None, ""]:
-                data["operacao"]["simulationId"] = simulation_id or ""
-        else:
-            data["operacao"] = {
+        data = {
+            "cliente": {
+                "rg": form.get("rg"),
+                "cpf": form.get("cpf"),
+                "nome": form.get("nome"),
+                "email": form.get("email"),
+                "endereco": {
+                    "cep": form.get("cep"),
+                    "bairro": form.get("bairro"),
+                    "cidade": form.get("cidade"),
+                    "estado": form.get("estado"),
+                    "numero": form.get("numero"),
+                    "logradouro": form.get("logradouro"),
+                    "complemento": form.get("complemento")
+                },
+                "ocupacao": form.get("ocupacao"),
+                "telefone": form.get("telefone"),
+                "estadoCivil": form.get("estadoCivil"),
+                "contaBancaria": {
+                    "conta": form.get("conta"),
+                    "agencia": form.get("agencia"),
+                    "tipoDeConta": form.get("tipoDeConta"),
+                    "codigoDoBanco": form.get("codigoDoBanco"),
+                    "digitoDaConta": form.get("digitoDaConta"),
+                    "tipoDeOperacao": form.get("tipoDeOperacao")
+                },
+                "nacionalidade": form.get("nacionalidade"),
+                "dataDeNascimento": form.get("dataDeNascimento")
+            },
+            "operacao": {
                 "simulationId": simulation_id or "",
                 "periodos": []
+            },
+            "loginDigitador": "477f702a-4a6f-4b02-b5eb-afcd38da99f8",
+            "callback": {
+                "url": "https://simplix-unico-assincrono.onrender.com/webhook-simplix",
+                "method": "POST"
             }
+        }
+
+        print("📥 Dados montados para API Simplix:")
+        print(json.dumps(data, indent=2, ensure_ascii=False))
 
         headers = {
             "Authorization": f"Bearer {TOKEN}",
@@ -404,6 +437,7 @@ def simplix_cadastrar():
             headers=headers,
             timeout=30
         )
+
         print("📨 Retorno da API Simplix:", response.text)
         result = response.json()
 
@@ -413,13 +447,16 @@ def simplix_cadastrar():
             proposta_id = result["objectReturn"].get("propostaId")
 
             print(f"✅ Proposta criada com sucesso: {proposta} | ID={proposta_id}")
+
             return render_template(
                 "cadastro_finalizado.html",
                 link=link,
                 proposta=proposta,
                 proposta_id=proposta_id
             )
+
         else:
+            print("⚠️ Falha na criação da proposta:", result)
             return render_template(
                 "cadastro_finalizado.html",
                 erro="Falha ao criar proposta. Verifique os dados e tente novamente."
@@ -428,7 +465,6 @@ def simplix_cadastrar():
     except Exception as e:
         print("❌ Erro ao cadastrar:", str(e))
         return render_template("cadastro_finalizado.html", erro=str(e))
-
 
 @app.route("/fila")
 def visualizar_fila():
