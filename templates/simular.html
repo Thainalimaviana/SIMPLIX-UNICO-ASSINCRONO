@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Tomorrow&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}">
 </head>
 
 <body class="pagina">
@@ -15,7 +16,7 @@
 
   <div class="sidebar" id="sidebar">
     <div>
-      <div class="logo">SIMPLIX 🎃</div>
+      <div class="logo">SIMPLIX </div>
       <div class="user-info">
         <h3>{{ session["user"] }}</h3>
         <span>{{ session["role"] }}</span>
@@ -78,7 +79,6 @@
   </div>
 
   <script>
-    // Menu lateral
     const menuToggle = document.getElementById("menuToggle");
     const sidebar = document.getElementById("sidebar");
     const content = document.querySelector(".content");

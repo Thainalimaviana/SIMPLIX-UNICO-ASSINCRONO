@@ -12,7 +12,7 @@
     body {
       background: linear-gradient(40deg, var(--gradiente-inicio), var(--gradiente-fim));
       font-family: 'Poppins', sans-serif;
-      color: #fff;
+      color: var(--cor-texto);
       display: flex;
       justify-content: center;
       align-items: flex-start;
@@ -20,7 +20,7 @@
       margin: 0;
       padding: 40px 0;
     }
-
+    
     .container {
       width: 90%;
       max-width: 850px;
@@ -31,6 +31,7 @@
       box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
       text-align: center;
       overflow: hidden;
+      color: var(--cor-texto);
     }
 
     h1 {
@@ -44,7 +45,7 @@
       border-collapse: collapse;
       border-radius: 12px;
       overflow: hidden;
-      color: #fff;
+      color: var(--cor-texto);
       font-size: 15px;
     }
 
@@ -199,7 +200,7 @@
   <button class="menu-toggle" id="menuToggle"><i class="fa fa-bars"></i></button>
   <div class="sidebar" id="sidebar">
     <div>
-      <div class="logo">SIMPLIX 🎃</div>
+      <div class="logo">SIMPLIX </div>
       <div class="user-info">
         <h3>{{ session["user"] }}</h3>
         <span>{{ session["role"] }}</span>

@@ -1,14 +1,14 @@
 :root {
-    --gradiente-inicio: #2800b8;
-    --gradiente-fim: #cd00f7;
-    --cor-texto: #fff;
+    --gradiente-inicio: #a3a3a3;
+    --gradiente-fim: #09ff00ff;
+    --cor-texto: #000000;
     --bg-container: rgba(255, 255, 255, 0.12);
     --bg-input: rgba(255, 255, 255, 0.15);
 }
 
 .dark-mode {
-    --gradiente-inicio: #fd0000;
-    --gradiente-fim: #000000;
+    --gradiente-inicio: #000000;
+    --gradiente-fim: #09ff00ff;
     --cor-texto: #ffffff;
     --bg-container: rgba(0, 0, 0, 0.4);
     --bg-input: rgba(255, 255, 255, 0.08);
@@ -27,7 +27,7 @@ body.pagina {
 }
 
 h1.titulo-tomorrow {
-    font-family: 'Creepster', cursive;
+    font-family: 'Poppins', cursive;
     font-size: 52px;
     letter-spacing: 2px;
     color: var(--cor-texto);
@@ -282,6 +282,7 @@ h1.titulo-tomorrow {
     border: 1px solid rgba(255, 255, 255, 0.2);
     text-align: left;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+    color: var(--cor-texto);
 }
 
 .area-tabelas {
@@ -301,7 +302,7 @@ h1.titulo-tomorrow {
     border-radius: 10px;
     padding: 12px 15px;
     margin-bottom: 10px;
-    color: #fff;
+    color: var(--cor-texto);
     font-size: 14px;
     line-height: 1.5;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
@@ -420,7 +421,7 @@ button.vermelho:hover {
     font-size: 22px;
     font-weight: 600;
     margin-bottom: 15px;
-    color: #fff;
+    color: var(--cor-texto);
 }
 
 .tabela-wrapper {
@@ -442,7 +443,7 @@ table.tabela-fila td {
     padding: 10px 8px;
     text-align: center;
     font-size: 13px;
-    color: #fff;
+    color: var(--cor-texto);
     border-bottom: 1px solid rgba(255, 255, 255, 0.15);
 }
 
@@ -526,7 +527,7 @@ table.tabela-fila tbody tr:hover {
     z-index: 1001;
     background: rgba(255, 255, 255, 0.15);
     border: none;
-    color: white;
+    color: var(--cor-texto);
     font-size: 22px;
     border-radius: 10px;
     padding: 10px 14px;
@@ -554,7 +555,7 @@ table.tabela-fila tbody tr:hover {
   font-weight: 500;
   border-radius: 6px;
   background: #4c94e7;
-  color: #fff;
+  color: var(--cor-texto);
   text-decoration: none;
   cursor: pointer;
   min-width: 70px;
@@ -577,7 +578,7 @@ table.tabela-fila tbody tr:hover {
 }
 .btn-simular {
   background: #28a745;
-  color: white;
+  color: var(--cor-texto);
   transition: 0.3s;
 }
 .btn-simular:hover {
@@ -595,7 +596,7 @@ table.tabela-fila tbody tr:hover {
   border-radius: 14px;
   padding: 15px 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  color: #fff;
+  color: var(--cor-texto);
   transition: 0.3s;
   text-align: center;
 
@@ -623,14 +624,14 @@ table.tabela-fila tbody tr:hover {
 }
 
 .tabela-item small {
-  color: #ccc;
+  color: var(--cor-texto);
   margin-bottom: 10px;
 }
 
 .tabela-item p {
   margin: 5px 0;
   font-size: 14px;
-  color: #eee;
+  color: var(--cor-texto);
 }
 
 .tabela-item .btn {
