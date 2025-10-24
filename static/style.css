@@ -1,7 +1,7 @@
 :root {
-    --gradiente-inicio: #a3a3a3;
-    --gradiente-fim: #09ff00ff;
-    --cor-texto: #000000;
+    --gradiente-inicio: #3eacac;
+    --gradiente-fim: rgb(6, 190, 0);
+    --cor-texto: #ffffff;
     --bg-container: rgba(255, 255, 255, 0.12);
     --bg-input: rgba(255, 255, 255, 0.15);
 }
