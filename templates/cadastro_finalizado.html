@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Proposta Criada - Simplix</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Tomorrow&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}">
+  <style>
+    body {
+      font-family: 'Tomorrow', sans-serif;
+      color: var(--cor-texto);
+      background: linear-gradient(40deg, var(--gradiente-inicio), var(--gradiente-fim));
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      text-align: center;
+    }
+    .container {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      width: 90%;
+      max-width: 500px;
+    }
+    a, button {
+      display: inline-block;
+      padding: 10px 18px;
+      margin-top: 15px;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+      text-decoration: none;
+    }
+    .btn-azul {
+      background: #007bff;
+      color: white;
+    }
+    .btn-azul:hover {
+      background: #0056b3;
+    }
+    .btn-voltar {
+      background: #00e1ff;
+      color: #133abb;
+    }
+    .btn-voltar:hover {
+      background: #00b3cc;
+    }
+    .erro {
+      color: #ff6b6b;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    {% if link %}
+      <h2>✅ Proposta criada com sucesso!</h2>
+      <p><strong>Nº da proposta:</strong> {{ proposta }}</p>
+      <p>Link da proposta:</p>
+      <input id="linkProposta" value="{{ link }}" readonly style="width:100%;padding:8px;border-radius:6px;text-align:center;">
+      <button class="btn-azul" onclick="copiarLink()">Copiar Link</button>
+    {% elif erro %}
+      <h2>⚠️ Erro ao criar proposta</h2>
+      <p class="erro">{{ erro }}</p>
+    {% else %}
+      <h2>⚠️ Nenhuma resposta recebida</h2>
+      <p>Tente novamente mais tarde.</p>
+    {% endif %}
+    <br>
+    <a href="/index" class="btn-voltar">← Voltar à Página Inicial</a>
+  </div>
+
+  <script>
+    function copiarLink() {
+      const input = document.getElementById("linkProposta");
+      input.select();
+      input.setSelectionRange(0, 99999);
+      navigator.clipboard.writeText(input.value);
+      alert("Link copiado com sucesso!");
+    }
+  </script>
+</body>
+</html>

@@ -397,6 +397,7 @@ def simplix_cadastrar():
             "Accept": "application/json"
         }
 
+        print("📤 Enviando proposta para API Simplix...")
         response = requests.post(
             "https://simplix-integration.partner1.com.br/api/Proposal/Create",
             json=data,
@@ -405,11 +406,46 @@ def simplix_cadastrar():
         )
 
         print("📨 Retorno da API Simplix:", response.text)
-        return jsonify(response.json()), response.status_code
+        data_resp = response.json()
+
+        if data_resp.get("success") and data_resp.get("objectReturn", {}).get("link"):
+            link = data_resp["objectReturn"]["link"]
+            proposta = data_resp["objectReturn"].get("proposta")
+            proposta_id = data_resp["objectReturn"].get("propostaId")
+
+            print(f"✅ Proposta criada com sucesso: {proposta} | ID={proposta_id}")
+
+            return render_template(
+                "cadastro_finalizado.html",
+                link=link,
+                proposta=proposta,
+                proposta_id=proposta_id,
+                erro=None
+            )
+
+        descricao_erro = data_resp.get("objectReturn", {}).get("description") \
+            or data_resp.get("message") \
+            or "Erro desconhecido ao criar proposta."
+
+        print(f"⚠️ Erro retornado pela Simplix: {descricao_erro}")
+
+        return render_template(
+            "cadastro_finalizado.html",
+            link=None,
+            proposta=None,
+            proposta_id=None,
+            erro=descricao_erro
+        )
 
     except Exception as e:
         print("❌ Erro ao cadastrar:", str(e))
-        return jsonify({"erro": str(e)}), 500
+        return render_template(
+            "cadastro_finalizado.html",
+            link=None,
+            proposta=None,
+            proposta_id=None,
+            erro=str(e)
+        ), 500
 
 @app.route("/fila")
 def visualizar_fila():
