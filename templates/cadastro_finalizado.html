@@ -1,98 +1,156 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
-    <meta charset="UTF-8">
-    <title>Proposta Criada - Simplix</title>
-    <link rel="stylesheet" href="/static/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Tomorrow&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}">
-    <style>
-        body {
-            font-family: 'Tomorrow', sans-serif;
-            color: var(--cor-texto);
-            background: linear-gradient(40deg, var(--gradiente-inicio), var(--gradiente-fim));
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            text-align: center;
-        }
+  <meta charset="UTF-8">
+  <title>Proposta Simplix - Resultado</title>
+  <link href="https://fonts.googleapis.com/css2?family=Tomorrow&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}">
+  <style>
+    body {
+      font-family: 'Tomorrow', sans-serif;
+      color: #fff;
+      background: linear-gradient(40deg, var(--gradiente-inicio, #133abb), var(--gradiente-fim, #00e1ff));
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      text-align: center;
+    }
 
-        .container {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 40px;
-            border-radius: 16px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-            width: 90%;
-            max-width: 500px;
-        }
+    .container {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+      width: 90%;
+      max-width: 500px;
+      animation: fadeIn 0.8s ease;
+    }
 
-        a,
-        button {
-            display: inline-block;
-            padding: 10px 18px;
-            margin-top: 15px;
-            border: none;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
-            text-decoration: none;
-        }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
-        .btn-azul {
-            background: #007bff;
-            color: white;
-        }
+    h1 {
+      color: #00ff99;
+      font-size: 22px;
+      margin-bottom: 10px;
+    }
 
-        .btn-azul:hover {
-            background: #0056b3;
-        }
+    .info {
+      margin: 10px 0 25px;
+      line-height: 1.6;
+      font-size: 15px;
+    }
 
-        .btn-voltar {
-            background: #00e1ff;
-            color: #133abb;
-        }
+    .erro {
+      color: #ff6b6b;
+      font-size: 18px;
+      font-weight: bold;
+      margin-top: 10px;
+    }
 
-        .btn-voltar:hover {
-            background: #00b3cc;
-        }
+    .btn-link {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+      border: 2px solid transparent;
+      background: linear-gradient(90deg, rgba(255,255,255,0.12), rgba(255,255,255,0.12)) padding-box,
+                  linear-gradient(45deg, #00ffcc, #0066ff) border-box;
+    }
 
-        .erro {
-            color: #ff6b6b;
-            margin-top: 10px;
-        }
-    </style>
+    .btn-link:hover {
+      background: rgba(255, 255, 255, 0.25);
+      transform: scale(1.05);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    }
+
+    .btn-link:active {
+      transform: scale(0.97);
+    }
+
+    .btn-voltar {
+      display: inline-block;
+      background: rgba(0, 225, 255, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(8px);
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: 0.3s;
+      margin-top: 20px;
+    }
+
+    .btn-voltar:hover {
+      background: rgba(0, 225, 255, 0.5);
+      transform: scale(1.05);
+    }
+
+    .copiar {
+      display: inline-block;
+      margin-left: 8px;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      color: #fff;
+      transition: 0.3s;
+      font-size: 13px;
+    }
+
+    .copiar:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+  </style>
 </head>
 
 <body>
-    <div class="container">
-        {% if erro %}
-        <h2 style="color:#ff6464;">❌ {{ erro }}</h2>
-        {% else %}
-        <h2 style="color:#00ff88;">✅ Proposta criada com sucesso!</h2>
+  <div class="container">
+    {% if erro %}
+      <h1 style="color:#ff6b6b;">❌ Erro ao criar proposta</h1>
+      <p class="erro">{{ erro }}</p>
+    {% else %}
+      <h1>✅ Proposta criada com sucesso!</h1>
+      <div class="info">
         <p><strong>Nº da Proposta:</strong> {{ proposta }}</p>
         <p><strong>ID:</strong> {{ proposta_id }}</p>
+      </div>
+      <div>
+        <input type="text" id="linkProposta" value="{{ link }}" readonly style="width:70%; padding:8px; border:none; border-radius:8px; text-align:center; background:rgba(255,255,255,0.1); color:#fff;">
+        <button class="copiar" onclick="copiarLink()">Copiar Link</button>
+      </div>
+      <br><br>
+      <a href="{{ link }}" target="_blank" class="btn-link">Abrir Link da Proposta</a>
+    {% endif %}
+    <br>
+    <a href="/index" class="btn-voltar">Voltar para Página Inicial</a>
+  </div>
 
-        <div class="link-box">
-            <input type="text" id="link" value="{{ link }}" readonly>
-            <button onclick="copiarLink()">Copiar Link</button>
-        </div>
-
-        <a href="/index" class="btn azul">Voltar para Página Inicial</a>
-        {% endif %}
-    </div>
-
-    <script>
-        function copiarLink() {
-            const link = document.getElementById("link");
-            link.select();
-            link.setSelectionRange(0, 99999);
-            navigator.clipboard.writeText(link.value);
-            alert("🔗 Link copiado com sucesso!");
-        }
-    </script>
+  <script>
+    function copiarLink() {
+      const input = document.getElementById("linkProposta");
+      input.select();
+      document.execCommand("copy");
+      const btn = document.querySelector(".copiar");
+      btn.innerText = "Copiado!";
+      setTimeout(() => btn.innerText = "Copiar Link", 2000);
+    }
+  </script>
 </body>
-
 </html>
