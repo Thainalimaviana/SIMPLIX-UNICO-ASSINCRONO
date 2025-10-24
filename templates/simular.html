@@ -63,7 +63,7 @@
             <p><strong>Valor Líquido:</strong> R$ {{ "%.2f"|format(t.valorLiquido) }}</p>
             <p><strong>Taxa:</strong> {{ "%.2f"|format(t.taxa) }}%</p>
             <button class="btn azul"
-              onclick="abrirCadastro('{{ transaction_id }}', '{{ t.tabelaId }}', '{{ t.bancarizadora }}', '{{ t.simulationId }}')">
+              onclick="abrirCadastro('{{ transaction_id }}', '{{ t.tabelaId }}', '{{ t.bancarizadora }}', '{{ t.simulationId }}', '{{ cpf }}')">
               <i class="fa fa-user-plus"></i> Cadastrar Cliente
             </button>
           </div>
@@ -99,10 +99,11 @@
       icon.classList.toggle("fa-sun");
     });
 
-    function abrirCadastro(transactionId, tabelaId, bancarizadora, simulationId) {
+    function abrirCadastro(transactionId, tabelaId, bancarizadora, simulationId, cpf) {
       const confirmar = confirm(`Deseja cadastrar o cliente para ${bancarizadora}?`);
       if (!confirmar) return;
-      window.location.href = `/cadastrar?transactionId=${transactionId}&tabelaId=${tabelaId}&bancarizadora=${encodeURIComponent(bancarizadora)}&simulationId=${simulationId}`;
+      const url = `/cadastrar?transactionId=${transactionId}&tabelaId=${tabelaId}&bancarizadora=${encodeURIComponent(bancarizadora)}&simulationId=${simulationId}&cpf=${cpf}`;
+      window.location.href = url;
     }
   </script>
 

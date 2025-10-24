@@ -596,6 +596,8 @@ def cadastrar():
     tabela_id = request.args.get("tabelaId")
     bancarizadora = request.args.get("bancarizadora")
 
+    cpf_url = request.args.get("cpf", "")
+
     conn = get_conn()
     cur = conn.cursor()
     ph = get_placeholder(conn)
@@ -613,7 +615,9 @@ def cadastrar():
     if not row:
         return "Simulação não encontrada. Refaça o processo.", 404
 
-    simulation_id, periodos_json, cpf = row
+    simulation_id, periodos_json, cpf_db = row
+
+    cpf = cpf_url or cpf_db or ""
 
     return render_template(
         "cadastrar.html",
