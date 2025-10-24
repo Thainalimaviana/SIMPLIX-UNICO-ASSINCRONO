@@ -112,7 +112,7 @@
     <form id="form-cadastro" method="post" action="/simplix-cadastrar">
       <h3>Dados do Cliente</h3>
       <input type="text" name="rg" placeholder="RG" required>
-      <input type="text" name="cpf" placeholder="CPF (somente números)" required>
+      <input type="text" name="cpf" value="{{ cpf }}" readonly required>
       <input type="text" name="nome" placeholder="Nome completo" required>
       <input type="email" name="email" placeholder="Email" required>
       <input type="text" name="telefone" placeholder="Telefone (ex: 5511999999999)" required>

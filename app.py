@@ -378,57 +378,64 @@ def simplix_passo12():
 @app.route("/simplix-cadastrar", methods=["POST"])
 def simplix_cadastrar():
     try:
-        if request.is_json:
-            data = request.get_json(force=True)
-            simulation_id = request.args.get("simulationId") or data.get("operacao", {}).get("simulationId", "")
+        form = request.form
+        simulation_id = form.get("simulationId")
+
+        conn = get_conn()
+        cur = conn.cursor()
+        ph = get_placeholder(conn)
+
+        cur.execute(f"SELECT periodos FROM simulacoes WHERE transaction_id = {ph} LIMIT 1", (form.get('transactionId'),))
+        row = cur.fetchone()
+        conn.close()
+
+        if row and row[0]:
+            try:
+                periodos = json.loads(row[0]) if isinstance(row[0], str) else row[0]
+            except Exception:
+                periodos = []
         else:
-            form = request.form
-            simulation_id = form.get("simulationId") or request.args.get("simulationId")
+            periodos = []
 
-            data = {
-                "cliente": {
-                    "rg": form.get("rg"),
-                    "cpf": form.get("cpf"),
-                    "nome": form.get("nome"),
-                    "email": form.get("email"),
-                    "endereco": {
-                        "cep": form.get("cep"),
-                        "bairro": form.get("bairro"),
-                        "cidade": form.get("cidade"),
-                        "estado": form.get("estado"),
-                        "numero": form.get("numero"),
-                        "logradouro": form.get("logradouro"),
-                        "complemento": form.get("complemento", "")
-                    },
-                    "ocupacao": form.get("ocupacao"),
-                    "telefone": form.get("telefone"),
-                    "estadoCivil": form.get("estadoCivil"),
-                    "contaBancaria": {
-                        "conta": form.get("conta"),
-                        "agencia": form.get("agencia"),
-                        "tipoDeConta": form.get("tipoDeConta"),
-                        "codigoDoBanco": form.get("codigoDoBanco"),
-                        "digitoDaConta": form.get("digitoDaConta"),
-                        "tipoDeOperacao": form.get("tipoDeOperacao")
-                    },
-                    "nacionalidade": form.get("nacionalidade"),
-                    "dataDeNascimento": form.get("dataDeNascimento")
+        data = {
+            "cliente": {
+                "rg": form.get("rg"),
+                "cpf": form.get("cpf"),
+                "nome": form.get("nome"),
+                "email": form.get("email"),
+                "endereco": {
+                    "cep": form.get("cep"),
+                    "bairro": form.get("bairro"),
+                    "cidade": form.get("cidade"),
+                    "estado": form.get("estado"),
+                    "numero": form.get("numero"),
+                    "logradouro": form.get("logradouro"),
+                    "complemento": form.get("complemento")
                 },
-                "operacao": {
-                    "simulationId": simulation_id or "",
-                    "periodos": []
+                "ocupacao": form.get("ocupacao"),
+                "telefone": form.get("telefone"),
+                "estadoCivil": form.get("estadoCivil"),
+                "contaBancaria": {
+                    "conta": form.get("conta"),
+                    "agencia": form.get("agencia"),
+                    "tipoDeConta": form.get("tipoDeConta"),
+                    "codigoDoBanco": form.get("codigoDoBanco"),
+                    "digitoDaConta": form.get("digitoDaConta"),
+                    "tipoDeOperacao": form.get("tipoDeOperacao")
                 },
-                "loginDigitador": "477f702a-4a6f-4b02-b5eb-afcd38da99f8",
-                "callback": {
-                    "url": f"{request.host_url}webhook-simplix",
-                    "method": "POST"
-                }
+                "nacionalidade": form.get("nacionalidade"),
+                "dataDeNascimento": form.get("dataDeNascimento")
+            },
+            "operacao": {
+                "periodos": periodos,
+                "simulationId": simulation_id or ""
+            },
+            "loginDigitador": "477f702a-4a6f-4b02-b5eb-afcd38da99f8",
+            "callback": {
+                "url": "https://simplix-unico-assincrono.onrender.com/webhook-simplix",
+                "method": "POST"
             }
-
-        cpf_cliente = data.get("cliente", {}).get("cpf")
-        if not cpf_cliente:
-            print("⚠️ CPF ausente no payload! Verificando fallback...")
-            data["cliente"]["cpf"] = request.args.get("cpf") or ""
+        }
 
         print("📥 Dados montados para API Simplix:")
         print(json.dumps(data, indent=2, ensure_ascii=False))
@@ -456,7 +463,6 @@ def simplix_cadastrar():
             proposta_id = result["objectReturn"].get("propostaId")
 
             print(f"✅ Proposta criada com sucesso: {proposta} | ID={proposta_id}")
-
             return render_template(
                 "cadastro_finalizado.html",
                 link=link,
@@ -464,13 +470,16 @@ def simplix_cadastrar():
                 proposta_id=proposta_id
             )
 
-        else:
-            print("⚠️ Falha na criação da proposta:", result)
-            erro_msg = result.get("objectReturn", {}).get("description") or "Falha ao criar proposta. Verifique os dados e tente novamente."
-            return render_template(
-                "cadastro_finalizado.html",
-                erro=erro_msg
-            )
+        descricao = ""
+        try:
+            descricao = result.get("objectReturn", {}).get("description", "")
+        except Exception:
+            pass
+
+        return render_template(
+            "cadastro_finalizado.html",
+            erro=descricao or "Falha ao criar proposta. Verifique os dados e tente novamente."
+        )
 
     except Exception as e:
         print("❌ Erro ao cadastrar:", str(e))
