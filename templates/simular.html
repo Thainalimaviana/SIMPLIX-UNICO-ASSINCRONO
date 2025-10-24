@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8">
   <title>Simulação - Simplix FGTS</title>
@@ -45,7 +46,8 @@
 
       {% if mensagem %}
       <div style="text-align:center; margin-bottom:15px;">
-        <p style="font-weight:600; {% if 'Simulação' in mensagem or 'Tabelas' in mensagem %}color:#00ff88;{% else %}color:#ff6464;{% endif %}">
+        <p
+          style="font-weight:600; {% if 'Simulação' in mensagem or 'Tabelas' in mensagem %}color:#00ff88;{% else %}color:#ff6464;{% endif %}">
           {{ mensagem }}
         </p>
       </div>
@@ -61,7 +63,7 @@
             <p><strong>Valor Líquido:</strong> R$ {{ "%.2f"|format(t.valorLiquido) }}</p>
             <p><strong>Taxa:</strong> {{ "%.2f"|format(t.taxa) }}%</p>
             <button class="btn azul"
-              onclick="abrirCadastro('{{ transaction_id }}', '{{ t.tabelaId }}', '{{ t.bancarizadora }}')">
+              onclick="abrirCadastro('{{ transaction_id }}', '{{ t.tabelaId }}', '{{ t.bancarizadora }}', '{{ t.simulationId }}')">
               <i class="fa fa-user-plus"></i> Cadastrar Cliente
             </button>
           </div>
@@ -97,10 +99,10 @@
       icon.classList.toggle("fa-sun");
     });
 
-    function abrirCadastro(transactionId, tabelaId, bancarizadora) {
+    function abrirCadastro(transactionId, tabelaId, bancarizadora, simulationId) {
       const confirmar = confirm(`Deseja cadastrar o cliente para ${bancarizadora}?`);
       if (!confirmar) return;
-      window.location.href = `/cadastrar?transactionId=${transactionId}&tabelaId=${tabelaId}&bancarizadora=${encodeURIComponent(bancarizadora)}`;
+      window.location.href = `/cadastrar?transactionId=${transactionId}&tabelaId=${tabelaId}&bancarizadora=${encodeURIComponent(bancarizadora)}&simulationId=${simulationId}`;
     }
   </script>
 
@@ -111,19 +113,22 @@
       gap: 15px;
       margin-top: 20px;
     }
+
     .tabela-item {
-      background: rgba(255,255,255,0.08);
+      background: rgba(255, 255, 255, 0.08);
       border-radius: 12px;
       padding: 15px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
       text-align: center;
       color: #fff;
       transition: 0.3s;
     }
+
     .tabela-item:hover {
-      background: rgba(255,255,255,0.15);
+      background: rgba(255, 255, 255, 0.15);
       transform: translateY(-4px);
     }
   </style>
 </body>
+
 </html>

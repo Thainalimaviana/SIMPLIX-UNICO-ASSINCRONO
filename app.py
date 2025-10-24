@@ -378,8 +378,18 @@ def simplix_passo12():
 @app.route("/simplix-cadastrar", methods=["POST"])
 def simplix_cadastrar():
     try:
-        data = request.get_json()
-        print(" Dados recebidos para cadastro:", data)
+        data = request.get_json() or {}
+        simulation_id = request.args.get("simulationId")
+        print("📥 Dados recebidos para cadastro:", json.dumps(data, indent=2, ensure_ascii=False))
+
+        if "operacao" in data:
+            if not data["operacao"].get("simulationId") or data["operacao"]["simulationId"] in ["None", None, ""]:
+                data["operacao"]["simulationId"] = simulation_id or ""
+        else:
+            data["operacao"] = {
+                "simulationId": simulation_id or "",
+                "periodos": []
+            }
 
         headers = {
             "Authorization": f"Bearer {TOKEN}",
@@ -636,8 +646,10 @@ def simulate(transaction_id):
             "Content-Type": "application/json"
         }
 
-        resp = requests.post(url, json=payload, headers=headers, timeout=20)
+        print(f"📤 Enviando simulação para Simplix (TransactionID={transaction_id})...")
+        resp = requests.post(url, json=payload, headers=headers, timeout=30)
         data = resp.json()
+        print("📨 Retorno da API Simplix:", json.dumps(data, indent=2, ensure_ascii=False))
 
         if not data.get("success"):
             mensagem = f"Erro: {data.get('message', 'Falha na simulação')}"
@@ -653,15 +665,51 @@ def simulate(transaction_id):
             )
 
         tabelas = []
+        conn = get_conn()
+        c = conn.cursor()
+        ph = get_placeholder(conn)
+
         for s in simulacoes:
-            tabela = {
-                "bancarizadora": s.get("bancarizadora"),
-                "tabelaId": s.get("tabelaId"),
-                "tabelaTitulo": s.get("tabelaTitulo"),
-                "valorLiquido": s.get("valorLiquido"),
-                "taxa": s.get("detalhes", {}).get("taxa")
-            }
-            tabelas.append(tabela)
+            simulation_id = s.get("simulationId")
+            bancarizadora = s.get("bancarizadora")
+            tabela_id = s.get("tabelaId")
+            tabela_titulo = s.get("tabelaTitulo")
+            valor_liquido = s.get("valorLiquido")
+            taxa = s.get("detalhes", {}).get("taxa")
+            periodos = s.get("detalhes", {}).get("parcelas", [])
+
+            tabelas.append({
+                "simulationId": simulation_id,
+                "bancarizadora": bancarizadora,
+                "tabelaId": tabela_id,
+                "tabelaTitulo": tabela_titulo,
+                "valorLiquido": valor_liquido,
+                "taxa": taxa
+            })
+
+            query = f"""
+                INSERT INTO simulacoes (transaction_id, simulation_id, cpf, bancarizadora, tabela_id, periodos)
+                VALUES ({ph}, {ph}, {ph}, {ph}, {ph}, {ph})
+                ON CONFLICT (transaction_id) DO UPDATE
+                SET simulation_id = EXCLUDED.simulation_id,
+                    bancarizadora = EXCLUDED.bancarizadora,
+                    tabela_id = EXCLUDED.tabela_id,
+                    periodos = EXCLUDED.periodos
+            """
+            query = adapt_queries_for_db(conn, query)
+            c.execute(query, (
+                transaction_id,
+                simulation_id,
+                None,
+                bancarizadora,
+                tabela_id,
+                json.dumps(periodos, ensure_ascii=False)
+            ))
+
+            print(f"Simulação salva: SimulationID={simulation_id} | Bancarizadora={bancarizadora} | TabelaID={tabela_id}")
+
+        conn.commit()
+        conn.close()
 
         return render_template(
             "simular.html",
