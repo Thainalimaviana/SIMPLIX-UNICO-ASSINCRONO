@@ -100,20 +100,6 @@
     .btn-voltar:hover {
       background: #1d6ed8;
     }
-
-    .loader {
-      display: inline-block;
-      width: 14px;
-      height: 14px;
-      border: 2px solid rgba(255, 255, 255, 0.4);
-      border-top-color: white;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      vertical-align: middle;
-      margin-right: 6px;
-    }
-
-    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 
@@ -123,13 +109,14 @@
     <p><strong>Tabela:</strong> {{ tabela_id }} — <strong>{{ bancarizadora }}</strong></p>
     <p><strong>Transaction ID:</strong> {{ transaction_id }}</p>
 
-    <form id="form-cadastro">
+    <form id="form-cadastro" method="post" action="/simplix-cadastrar">
       <h3>Dados do Cliente</h3>
       <input type="text" name="rg" placeholder="RG" required>
       <input type="text" name="nome" placeholder="Nome completo" required>
       <input type="email" name="email" placeholder="Email" required>
       <input type="text" name="telefone" placeholder="Telefone (ex: 5511999999999)" required>
       <input type="text" name="ocupacao" placeholder="Cargo" required>
+
       <select name="estadoCivil" required>
         <option value="">Estado civil</option>
         <option value="Solteiro">Solteiro</option>
@@ -138,11 +125,13 @@
         <option value="Viúvo">Viúvo</option>
         <option value="União Estável">União Estável</option>
       </select>
+
       <select name="nacionalidade" required>
         <option value="">Nacionalidade</option>
         <option value="Brasileiro">Brasileiro</option>
         <option value="Estrangeiro">Estrangeiro</option>
       </select>
+
       <input type="date" name="dataDeNascimento" required>
 
       <h4>Endereço</h4>
@@ -159,12 +148,14 @@
       <input type="text" name="agencia" placeholder="Agência" required>
       <input type="text" name="conta" placeholder="Conta" required>
       <input type="text" name="digitoDaConta" placeholder="Dígito da Conta" required>
+
       <select name="tipoDeConta" required>
         <option value="">Tipo de conta</option>
         <option value="ContaCorrente">Conta Corrente</option>
         <option value="Poupança">Poupança</option>
         <option value="Salário">Salário</option>
       </select>
+
       <select name="tipoDeOperacao" required>
         <option value="">Tipo de operação</option>
         <option value="Transferencia">Transferência</option>
@@ -172,83 +163,16 @@
         <option value="DOC">DOC</option>
       </select>
 
-      <button type="button" id="btnFinalizar">Finalizar Cadastro</button>
+      <input type="hidden" name="simulationId" value="{{ simulation_id }}">
+      <input type="hidden" name="transactionId" value="{{ transaction_id }}">
+      <input type="hidden" name="bancarizadora" value="{{ bancarizadora }}">
+      <input type="hidden" name="tabela_id" value="{{ tabela_id }}">
+
+      <button type="submit" id="btnFinalizar" onclick="this.disabled=true; this.innerText='Enviando...'; this.form.submit();">
+        Finalizar Cadastro
+      </button>
       <a href="/index" class="btn-voltar">Voltar</a>
     </form>
   </div>
-
-  <script>
-    const btnFinalizar = document.getElementById("btnFinalizar");
-
-    btnFinalizar.addEventListener("click", async () => {
-      const form = document.getElementById("form-cadastro");
-      const formData = Object.fromEntries(new FormData(form).entries());
-
-      btnFinalizar.disabled = true;
-      btnFinalizar.innerHTML = `<div class="loader"></div> Enviando...`;
-
-      const payload = {
-        cliente: {
-          rg: formData.rg,
-          cpf: "{{ cpf }}",
-          nome: formData.nome,
-          email: formData.email,
-          endereco: {
-            cep: formData.cep,
-            bairro: formData.bairro,
-            cidade: formData.cidade,
-            estado: formData.estado,
-            numero: formData.numero,
-            logradouro: formData.logradouro,
-            complemento: formData.complemento
-          },
-          ocupacao: formData.ocupacao,
-          telefone: formData.telefone,
-          estadoCivil: formData.estadoCivil,
-          contaBancaria: {
-            conta: formData.conta,
-            agencia: formData.agencia,
-            tipoDeConta: formData.tipoDeConta,
-            codigoDoBanco: formData.codigoDoBanco,
-            digitoDaConta: formData.digitoDaConta,
-            tipoDeOperacao: formData.tipoDeOperacao
-          },
-          nacionalidade: formData.nacionalidade,
-          dataDeNascimento: formData.dataDeNascimento
-        },
-        operacao: {
-          simulationId: "{{ simulation_id }}",
-          periodos: {{ periodos|safe }}
-        },
-        loginDigitador: "477f702a-4a6f-4b02-b5eb-afcd38da99f8",
-        callback: {
-          url: "{{ request.host_url }}webhook-simplix",
-          method: "POST"
-        }
-      };
-
-      try {
-        const resp = await fetch("/simplix-cadastrar", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-
-        const data = await resp.json();
-
-        if (data.success) {
-          alert("✅ Cliente cadastrado com sucesso!");
-          window.location.href = "/index";
-        } else {
-          alert("❌ Erro: " + (data.message || data.mensagem || "Falha ao cadastrar."));
-        }
-      } catch (err) {
-        alert("Erro ao conectar com o servidor.");
-      } finally {
-        btnFinalizar.disabled = false;
-        btnFinalizar.innerHTML = "Finalizar Cadastro";
-      }
-    });
-  </script>
 </body>
 </html>

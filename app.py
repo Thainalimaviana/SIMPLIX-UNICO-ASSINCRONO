@@ -404,48 +404,31 @@ def simplix_cadastrar():
             headers=headers,
             timeout=30
         )
-
         print("📨 Retorno da API Simplix:", response.text)
-        data_resp = response.json()
+        result = response.json()
 
-        if data_resp.get("success") and data_resp.get("objectReturn", {}).get("link"):
-            link = data_resp["objectReturn"]["link"]
-            proposta = data_resp["objectReturn"].get("proposta")
-            proposta_id = data_resp["objectReturn"].get("propostaId")
+        if result.get("success") and "objectReturn" in result:
+            link = result["objectReturn"].get("link")
+            proposta = result["objectReturn"].get("proposta")
+            proposta_id = result["objectReturn"].get("propostaId")
 
             print(f"✅ Proposta criada com sucesso: {proposta} | ID={proposta_id}")
-
             return render_template(
                 "cadastro_finalizado.html",
                 link=link,
                 proposta=proposta,
-                proposta_id=proposta_id,
-                erro=None
+                proposta_id=proposta_id
             )
-
-        descricao_erro = data_resp.get("objectReturn", {}).get("description") \
-            or data_resp.get("message") \
-            or "Erro desconhecido ao criar proposta."
-
-        print(f"⚠️ Erro retornado pela Simplix: {descricao_erro}")
-
-        return render_template(
-            "cadastro_finalizado.html",
-            link=None,
-            proposta=None,
-            proposta_id=None,
-            erro=descricao_erro
-        )
+        else:
+            return render_template(
+                "cadastro_finalizado.html",
+                erro="Falha ao criar proposta. Verifique os dados e tente novamente."
+            )
 
     except Exception as e:
         print("❌ Erro ao cadastrar:", str(e))
-        return render_template(
-            "cadastro_finalizado.html",
-            link=None,
-            proposta=None,
-            proposta_id=None,
-            erro=str(e)
-        ), 500
+        return render_template("cadastro_finalizado.html", erro=str(e))
+
 
 @app.route("/fila")
 def visualizar_fila():
