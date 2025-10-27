@@ -176,9 +176,9 @@ h1.titulo-tomorrow {
     border-radius: 20px;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
     padding: 35px 40px;
-    width: 90%;
+    width: 100%;
     max-width: 1200px;
-    margin: 60px auto;
+    margin: 65px auto;
     text-align: center;
     color: #fff;
     transition: all 0.3s ease-in-out;

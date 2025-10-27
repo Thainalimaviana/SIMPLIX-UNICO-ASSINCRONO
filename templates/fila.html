@@ -8,11 +8,148 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}">
+
     <style>
-        @keyframes pulse {
-            0% { background-color: rgba(0, 255, 255, 0.3); }
-            100% { background-color: transparent; }
+        body {
+            font-family: 'Poppins', sans-serif;
+            color: var(--cor-texto);
+            background: linear-gradient(40deg, var(--gradiente-inicio), var(--gradiente-fim));
+            padding: 40px;
         }
+
+        .container {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 18px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+        }
+
+        h2 {
+            color: #fff;
+            text-align: center;
+            margin-bottom: 25px;
+            font-weight: 600;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            color: #fff;
+            text-align: center;
+        }
+
+        th,
+        td {
+            padding: 10px 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        th {
+            background: rgba(255, 255, 255, 0.05);
+            font-weight: 600;
+            color: #00e1ff;
+        }
+
+        tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .status {
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        .status.sucesso {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+        }
+
+        .status.erro {
+            background: rgba(255, 99, 99, 0.2);
+            color: #ff6b6b;
+        }
+
+        .status.aguardando {
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+        }
+
+        .btn-simular {
+            background: #00c853;
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        .btn-simular:hover {
+            background: #00a645;
+            transform: scale(1.05);
+        }
+
+        .btn-excluir {
+            background: rgba(255, 0, 0, 0.6);
+            border: none;
+            border-radius: 6px;
+            padding: 6px 10px;
+            color: #fff;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-excluir:hover {
+            background: rgba(255, 0, 0, 0.8);
+        }
+
+        .tabela-wrapper {
+            overflow-y: auto;
+            max-height: 450px;
+        }
+
+        .paginacao {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .btn-azul {
+            background: rgba(0, 180, 255, 0.4);
+            color: white;
+            padding: 8px 18px;
+            border-radius: 10px;
+            font-weight: bold;
+            text-decoration: none;
+            backdrop-filter: blur(8px);
+            transition: all 0.3s ease;
+        }
+
+        .btn-azul:hover {
+            background: rgba(0, 200, 255, 0.7);
+            transform: scale(1.05);
+        }
+
+        .contador {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 15px;
+            color: #00ffcc;
+        }
+
+        @keyframes pulse {
+            0% {
+                background-color: rgba(0, 255, 255, 0.3);
+            }
+
+            100% {
+                background-color: transparent;
+            }
+        }
+
         .status.atualizado {
             animation: pulse 1s ease;
         }
@@ -21,7 +158,11 @@
 
 <body class="pagina">
     <div class="container" id="fila-tabela">
-        <h2 class="titulo-tabela">Fila de Consultas Simplix</h2>
+        <h2>Fila de Consultas Simplix</h2>
+
+        <div class="contador">
+            Total de registros: <b>{{ total_registros }}</b> | Página <b>{{ pagina }}</b> de <b>{{ total_paginas }}</b>
+        </div>
 
         {% if registros and registros|length > 0 %}
         <div class="tabela-wrapper">
@@ -46,7 +187,7 @@
                         <td>
                             {% if "simulacao disponivel" in item[2]|lower|replace("ã","a")|replace("ç","c") %}
                             <span class="status sucesso">{{ item[2] }}</span>
-                            {% elif "Erro" in item[2] %}
+                            {% elif "erro" in item[2]|lower %}
                             <span class="status erro">{{ item[2] }}</span>
                             {% else %}
                             <span class="status aguardando">{{ item[2] }}</span>
@@ -54,40 +195,56 @@
                         </td>
                         <td>
                             {% if "simulacao disponivel" in item[2]|lower|replace("ã","a")|replace("ç","c") %}
-                            <a href="/simulate/{{ item[0] }}" class="btn-simular">
-                                <i class="fa fa-play"></i> Simular
-                            </a>
+                            <a href="/simulate/{{ item[0] }}" class="btn-simular"><i class="fa fa-play"></i> Simular</a>
                             {% else %}
-                            <button class="btn-simular desativado" disabled>
-                                <i class="fa fa-play"></i> Simular
-                            </button>
+                            <button class="btn-simular desativado" disabled><i class="fa fa-play"></i> Simular</button>
                             {% endif %}
                         </td>
                         <td>{{ item[3] }}</td>
                         <td>{{ item[4] }}</td>
                         <td>{{ item[5] or "-" }}</td>
-                        <td>
-                            <button class="btn-excluir" onclick="excluirDaFila('{{ item[0] }}')">
-                                <i class="fa fa-times"></i>
-                            </button>
-                        </td>
+                        <td><button class="btn-excluir" onclick="excluirDaFila('{{ item[0] }}')"><i
+                                    class="fa fa-times"></i></button></td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
 
-        <div class="paginacao">
-            {% if pagina > 1 %}
-            <a href="/fila?pagina={{ pagina - 1 }}" class="btn azul pequeno">← Anterior</a>
-            {% endif %}
-            <span>Página {{ pagina }}</span>
-            {% if total_paginas > pagina %}
-            <a href="/fila?pagina={{ pagina + 1 }}" class="btn azul pequeno">Próxima →</a>
-            {% endif %}
+        <div class="contador" style="text-align:center; margin-bottom:10px; color:#00ffcc;">
+            Total de registros: <b>{{ total_registros }}</b> | Página <b>{{ pagina }}</b> de <b>{{ total_paginas }}</b>
         </div>
+
+        <div class="paginacao" style="margin-top: 20px; text-align: center;">
+            {% if pagina > 1 %}
+            <a href="{{ url_for('visualizar_fila', pagina=pagina-1) }}" style="background: rgba(0, 150, 255, 0.25); 
+           color: #fff; 
+           padding: 10px 20px; 
+           border-radius: 10px; 
+           text-decoration: none; 
+           font-weight: 600; 
+           backdrop-filter: blur(10px); 
+           transition: 0.3s; 
+           margin-right: 10px;">
+                ← Anterior
+            </a>
+            {% endif %}
+            {% if pagina < total_paginas %} <a href="{{ url_for('visualizar_fila', pagina=pagina+1) }}" style="background: rgba(0, 150, 255, 0.25); 
+           color: #fff; 
+           padding: 10px 20px; 
+           border-radius: 10px; 
+           text-decoration: none; 
+           font-weight: 600; 
+           backdrop-filter: blur(10px); 
+           transition: 0.3s; 
+           margin-left: 10px;">
+                Próxima →
+                </a>
+                {% endif %}
+        </div>
+        
         {% else %}
-        <p class="sem-dados">Nenhum item na fila no momento.</p>
+        <p class="sem-dados" style="text-align:center;">Nenhum item na fila no momento.</p>
         {% endif %}
     </div>
 
@@ -130,4 +287,5 @@
         });
     </script>
 </body>
+
 </html>
