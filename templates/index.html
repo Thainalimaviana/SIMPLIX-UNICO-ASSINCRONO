@@ -94,6 +94,9 @@
         <h3>Fila de Consultas</h3>
         <div class="area-tabelas" id="lista-fila"></div>
       </div>
+      <div class="contador" style="text-align:center; margin-bottom:10px; color:#00ffcc;">
+        Total de registros: <b>{{ total_registros }}</b> | Página <b>{{ pagina }}</b> de <b>{{ total_paginas }}</b>
+      </div>
     </div>
   </div>
 
@@ -194,8 +197,8 @@
       paginaDados.forEach(item => {
         const statusClass =
           item.status.includes("Simulação disponível") ? "sucesso" :
-          item.status.includes("Erro") ? "erro" :
-          "aguardando";
+            item.status.includes("Erro") ? "erro" :
+              "aguardando";
 
         html += `
           <tr data-tid="${item.transaction_id}">
@@ -204,8 +207,8 @@
             <td><span class="status ${statusClass}">${item.status}</span></td>
             <td>
               ${item.status.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().includes("simulacao disponivel")
-                ? `<a href="/simulate/${item.transaction_id}" class="btn-simular"><i class="fa fa-play"></i> Simular</a>`
-                : `<button class="btn-simular desativado" disabled><i class="fa fa-play"></i> Simular</button>`}
+            ? `<a href="/simulate/${item.transaction_id}" class="btn-simular"><i class="fa fa-play"></i> Simular</a>`
+            : `<button class="btn-simular desativado" disabled><i class="fa fa-play"></i> Simular</button>`}
             </td>
             <td>${item.usuario}</td>
             <td>${item.data_inclusao}</td>
@@ -266,4 +269,5 @@
     };
   </script>
 </body>
+
 </html>
