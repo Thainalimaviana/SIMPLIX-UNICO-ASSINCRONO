@@ -10,6 +10,41 @@
   <link href="https://fonts.googleapis.com/css2?family=Tomorrow&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" rel="stylesheet">
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}">
+
+  <style>
+    .paginacao {
+      margin-top: 18px;
+      text-align: center;
+    }
+
+    .paginacao button {
+      background: rgba(0, 150, 255, 0.25);
+      color: #fff;
+      border: none;
+      padding: 8px 20px;
+      border-radius: 8px;
+      font-weight: 600;
+      margin: 0 6px;
+      cursor: pointer;
+      transition: 0.3s;
+      backdrop-filter: blur(8px);
+    }
+
+    .paginacao button:hover:not(:disabled) {
+      background: rgba(0, 200, 255, 0.5);
+      transform: scale(1.05);
+    }
+
+    .paginacao button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .paginacao span {
+      color: #00e1ff;
+      font-weight: 600;
+    }
+  </style>
 </head>
 
 <body class="pagina">
@@ -56,7 +91,7 @@
       <div id="mensagem-status" style="margin-top:15px;font-weight:600;"></div>
 
       <div class="resultado" id="fila-container">
-        <h3> Fila de Consultas</h3>
+        <h3>Fila de Consultas</h3>
         <div class="area-tabelas" id="lista-fila"></div>
       </div>
     </div>
@@ -85,6 +120,10 @@
     const spinner = document.getElementById("loading");
     const mensagemStatus = document.getElementById("mensagem-status");
     const listaFila = document.getElementById("lista-fila");
+
+    let dadosFila = [];
+    let paginaAtual = 1;
+    const itensPorPagina = 20;
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -116,64 +155,96 @@
     async function carregarFila() {
       try {
         const res = await fetch("/api/fila-atualizada");
-        const dados = await res.json();
+        dadosFila = await res.json();
 
-        if (!dados.length) {
+        if (!dadosFila.length) {
           listaFila.innerHTML = "<p>Nenhum item na fila.</p>";
           return;
         }
 
-        let html = `
-          <table class="tabela-fila">
-            <thead>
-              <tr>
-                <th>Transaction ID</th>
-                <th>CPF</th>
-                <th>Status</th>
-                <th>Ação</th>
-                <th>Usuário</th>
-                <th>Incluído em</th>
-                <th>Atualizado em</th>
-                <th>Excluir</th>
-              </tr>
-            </thead>
-            <tbody>
-        `;
-
-        dados.forEach(item => {
-          const statusClass =
-            item.status.includes("Simulação disponível") ? "sucesso" :
-            item.status.includes("Erro") ? "erro" :
-            "aguardando";
-
-          html += `
-            <tr data-tid="${item.transaction_id}">
-              <td title="${item.transaction_id}">${item.transaction_id.slice(0, 10)}...</td>
-              <td>${item.cpf}</td>
-              <td><span class="status ${statusClass}">${item.status}</span></td>
-              <td>
-                ${item.status.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().includes("simulacao disponivel")
-                  ? `<a href="/simulate/${item.transaction_id}" class="btn-simular"><i class="fa fa-play"></i> Simular</a>`
-                  : `<button class="btn-simular desativado" disabled><i class="fa fa-play"></i> Simular</button>`}
-              </td>
-              <td>${item.usuario}</td>
-              <td>${item.data_inclusao}</td>
-              <td>${item.ultima_atualizacao || "-"}</td>
-              <td>
-                <button class="btn-excluir" onclick="excluirDaFila('${item.transaction_id}')">
-                  <i class="fa fa-times"></i>
-                </button>
-              </td>
-            </tr>
-          `;
-        });
-
-        html += "</tbody></table>";
-        listaFila.innerHTML = html;
+        renderizarPagina(paginaAtual);
       } catch (err) {
         listaFila.innerHTML = "⚠️ Erro ao carregar fila.";
         console.error("Erro carregarFila:", err);
       }
+    }
+
+    function renderizarPagina(pagina) {
+      const inicio = (pagina - 1) * itensPorPagina;
+      const fim = inicio + itensPorPagina;
+      const paginaDados = dadosFila.slice(inicio, fim);
+
+      let html = `
+        <table class="tabela-fila">
+          <thead>
+            <tr>
+              <th>Transaction ID</th>
+              <th>CPF</th>
+              <th>Status</th>
+              <th>Ação</th>
+              <th>Usuário</th>
+              <th>Incluído em</th>
+              <th>Atualizado em</th>
+              <th>Excluir</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      paginaDados.forEach(item => {
+        const statusClass =
+          item.status.includes("Simulação disponível") ? "sucesso" :
+          item.status.includes("Erro") ? "erro" :
+          "aguardando";
+
+        html += `
+          <tr data-tid="${item.transaction_id}">
+            <td title="${item.transaction_id}">${item.transaction_id.slice(0, 10)}...</td>
+            <td>${item.cpf}</td>
+            <td><span class="status ${statusClass}">${item.status}</span></td>
+            <td>
+              ${item.status.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().includes("simulacao disponivel")
+                ? `<a href="/simulate/${item.transaction_id}" class="btn-simular"><i class="fa fa-play"></i> Simular</a>`
+                : `<button class="btn-simular desativado" disabled><i class="fa fa-play"></i> Simular</button>`}
+            </td>
+            <td>${item.usuario}</td>
+            <td>${item.data_inclusao}</td>
+            <td>${item.ultima_atualizacao || "-"}</td>
+            <td>
+              <button class="btn-excluir" onclick="excluirDaFila('${item.transaction_id}')">
+                <i class="fa fa-times"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+
+      html += "</tbody></table>";
+
+      const totalPaginas = Math.ceil(dadosFila.length / itensPorPagina);
+      let paginacao = `
+        <div class="paginacao">
+          <button id="anterior" ${pagina <= 1 ? "disabled" : ""}>← Anterior</button>
+          <span>Página ${pagina} de ${totalPaginas}</span>
+          <button id="proxima" ${pagina >= totalPaginas ? "disabled" : ""}>Próxima →</button>
+        </div>
+      `;
+
+      listaFila.innerHTML = html + paginacao;
+
+      document.getElementById("anterior")?.addEventListener("click", () => {
+        if (paginaAtual > 1) {
+          paginaAtual--;
+          renderizarPagina(paginaAtual);
+        }
+      });
+
+      document.getElementById("proxima")?.addEventListener("click", () => {
+        if (paginaAtual < totalPaginas) {
+          paginaAtual++;
+          renderizarPagina(paginaAtual);
+        }
+      });
     }
 
     setInterval(carregarFila, 8000);
