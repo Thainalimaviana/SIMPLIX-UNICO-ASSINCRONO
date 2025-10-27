@@ -292,7 +292,7 @@ h1.titulo-tomorrow {
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.15);
     overflow-y: auto;
-    max-height: 280px;
+    max-height: 600px;
     scrollbar-width: thin;
 }
 
@@ -640,4 +640,15 @@ table.tabela-fila tbody tr:hover {
   margin-top: auto;
   margin-bottom: 6px;
 }
+.area-tabelas::-webkit-scrollbar {
+  width: 8px;
+}
 
+.area-tabelas::-webkit-scrollbar-thumb {
+  background: rgba(0, 200, 255, 0.4);
+  border-radius: 10px;
+}
+
+.area-tabelas::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 200, 255, 0.7);
+}
