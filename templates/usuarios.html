@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="/static/style.css">
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Tomorrow&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}">
   <style>
     body {
@@ -196,6 +197,7 @@
   </style>
 </head>
 
+<script src="/static/js/theme.js"></script>
 <body class="pagina">
   <button class="menu-toggle" id="menuToggle"><i class="fa fa-bars"></i></button>
 
@@ -270,31 +272,13 @@
       menuToggle.classList.toggle("mover");
     });
 
-    const toggleTheme = document.getElementById("toggle-theme");
-    toggleTheme.addEventListener("click", () => {
-      document.body.classList.toggle("dark-mode");
-      localStorage.setItem("modoEscuro", document.body.classList.contains("dark-mode"));
-      const icon = toggleTheme.querySelector("i");
-      icon.classList.toggle("fa-moon");
-      icon.classList.toggle("fa-sun");
-    });
-
-    if (localStorage.getItem("modoEscuro") === "true") {
-      document.body.classList.add("dark-mode");
-      const icon = document.querySelector("#toggle-theme i");
-      if (icon) {
-        icon.classList.remove("fa-moon");
-        icon.classList.add("fa-sun");
-      }
-    }
-
     $(document).ready(function () {
       $('#usuarios').DataTable({
         paging: true,
         pageLength: 20,
         lengthChange: false,
         language: {
-          search: "🔍 Pesquisar nome ou ID:",
+          search: "Pesquisar nome ou ID:",
           zeroRecords: "Nenhum usuário encontrado",
           infoEmpty: "Nenhum usuário",
           paginate: {

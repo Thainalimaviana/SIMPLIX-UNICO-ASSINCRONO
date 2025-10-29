@@ -18,8 +18,8 @@
     }
 
     .paginacao button {
-      background: rgba(201, 201, 201, 0.25);
-      color: #fff;
+      background: rgb(185, 255, 157);
+      color: #000000;
       border: none;
       padding: 8px 20px;
       border-radius: 8px;
@@ -31,7 +31,7 @@
     }
 
     .paginacao button:hover:not(:disabled) {
-      background: rgba(218, 218, 218, 0.5);
+      background: rgba(0, 0, 0, 0.918);
       transform: scale(1.05);
     }
 
@@ -47,6 +47,7 @@
   </style>
 </head>
 
+<script src="/static/js/theme.js"></script>
 <body class="pagina">
   <button class="menu-toggle" id="menuToggle"><i class="fa fa-bars"></i></button>
 
@@ -106,14 +107,6 @@
       sidebar.classList.toggle("active");
       content.classList.toggle("active");
       menuToggle.classList.toggle("mover");
-    });
-
-    const toggleTheme = document.getElementById("toggle-theme");
-    toggleTheme.addEventListener("click", () => {
-      document.body.classList.toggle("dark-mode");
-      const icon = toggleTheme.querySelector("i");
-      icon.classList.toggle("fa-moon");
-      icon.classList.toggle("fa-sun");
     });
 
     const form = document.getElementById("form-consulta");

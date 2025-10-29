@@ -1,14 +1,14 @@
 :root {
-    --gradiente-inicio: #000000;
-    --gradiente-fim: #09ff00ff;
-    --cor-texto: #ffffff;
+    --gradiente-inicio: #ffffff;
+    --gradiente-fim: rgb(255, 255, 255);
+    --cor-texto: #108001;
     --bg-container: rgba(255, 255, 255, 0.12);
     --bg-input: rgba(255, 255, 255, 0.15);
 }
 
 .dark-mode {
-    --gradiente-inicio: #006fb9;
-    --gradiente-fim: #09ff00ff;
+    --gradiente-inicio: #00ac00;
+    --gradiente-fim: rgb(0, 0, 0);
     --cor-texto: #ffffff;
     --bg-container: rgba(0, 0, 0, 0.4);
     --bg-input: rgba(255, 255, 255, 0.08);
@@ -23,11 +23,11 @@ body.pagina {
     background: linear-gradient(40deg, var(--gradiente-inicio), var(--gradiente-fim));
     color: var(--cor-texto);
     overflow-y: auto;
-    font-family: 'Poppins', 'Ts Tedeuch', sans-serif !important;
+    font-family: 'Poppins', sans-serif !important;
 }
 
 h1.titulo-tomorrow {
-    font-family: 'Poppins', cursive;
+    font-family: 'Tomorrow', sans-serif;
     font-size: 52px;
     letter-spacing: 2px;
     color: var(--cor-texto);
@@ -350,7 +350,7 @@ h1.titulo-tomorrow {
     width: 100%;
     padding: 12px 15px;
     border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    border: 1px solid rgba(80, 80, 80, 0.3);
     background: var(--bg-input);
     font-size: 16px;
     font-family: 'Poppins', sans-serif;
@@ -359,9 +359,9 @@ h1.titulo-tomorrow {
 }
 
 .barra-cpf:focus {
-    border: 2px solid #4c94e7;
-    background: rgba(255, 255, 255, 0.3);
-    box-shadow: 0 0 10px rgba(76, 148, 231, 0.6);
+    border: 2px solid #06b800;
+    background: rgba(183, 255, 187, 0.322);
+    box-shadow: 0 0 10px rgba(0, 255, 115, 0.6);
 }
 
 .button-group {
@@ -390,21 +390,21 @@ button {
 }
 
 button.azul {
-    background-color: #4c94e7;
-    border-bottom: 4px solid #1565c0;
+    background-color: #00b300;
+    border-bottom: 4px solid #008a1e;
 }
 
 button.azul:hover {
-    background-color: #1565c0;
+    background-color: #0a7900;
 }
 
 button.vermelho {
-    background-color: #e53935;
-    border-bottom: 4px solid #b71c1c;
+    background-color: #00b300;
+    border-bottom: 4px solid #008a1e;
 }
 
 button.vermelho:hover {
-    background-color: #c62828;
+    background-color: #0a7900;
 }
 
 @media (max-width: 768px) {
@@ -472,18 +472,18 @@ table.tabela-fila tbody tr:hover {
 }
 
 .status.sucesso {
-    background: rgba(76, 175, 80, 0.25);
+    background: rgba(57, 163, 60, 0.459);
     color: #8cffb7;
 }
 
 .status.erro {
-    background: rgba(244, 67, 54, 0.25);
+    background: rgba(244, 67, 54, 0.418);
     color: #ff9c9c;
 }
 
 .status.aguardando {
-    background: rgba(255, 235, 59, 0.2);
-    color: #fff7a8;
+    background: rgba(233, 190, 0, 0.384);
+    color: #706e00;
 }
 
 .btn.pequeno {
@@ -555,7 +555,7 @@ table.tabela-fila tbody tr:hover {
   font-family: 'Poppins', sans-serif;
   font-weight: 500;
   border-radius: 6px;
-  background: #4c94e7;
+  background: #108800;
   color: var(--cor-texto);
   text-decoration: none;
   cursor: pointer;
@@ -571,9 +571,9 @@ table.tabela-fila tbody tr:hover {
 }
 
 .btn-simular.desativado {
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(134, 134, 134, 0.356);
+  color: rgba(22, 22, 22, 0.5);
+  border: 1px solid rgba(117, 117, 117, 0.445);
   cursor: not-allowed;
   box-shadow: none;
 }

@@ -6,6 +6,7 @@
   <link rel="stylesheet" href="/static/style.css">
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Tomorrow&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}">
   <style>
     body {
@@ -64,7 +65,7 @@
       display: inline-block;
       padding: 10px 20px;
       border-radius: 8px;
-      background: rgba(255, 255, 255, 0.15);
+      background: rgba(137, 255, 143, 0.342);
       border: 1px solid rgba(255, 255, 255, 0.3);
       color: var(--cor-texto);
       font-size: 15px;
@@ -74,8 +75,8 @@
     }
 
     .btn-voltar:hover {
-      background: #4c94e7;
-      border-color: #1565c0;
+      background: #57f87a69;
+      border-color: #17c400;
     }
 
     .btn-excluir {
@@ -112,6 +113,7 @@
   </style>
 </head>
 
+<script src="/static/js/theme.js"></script>
 <body>
   <div class="container">
     <h1>Esteira de Cadastros</h1>
@@ -157,7 +159,7 @@
         lengthChange: false,
         order: [[3, 'desc']],
         language: {
-          search: "🔍 Pesquisar:",
+          search: "Pesquisar:",
           zeroRecords: "Nenhum registro encontrado",
           infoEmpty: "Nenhum registro",
           paginate: {

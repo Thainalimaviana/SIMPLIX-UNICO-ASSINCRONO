@@ -8,10 +8,11 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Tomorrow&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}">
 </head>
 
+<script src="/static/js/theme.js"></script>
 <body class="pagina">
   <button class="menu-toggle" id="menuToggle"><i class="fa fa-bars"></i></button>
 
@@ -88,14 +89,6 @@
       sidebar.classList.toggle("active");
       content.classList.toggle("active");
       menuToggle.classList.toggle("mover");
-    });
-
-    const toggleTheme = document.getElementById("toggle-theme");
-    toggleTheme.addEventListener("click", () => {
-      document.body.classList.toggle("dark-mode");
-      const icon = toggleTheme.querySelector("i");
-      icon.classList.toggle("fa-moon");
-      icon.classList.toggle("fa-sun");
     });
 
     function abrirCadastro(transactionId, tabelaId, bancarizadora, simulationId, cpf) {
