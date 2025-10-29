@@ -85,6 +85,19 @@ h1.titulo-tomorrow {
     text-align: center;
     margin-bottom: 30px;
     color: var(--cor-texto);
+    position: relative;
+    padding-bottom: 12px;
+}
+
+.logo::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 10%;
+    right: 10%;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--cor-texto), transparent);
+    opacity: 0.9;
 }
 
 .user-info {
@@ -482,8 +495,8 @@ table.tabela-fila tbody tr:hover {
 }
 
 .status.aguardando {
-    background: rgba(233, 190, 0, 0.384);
-    color: #706e00;
+    background: rgba(238, 255, 0, 0.397);
+    color: #464400;
 }
 
 .btn.pequeno {
@@ -545,117 +558,120 @@ table.tabela-fila tbody tr:hover {
     background: rgba(255, 255, 255, 0.3);
     transform: scale(1.05);
 }
+
 .btn-simular {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  padding: 4px 10px;
-  font-size: 12px;
-  font-family: 'Poppins', sans-serif;
-  font-weight: 500;
-  border-radius: 6px;
-  background: #108800;
-  color: white;
-  text-decoration: none;
-  cursor: pointer;
-  min-width: 70px;
-  height: 26px;
-  transition: all 0.2s ease-in-out;
-  box-shadow: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    border-radius: 6px;
+    background: #108800;
+    color: white;
+    text-decoration: none;
+    cursor: pointer;
+    min-width: 70px;
+    height: 26px;
+    transition: all 0.2s ease-in-out;
+    box-shadow: none;
 }
 
 .btn-simular:hover {
-  background: #2dd874;
-  transform: scale(1.05);
+    background: #2dd874;
+    transform: scale(1.05);
 }
 
 .btn-simular.desativado {
-  background: rgba(2, 2, 2, 0.356);
-  color: rgb(255, 250, 250);
-  border: 1px solid rgba(117, 117, 117, 0.445);
-  cursor: not-allowed;
-  box-shadow: none;
+    background: rgba(2, 2, 2, 0.356);
+    color: rgb(255, 250, 250);
+    border: 1px solid rgba(117, 117, 117, 0.445);
+    cursor: not-allowed;
+    box-shadow: none;
 }
+
 .btn-simular {
-  background: #28a745;
-  color: white;
-  transition: 0.3s;
+    background: #28a745;
+    color: white;
+    transition: 0.3s;
 }
+
 .btn-simular:hover {
-  background: #34d058;
+    background: #34d058;
 }
+
 .tabelas-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-  gap: 20px;
-  margin-top: 25px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 20px;
+    margin-top: 25px;
 }
 
 .tabela-item {
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 14px;
-  padding: 15px 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  color: var(--cor-texto);
-  transition: 0.3s;
-  text-align: center;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 15px 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    color: var(--cor-texto);
+    transition: 0.3s;
+    text-align: center;
 
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
 
-  height: 220px;
-  overflow: hidden;
+    height: 220px;
+    overflow: hidden;
 }
 
 .tabela-item:hover {
-  background: rgba(255, 255, 255, 0.15);
-  transform: translateY(-3px);
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-3px);
 }
 
 .tabela-item b {
-  font-size: 15px;
-  margin-bottom: 4px;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow: hidden;
-  max-width: 95%;
+    font-size: 15px;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    max-width: 95%;
 }
 
 .tabela-item small {
-  color: var(--cor-texto);
-  margin-bottom: 10px;
+    color: var(--cor-texto);
+    margin-bottom: 10px;
 }
 
 .tabela-item p {
-  margin: 5px 0;
-  font-size: 14px;
-  color: var(--cor-texto);
+    margin: 5px 0;
+    font-size: 14px;
+    color: var(--cor-texto);
 }
 
 .tabela-item .btn {
-  width: 85%;
-  text-align: center;
-  margin-top: auto;
-  margin-bottom: 6px;
+    width: 85%;
+    text-align: center;
+    margin-top: auto;
+    margin-bottom: 6px;
 }
+
 .area-tabelas::-webkit-scrollbar {
-  width: 8px;
+    width: 8px;
 }
 
 .area-tabelas::-webkit-scrollbar-thumb {
-  background: rgba(0, 200, 255, 0.4);
-  border-radius: 10px;
+    background: rgba(0, 200, 255, 0.4);
+    border-radius: 10px;
 }
 
 .area-tabelas::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 200, 255, 0.7);
+    background: rgba(0, 200, 255, 0.7);
 }
 
 body:not(.dark-mode) {
-  --cor-texto: #217400;
+    --cor-texto: #217400;
 }
-
-
