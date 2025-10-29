@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8">
   <title>Cadastrar Cliente</title>
@@ -28,9 +29,12 @@
       text-align: center;
       overflow-y: auto;
       max-height: 95vh;
+      color: var(--cor-texto);
     }
 
-    input, select, button {
+    input,
+    select,
+    button {
       width: 100%;
       margin: 8px 0;
       padding: 12px 18px;
@@ -41,18 +45,22 @@
       box-sizing: border-box;
     }
 
-    input, select {
+    input,
+    select {
       background: rgba(255, 255, 255, 0.137);
-      color: #fff;
+      color: var(--cor-texto);
       border: 1px solid rgba(255, 255, 255, 0.15);
       outline: none;
     }
 
-    input::placeholder { color: #ccc; }
+    input::placeholder {
+      color: rgba(100, 100, 100, 0.7);
+    }
 
-    input:focus, select:focus {
-      background: rgb(14, 14, 14);
-      border-color: rgba(255, 255, 255, 0.35);
+    input:focus,
+    select:focus {
+      background: rgba(255, 255, 255, 0.4);
+      border-color: rgba(0, 0, 0, 0.25);
       transform: scale(1.02);
     }
 
@@ -76,7 +84,8 @@
       font-weight: 700;
     }
 
-    h3, h4 {
+    h3,
+    h4 {
       margin-top: 25px;
       font-weight: 600;
     }
@@ -101,10 +110,15 @@
     .btn-voltar:hover {
       background: #0e5300;
     }
+
+    * {
+      color: var(--cor-texto);
+    }
   </style>
 </head>
 
 <script src="/static/js/theme.js"></script>
+
 <body>
   <div class="container">
     <h1>Cadastrar Cliente</h1>
@@ -171,11 +185,13 @@
       <input type="hidden" name="bancarizadora" value="{{ bancarizadora }}">
       <input type="hidden" name="tabela_id" value="{{ tabela_id }}">
 
-      <button type="submit" id="btnFinalizar" onclick="this.disabled=true; this.innerText='Enviando...'; this.form.submit();">
+      <button type="submit" id="btnFinalizar"
+        onclick="this.disabled=true; this.innerText='Enviando...'; this.form.submit();">
         Finalizar Cadastro
       </button>
       <a href="/index" class="btn-voltar">Voltar</a>
     </form>
   </div>
 </body>
+
 </html>
