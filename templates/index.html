@@ -52,13 +52,14 @@
 
   <div class="sidebar" id="sidebar">
     <div>
+      <img src="static/img/logo.png" style="width: 110px; padding-left: 50px;">
       <div class="logo">SIMPLIX</div>
       <div class="user-info">
         <h3>{{ session["user"] }}</h3>
         <span>{{ session["role"] }}</span>
       </div>
       <ul class="menu">
-        <li><a href="/index">▸ Dashboard</a></li>
+        <li><a href="/index">▸ Página Inicial</a></li>
         <li><a href="/esteira">▸ Esteira</a></li>
         {% if session['role'] == 'admin' %}
         <li><a href="/usuarios">▸ Gerenciar Usuários</a></li>
@@ -73,8 +74,7 @@
   </div>
 
   <div class="content">
-    <h1 class="titulo-tomorrow">Fila Simplix - FGTS</h1>
-
+    <h1 class="titulo-tomorrow">Simplix - FGTS</h1>
     <div class="container">
       <form id="form-consulta">
         <div class="input-wrapper">
