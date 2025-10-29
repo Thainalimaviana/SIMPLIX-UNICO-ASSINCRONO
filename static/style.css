@@ -579,7 +579,7 @@ table.tabela-fila tbody tr:hover {
 }
 .btn-simular {
   background: #28a745;
-  color: var(--cor-texto);
+  color: white;
   transition: 0.3s;
 }
 .btn-simular:hover {
@@ -653,4 +653,9 @@ table.tabela-fila tbody tr:hover {
 .area-tabelas::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 200, 255, 0.7);
 }
+
+body:not(.dark-mode) {
+  --cor-texto: #217400;
+}
+
 
