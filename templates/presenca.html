@@ -408,6 +408,14 @@
             btn.classList.remove("btn-loading");
         }
 
+        function limparCPF() {
+            document.getElementById("cpfConsulta").value = "";
+
+            const box = document.getElementById("box-consulta");
+            box.style.display = "none";
+            box.innerHTML = "";
+        }
+
     </script>
 
 </body>
