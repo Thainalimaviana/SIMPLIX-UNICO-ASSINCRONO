@@ -59,6 +59,10 @@
         .orange {
             background: linear-gradient(45deg, #ff7a00, #ff6300);
         }
+
+        .grey {
+            background: linear-gradient(45deg, #8d8d8d, #5f5f5f);
+        }
     </style>
 </head>
 
@@ -80,6 +84,7 @@
                 <li><a href="/dashboard">▸ Dashboard</a></li>
                 <li><a href="/index">▸ SIMPLIX</a></li>
                 <li><a href="/presenca">▸ PRESENÇA</a></li>
+                <li><a href="/c6bank">▸ C6 BANK</a></li>
 
                 {% if session['role'] == 'admin' %}
                 <li><a href="/usuarios">▸ Gerenciar Usuários</a></li>
@@ -106,6 +111,11 @@
 
         <div class="card-dash orange" onclick="window.location.href='/presenca'">
             <div class="card-title"><i class="fa fa-user-check"></i> PRESENÇA</div>
+            <div class="card-value">Acessar sistema</div>
+        </div>
+
+        <div class="card-dash grey" onclick="window.location.href='/c6bank'">
+            <div class="card-title"><i class="fa fa-building-columns"></i> C6 BANK</div>
             <div class="card-value">Acessar sistema</div>
         </div>
 

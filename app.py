@@ -6,7 +6,7 @@ import time
 import json
 import sqlite3
 import threading
-import os
+import os, re
 from werkzeug.security import generate_password_hash, check_password_hash
 
 try:
@@ -1026,6 +1026,198 @@ def api_presenca_consultar():
 @app.route("/dashboard")
 def dashboard():
     return render_template("dashboard.html")
+
+#*************************************************************************************************************
+#C6 Bank
+
+C6_TOKEN = None
+C6_EXPIRA = 0
+
+@app.route("/c6bank")
+def c6bank_page():
+    return render_template("c6bank.html")
+
+def c6_gerar_token():
+    import time
+    global C6_TOKEN, C6_EXPIRA
+
+    if C6_TOKEN and time.time() < C6_EXPIRA:
+        return C6_TOKEN
+
+    url = "https://marketplace-proposal-service-api-p.c6bank.info/auth/token"
+
+    payload = {
+        "username": "51077297890_004500",
+        "password": "Tech@2025"
+    }
+
+    headers = {"Content-Type": "application/x-www-form-urlencoded"}
+
+    r = requests.post(url, data=payload, headers=headers, timeout=20)
+
+    if r.status_code != 200:
+        print("❌ Erro ao gerar token C6:", r.text)
+        return None
+
+    token_data = r.json()
+    C6_TOKEN = token_data.get("access_token")
+    C6_EXPIRA = time.time() + 3500
+
+    return C6_TOKEN
+
+def normalizar_data(data_str):
+    data_str = data_str.replace("/", "-").replace(" ", "-")
+
+    if re.fullmatch(r"\d{8}", data_str):
+        return f"{data_str[4:8]}-{data_str[2:4]}-{data_str[0:2]}"
+
+    formatos = [
+        "%d-%m-%Y",
+        "%Y-%m-%d",
+        "%d-%m-%y",
+        "%Y/%m/%d",
+        "%d/%m/%Y",
+        "%d/%m/%y",
+    ]
+
+    for fmt in formatos:
+        try:
+            return datetime.strptime(data_str, fmt).strftime("%Y-%m-%d")
+        except:
+            pass
+
+    return None
+
+
+def normalizar_telefone(numero_raw):
+    """
+    Remove tudo que não for número e separa DDD do restante.
+    """
+    numeros = re.sub(r"\D", "", numero_raw)
+
+    if len(numeros) < 10:
+        return None, None
+
+    ddd = numeros[:2]
+    telefone = numeros[2:]
+
+    return ddd, telefone
+
+@app.route("/api/c6bank/gerar-link", methods=["POST"])
+def api_c6_gerar_link():
+    data = request.get_json()
+
+    nome = data.get("nome")
+    cpf = data.get("cpf")
+    nascimento = data.get("nascimento")
+    telefone_raw = data.get("telefone")
+
+    nascimento_final = normalizar_data(nascimento)
+    if not nascimento_final:
+        return jsonify({"html": "<b class='status-erro'>Data inválida.</b>"})
+
+    ddd, telefone = normalizar_telefone(telefone_raw)
+    if not ddd:
+        return jsonify({"html": "<b class='status-erro'>Telefone inválido.</b>"})
+
+    token = c6_gerar_token()
+    if not token:
+        return jsonify({"html": "<b class='status-erro'>Erro ao gerar token do C6.</b>"}), 500
+
+    url = "https://marketplace-proposal-service-api-p.c6bank.info/marketplace/authorization/generate-liveness"
+
+    headers = {
+        "Authorization": token,
+        "Content-Type": "application/json",
+        "Accept": "application/vnd.c6bank_authorization_generate_liveness_v1+json"
+    }
+
+    payload = {
+        "nome": nome,
+        "cpf": cpf,
+        "data_nascimento": nascimento_final,
+        "telefone": {
+            "numero": telefone or "",
+            "codigo_area": ddd or ""
+        }
+    }
+
+    r = requests.post(url, json=payload, headers=headers, timeout=20)
+    resp = r.json()
+
+    print("📌 RETORNO C6 LINK:", resp)
+
+    link = resp.get("link")
+
+    html = f"""
+        <b>Link Gerado:</b><br>
+
+        <div style="display:flex; flex-direction:column; align-items:center; width:100%;">
+
+            <input id="linkC6" value="{link or ''}"
+                style='width:90%; padding:10px 12px; border-radius:10px;
+                border:1px solid #ccc; margin-bottom:12px;'>
+
+            <button class="copy-btn" onclick="copiarLinkC6()">
+                <i class="fa fa-copy"></i> Copiar
+            </button>
+
+        </div>
+    """
+
+    return jsonify({"sucesso": True, "html": html})
+
+
+@app.route("/api/c6bank/consultar", methods=["POST"])
+def api_c6_consultar():
+    data = request.get_json()
+    cpf = data.get("cpf")
+
+    token = c6_gerar_token()
+    if not token:
+        return jsonify({"html": "<div class='resultado-erro'>Erro ao gerar token C6.</div>"}), 500
+
+    url = "https://marketplace-proposal-service-api-p.c6bank.info/marketplace/authorization/status"
+
+    headers = {
+        "Authorization": token,
+        "Content-Type": "application/json",
+        "Accept": "application/vnd.c6bank_authorization_status_v1+json"
+    }
+
+    payload = {"cpf": cpf}
+
+    r = requests.post(url, json=payload, headers=headers, timeout=20)
+    resp = r.json()
+
+    print("📌 STATUS C6:", resp)
+
+    status_raw = resp.get("status", "").upper()
+
+    STATUS_MAP = {
+        "AUTHORIZED": "Autorizado",
+        "WAITING_FOR_AUTHORIZATION": "Aguardando Autorização",
+        "NOT_AUTHORIZED": "Não Autorizado",
+        "PENDING_OF_LIVENESS": "Aguardando Liveness",
+        "EXPIRED": "Expirado",
+        "CANCELED": "Cancelado",
+    }
+
+    status_formatado = STATUS_MAP.get(status_raw, "Desconhecido")
+
+    html = f"""
+        <div class='resultado-wrapper'>
+            <div class='resultado-cpf-topo'>
+                CPF: {cpf}
+            </div>
+
+            <div class='resultado-grid'>
+                <div class='resultado-item'><b>Status:</b> {status_formatado}</div>
+            </div>
+        </div>
+    """
+
+    return jsonify({"html": html})
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=8600)

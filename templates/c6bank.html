@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Presença - Multi Tech</title>
+    <title>C6 Bank - Multi Tech</title>
     <link rel="stylesheet" href="/static/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -84,8 +84,25 @@
             color: #000;
         }
 
-        #box-consulta {
-            margin-top: 25px;
+        .btn-limpar {
+            background: #ff6961;
+            color: #fff;
+            margin-left: 10px;
+            border-radius: 10px;
+            padding: 12px 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-limpar:hover {
+            background: #ff4c4c;
+        }
+
+        .botoes-acoes {
+            display: flex;
+            gap: 12px;
+            margin-top: 10px;
         }
 
         .resultado-wrapper {
@@ -95,28 +112,22 @@
             overflow: hidden;
         }
 
-
         .resultado-cpf-topo {
-            text-align: right;
+            text-align: center;
             margin-bottom: 15px;
-            font-size: 17px;
+            font-size: 18px;
             font-weight: bold;
-            color: var(--cor-texto);
         }
 
         .resultado-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: 1fr;
             gap: 18px 40px;
         }
 
         .resultado-item {
             padding: 4px 0;
             border-bottom: 1px solid rgba(255, 255, 255, 0.10);
-        }
-
-        .resultado-item:last-child {
-            border-bottom: none;
         }
 
         .resultado-item b {
@@ -134,62 +145,25 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
         }
 
-        @media (max-width: 850px) {
+        .btn-loading {
+            opacity: 0.7;
+        }
 
-            .resultado-wrapper {
-                padding: 18px;
-                max-width: 100% !important;
-                width: 100% !important;
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 0.7s linear infinite;
+            display: inline-block;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
             }
-
-            .resultado-grid {
-                grid-template-columns: 1fr;
-                gap: 12px 0;
-                text-align: center;
-            }
-
-            .resultado-cpf-topo {
-                text-align: center !important;
-                font-size: 16px;
-                margin-bottom: 18px;
-            }
-
-            .resultado-item {
-                border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-                padding-bottom: 10px;
-            }
-        }
-
-        #col-cpf-consulta {
-            align-items: flex-start !important;
-            text-align: left !important;
-            width: 100%;
-        }
-
-        #cpfConsulta {
-            width: 98% !important;
-        }
-
-        .btn-limpar {
-            background: #ff6961;
-            color: #fff;
-            margin-left: 10px;
-            border-radius: 10px;
-            padding: 12px 18px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        .btn-limpar:hover {
-            transform: scale(1.04);
-            background: #ff4c4c;
-        }
-
-        .botoes-acoes {
-            display: flex;
-            gap: 12px;
-            margin-top: 10px;
         }
 
         .copy-btn {
@@ -212,29 +186,6 @@
         .copy-btn:hover {
             transform: scale(1.04);
             background: #06e066;
-        }
-
-        .btn-loading {
-            position: relative;
-            opacity: 0.8;
-        }
-
-        .spinner {
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-top: 3px solid white;
-            border-radius: 50%;
-            width: 16px;
-            height: 16px;
-            animation: spin 0.7s linear infinite;
-            display: inline-block;
-            margin-right: 8px;
-            vertical-align: middle;
-        }
-
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
         }
     </style>
 
@@ -260,13 +211,12 @@
                 <li><a href="/dashboard">▸ Dashboard</a></li>
                 <li><a href="/index">▸ SIMPLIX</a></li>
                 <li><a href="/presenca">▸ PRESENÇA</a></li>
-                <li><a href="/c6bank">▸ C6 BANK</a></li>
+                <li><a href="/c6bank">▸ C6 Bank</a></li>
                 {% if session['role'] == 'admin' %}
                 <li><a href="/usuarios">▸ Gerenciar Usuários</a></li>
                 <li><a href="/register">▸ Criar Usuário</a></li>
                 {% endif %}
             </ul>
-
         </div>
 
         <div class="menu-footer">
@@ -276,10 +226,10 @@
     </div>
 
     <div class="content">
-        <h1 class="titulo-tomorrow">Presença</h1>
+        <h1 class="titulo-tomorrow">C6 Bank</h1>
 
         <div class="card">
-            <h2>Gerar Termo INSS</h2>
+            <h2>Gerar Link de Liveness</h2>
 
             <div class="linha">
                 <div class="col">
@@ -293,21 +243,19 @@
                 </div>
 
                 <div class="col">
-                    <label>Telefone <span style="color:#ff4d4d;">(obrigatório)</span></label>
-                    <input type="text" id="telefone">
+                    <label>Data de Nascimento <span style="color:#ff4d4d;">(obrigatório)</span></label>
+                    <input type="text" id="nascimento">
                 </div>
             </div>
 
             <div class="linha">
                 <div class="col">
-                    <label>CPF Representante <span style="color:#999;">(opcional)</span></label>
-                    <input type="text" id="cpfRep">
+                    <label>Telefone Completo <span style="color:#ff4d4d;">(obrigatório)</span></label>
+                    <input type="text" id="telefone">
                 </div>
 
-                <div class="col">
-                    <label>Nome Representante <span style="color:#999;">(opcional)</span></label>
-                    <input type="text" id="nomeRep">
-                </div>
+                <div class="col"></div>
+                <div class="col"></div>
             </div>
 
 
@@ -315,13 +263,11 @@
                 <i class="fa fa-link"></i> Gerar Link
             </button>
 
-
             <div id="box-gerar" style="display:none;"></div>
-
         </div>
 
         <div class="card">
-            <h2>Consultar CPF</h2>
+            <h2>Consultar Status</h2>
 
             <div class="linha">
                 <div class="col" id="col-cpf-consulta">
@@ -335,7 +281,7 @@
                     <i class="fa fa-search"></i> Consultar
                 </button>
 
-                <button class="btn btn-limpar" onclick="limparCPF()">
+                <button class="btn btn-limpar" onclick="limpar()">
                     <i class="fa fa-broom"></i> Limpar
                 </button>
             </div>
@@ -347,8 +293,8 @@
 
     <script>
 
-        const menuToggle = document.getElementById("menuToggle");
         const sidebar = document.getElementById("sidebar");
+        const menuToggle = document.getElementById("menuToggle");
         const content = document.querySelector(".content");
 
         menuToggle.addEventListener("click", () => {
@@ -366,12 +312,11 @@
             const payload = {
                 nome: document.getElementById("nome").value,
                 cpf: document.getElementById("cpf").value,
-                telefone: document.getElementById("telefone").value,
-                cpfRep: document.getElementById("cpfRep").value,
-                nomeRep: document.getElementById("nomeRep").value
+                nascimento: document.getElementById("nascimento").value,
+                telefone: document.getElementById("telefone").value
             };
 
-            const res = await fetch("/api/presenca/gerar-link", {
+            const res = await fetch("/api/c6bank/gerar-link", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)
@@ -386,22 +331,23 @@
             btn.classList.remove("btn-loading");
         }
 
-
         async function consultarCPF() {
             const btn = document.getElementById("btnConsultar");
 
             btn.innerHTML = `<span class="spinner"></span> Consultando...`;
             btn.classList.add("btn-loading");
 
-            const res = await fetch("/api/presenca/consultar", {
+            const cpf = document.getElementById("cpfConsulta").value;
+
+            const res = await fetch("/api/c6bank/consultar", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ cpf: document.getElementById("cpfConsulta").value })
+                body: JSON.stringify({ cpf })
             });
 
             const data = await res.json();
-            const box = document.getElementById("box-consulta");
 
+            const box = document.getElementById("box-consulta");
             box.style.display = "block";
             box.innerHTML = data.html;
 
@@ -409,12 +355,29 @@
             btn.classList.remove("btn-loading");
         }
 
-        function limparCPF() {
+        function limpar() {
             document.getElementById("cpfConsulta").value = "";
-
             const box = document.getElementById("box-consulta");
             box.style.display = "none";
             box.innerHTML = "";
+        }
+        function copiarLinkC6() {
+            const campo = document.getElementById("linkC6");
+            if (!campo) return;
+
+            campo.select();
+            campo.setSelectionRange(0, 99999);
+
+            navigator.clipboard.writeText(campo.value);
+
+            const btn = document.querySelector(".copy-btn");
+            btn.style.background = "#0ad165";
+            btn.innerHTML = "<i class='fa fa-check'></i> Copiado!";
+
+            setTimeout(() => {
+                btn.style.background = "#0aff73";
+                btn.innerHTML = "<i class='fa fa-copy'></i> Copiar";
+            }, 1500);
         }
 
     </script>
