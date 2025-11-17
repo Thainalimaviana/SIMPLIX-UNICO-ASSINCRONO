@@ -1041,7 +1041,9 @@ def c6_gerar_token():
     import time
     global C6_TOKEN, C6_EXPIRA
 
-    if C6_TOKEN and time.time() < C6_EXPIRA:
+    agora = time.time()
+
+    if C6_TOKEN and agora < C6_EXPIRA:
         return C6_TOKEN
 
     url = "https://marketplace-proposal-service-api-p.c6bank.info/auth/token"
@@ -1061,7 +1063,10 @@ def c6_gerar_token():
 
     token_data = r.json()
     C6_TOKEN = token_data.get("access_token")
-    C6_EXPIRA = time.time() + 3500
+
+    C6_EXPIRA = agora + 25
+
+    print("🔄 Novo token C6 gerado!")
 
     return C6_TOKEN
 
@@ -1090,9 +1095,6 @@ def normalizar_data(data_str):
 
 
 def normalizar_telefone(numero_raw):
-    """
-    Remove tudo que não for número e separa DDD do restante.
-    """
     numeros = re.sub(r"\D", "", numero_raw)
 
     if len(numeros) < 10:
@@ -1192,18 +1194,38 @@ def api_c6_consultar():
 
     print("📌 STATUS C6:", resp)
 
-    status_raw = resp.get("status", "").upper()
+    status_raw = (
+        resp.get("status")
+        or resp.get("type")
+        or resp.get("observacao")
+        or resp.get("message")
+        or ""
+    ).upper()
 
     STATUS_MAP = {
         "AUTHORIZED": "Autorizado",
         "WAITING_FOR_AUTHORIZATION": "Aguardando Autorização",
         "NOT_AUTHORIZED": "Não Autorizado",
         "PENDING_OF_LIVENESS": "Aguardando Liveness",
+
+        "CPF_NOT_FOUND_AT_AUTHORIZER": "Nenhuma autorização encontrada",
+        "ENTITY_NOT_FOUND": "Nenhuma autorização encontrada",
+        "[DEFAULT_RESPONSE_HANDLER] NOT FOUND": "Nenhuma autorização encontrada",
+        "NOT FOUND": "Nenhuma autorização encontrada",
+
         "EXPIRED": "Expirado",
         "CANCELED": "Cancelado",
+        "UNAUTHORIZED": "Token expirado ou inválido",
     }
 
-    status_formatado = STATUS_MAP.get(status_raw, "Desconhecido")
+    status_formatado = None
+    for chave, valor in STATUS_MAP.items():
+        if status_raw.startswith(chave):
+            status_formatado = valor
+            break
+
+    if not status_formatado:
+        status_formatado = "Desconhecido"
 
     html = f"""
         <div class='resultado-wrapper'>
@@ -1218,6 +1240,7 @@ def api_c6_consultar():
     """
 
     return jsonify({"html": html})
+
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=8600)
