@@ -48,34 +48,41 @@
 </head>
 
 <script src="/static/js/theme.js"></script>
+
 <body class="pagina">
   <button class="menu-toggle" id="menuToggle"><i class="fa fa-bars"></i></button>
 
   <div class="sidebar" id="sidebar">
     <div>
       <img src="static/img/logo.png" style="width: 110px; padding-left: 50px;">
-      <div class="logo">SIMPLIX</div>
+
+      <div class="logo">Multi Tech</div>
+
       <div class="user-info">
         <h3>{{ session["user"] }}</h3>
         <span>{{ session["role"] }}</span>
       </div>
+
       <ul class="menu">
-        <li><a href="/index">▸ Página Inicial</a></li>
-        <li><a href="/esteira">▸ Esteira</a></li>
+        <li><a href="/dashboard">▸ Dashboard</a></li>
+        <li><a href="/index">▸ SIMPLIX</a></li>
+        <li><a href="/presenca">▸ PRESENÇA</a></li>
         {% if session['role'] == 'admin' %}
         <li><a href="/usuarios">▸ Gerenciar Usuários</a></li>
         <li><a href="/register">▸ Criar Usuário</a></li>
         {% endif %}
       </ul>
     </div>
+
     <div class="menu-footer">
       <button id="toggle-theme"><i class="fa fa-moon"></i> Tema</button>
       <a href="/logout" class="logout">▸ Sair</a>
     </div>
   </div>
 
+
   <div class="content">
-    <h1 class="titulo-tomorrow">Simplix - FGTS</h1>
+    <h1 class="titulo-tomorrow">Simplix</h1>
     <div class="container">
       <form id="form-consulta">
         <div class="input-wrapper">

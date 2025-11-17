@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard - Multi Tech</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}">
+    <style>
+        .dashboard-container {
+            padding: 20px;
+            margin-left: 260px;
+            width: calc(100% - 260px);
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 42px;
+            margin-bottom: 30px;
+            color: var(--cor-texto);
+        }
+
+        .card-dash {
+            width: 480px;
+            padding: 22px;
+            border-radius: 18px;
+            color: #fff;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-dash:hover {
+            transform: scale(1.03);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .card-value {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .blue {
+            background: linear-gradient(45deg, #007BFF, #005FCC);
+        }
+
+        .orange {
+            background: linear-gradient(45deg, #ff7a00, #ff6300);
+        }
+    </style>
+</head>
+
+<body class="pagina">
+
+    <button class="menu-toggle" id="menuToggle"><i class="fa fa-bars"></i></button>
+
+    <div class="sidebar" id="sidebar">
+        <div>
+            <img src="/static/img/logo.png" style="width: 110px; padding-left: 50px;">
+            <div class="logo">Multi Tech</div>
+
+            <div class="user-info">
+                <h3>{{ session["user"] }}</h3>
+                <span>{{ session["role"] }}</span>
+            </div>
+
+            <ul class="menu">
+                <li><a href="/dashboard">▸ Dashboard</a></li>
+                <li><a href="/index">▸ SIMPLIX</a></li>
+                <li><a href="/presenca">▸ PRESENÇA</a></li>
+
+                {% if session['role'] == 'admin' %}
+                <li><a href="/usuarios">▸ Gerenciar Usuários</a></li>
+                <li><a href="/register">▸ Criar Usuário</a></li>
+                {% endif %}
+            </ul>
+        </div>
+
+        <div class="menu-footer">
+            <button id="toggle-theme"><i class="fa fa-moon"></i> Tema</button>
+            <a href="/logout" class="logout">▸ Sair</a>
+        </div>
+    </div>
+
+    <div class="dashboard-container">
+
+        <h1>Dashboard</h1>
+
+        <div class="card-dash blue" onclick="window.location.href='/index'">
+            <div class="card-title"><i class="fa fa-database"></i> SIMPLIX</div>
+            <div class="card-value">Acessar sistema</div>
+        </div>
+
+
+        <div class="card-dash orange" onclick="window.location.href='/presenca'">
+            <div class="card-title"><i class="fa fa-user-check"></i> PRESENÇA</div>
+            <div class="card-value">Acessar sistema</div>
+        </div>
+
+    </div>
+
+    <script src="/static/js/theme.js"></script>
+
+    <script>
+        const menuToggle = document.getElementById("menuToggle");
+        const sidebar = document.getElementById("sidebar");
+        const content = document.querySelector(".dashboard-container");
+
+        menuToggle.addEventListener("click", () => {
+            sidebar.classList.toggle("active");
+            content.classList.toggle("active");
+            menuToggle.classList.toggle("mover");
+        });
+    </script>
+
+</body>
+
+</html>

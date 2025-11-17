@@ -7,8 +7,8 @@
 }
 
 .dark-mode {
-    --gradiente-inicio: #00ac00;
-    --gradiente-fim: rgb(0, 0, 0);
+    --gradiente-inicio: #000000;
+    --gradiente-fim: #006622;
     --cor-texto: #ffffff;
     --bg-container: rgba(0, 0, 0, 0.4);
     --bg-input: rgba(255, 255, 255, 0.08);

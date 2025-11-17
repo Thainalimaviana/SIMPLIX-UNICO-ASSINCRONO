@@ -151,7 +151,7 @@ def login():
         if user and verificar_senha(senha, user[2]):
             session["user"] = nome
             session["role"] = user[3]
-            return redirect(url_for("index"))
+            return redirect(url_for("dashboard"))
         return render_template("login.html", erro="Login inválido")
 
     return render_template("login.html")
@@ -166,7 +166,7 @@ def logout():
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if "user" not in session or session.get("role") != "admin":
-        return redirect(url_for("index"))
+        return redirect(url_for("dashboard"))
 
     if request.method == "POST":
         nome = request.form["nome"]
@@ -191,7 +191,7 @@ def register():
 @app.route("/usuarios")
 def gerenciar_usuarios():
     if "user" not in session or session.get("role") != "admin":
-        return redirect(url_for("index"))
+        return redirect(url_for("dashboard"))
 
     conn = get_conn()
     c = conn.cursor()
@@ -204,7 +204,7 @@ def gerenciar_usuarios():
 @app.route("/editar/<int:user_id>", methods=["GET", "POST"])
 def editar_usuario(user_id):
     if "user" not in session or session.get("role") != "admin":
-        return redirect(url_for("index"))
+        return redirect(url_for("usuarios"))
 
     conn = get_conn()
     c = conn.cursor()
@@ -251,18 +251,6 @@ def excluir_usuario(user_id):
     conn.commit()
     conn.close()
     return redirect(url_for("gerenciar_usuarios"))
-
-@app.route("/esteira")
-def esteira():
-    if "user" not in session:
-        return redirect(url_for("login"))
-
-    conn = get_conn()
-    c = conn.cursor()
-    c.execute("SELECT digitador, cpf, bancarizadora, data_hora, valor_contrato FROM esteira ORDER BY id DESC")
-    registros = c.fetchall()
-    conn.close()
-    return render_template("esteira.html", registros=registros)
 
 def gerar_token():
     global TOKEN, TOKEN_EXPIRA
@@ -654,9 +642,9 @@ def excluir_proposta(cpf):
         print(f"❌ Erro ao excluir proposta: {e}")
         return jsonify({"success": False, "erro": str(e)}), 500
 
-@app.route("/home")
+@app.route("/")
 def home():
-    return redirect(url_for("index"))
+    return redirect("/dashboard")
 
 @app.route("/webhook-simplix", methods=["POST"])
 def webhook_simplix():
@@ -804,6 +792,240 @@ def simulate(transaction_id):
             mensagem=f"Erro ao processar simulação: {e}",
             tabelas=[]
         )
+#*************************************************************************************************** 
+#PRESENÇA 
+
+PRESENCA_TOKEN = ""
+PRESENCA_TOKEN_EXPIRA = 0
+
+def presenca_token():
+    global PRESENCA_TOKEN, PRESENCA_TOKEN_EXPIRA
+
+    if PRESENCA_TOKEN and time.time() < PRESENCA_TOKEN_EXPIRA:
+        return PRESENCA_TOKEN
+
+    try:
+        url = "https://presenca-bank-api.azurewebsites.net/login"
+        payload = {
+            "login": "30612588840_BWzs",
+            "senha": "Tech@@2025"
+        }
+
+        headers = {"Content-Type": "application/json"}
+        r = requests.post(url, json=payload, headers=headers, timeout=20)
+
+        data = r.json()
+        PRESENCA_TOKEN = data.get("token") or data.get("accessToken") or None
+        PRESENCA_TOKEN_EXPIRA = time.time() + 3600
+
+        print("🔑 TOKEN PRESENÇA GERADO:", PRESENCA_TOKEN)
+        return PRESENCA_TOKEN
+
+    except Exception as e:
+        print("❌ ERRO AO GERAR TOKEN PRESENÇA:", e)
+        return None
+
+
+@app.route("/presenca")
+def presenca():
+    if "user" not in session:
+        return redirect(url_for("login"))
+    return render_template("presenca.html")
+
+@app.route("/api/presenca/gerar-link", methods=["POST"])
+def api_presenca_gerar_link():
+    try:
+        data = request.get_json()
+        nome = data.get("nome")
+        cpf = data.get("cpf")
+        telefone = data.get("telefone")
+        cpfRep = data.get("cpfRep")
+        nomeRep = data.get("nomeRep")
+
+        token = presenca_token()
+        if not token:
+            return jsonify({"html": "<b class='status-erro'>Erro ao gerar token.</b>"}), 500
+
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json"
+        }
+
+        payload = {
+            "cpf": cpf,
+            "nome": nome,
+            "telefone": telefone,
+            "cpfRepresentante": cpfRep,
+            "nomeRepresentante": nomeRep,
+            "produtoId": 28
+        }
+
+        resp = requests.post(
+            "https://presenca-bank-api.azurewebsites.net/consultas/termo-inss",
+            json=payload,
+            headers=headers,
+            timeout=20
+        )
+
+        resposta = resp.json()
+        print("📩 RETORNO GERAR TERMO:", resposta)
+
+        link = (
+            resposta.get("shortUrl")
+            or resposta.get("autorizacaoId")
+            or resposta.get("objectReturn", {}).get("shortUrl")
+        )
+
+        v_payload = {"cpf": cpf}
+        resp2 = requests.post(
+            "https://presenca-bank-api.azurewebsites.net/v3/operacoes/consignado-privado/consultar-vinculos",
+            json=v_payload,
+            headers=headers,
+            timeout=20
+        )
+
+        vinc = resp2.json()
+        matricula = None
+
+        try:
+            matricula = vinc["objectReturn"][0]["matricula"]
+        except:
+            pass
+
+        html = f"""
+        <b style='font-size:18px;'>Link Gerado:</b><br><br>
+
+        <div style="display:flex; flex-direction:column; align-items:center; width:100%;">
+
+            <input value="{link}" readonly
+                style="
+                    width:90%;
+                    padding:12px 14px;
+                    border-radius:12px;
+                    border:1px solid #bfbfbf;
+                    background: var(--bg-input);
+                    color: var(--cor-texto);
+                    font-size:15px;
+                    margin-bottom:15px;
+                ">
+
+            <button class='copy-btn' onclick="navigator.clipboard.writeText('{link}')"
+                style="
+                    background:#0aff73;
+                    color:#000;
+                    padding:12px 20px;
+                    border-radius:12px;
+                    border:none;
+                    cursor:pointer;
+                    font-weight:bold;
+                    font-size:15px;
+                    transition:0.25s;
+                "
+                onmouseover="this.style.transform='scale(1.06)'"
+                onmouseout="this.style.transform='scale(1)'"
+            >
+                <i class="fa fa-copy"></i> Copiar
+            </button>
+
+        </div>
+        """
+
+        return jsonify({
+            "sucesso": True,
+            "html": html,
+            "debug": resposta
+        })
+
+    except Exception as e:
+        return jsonify({
+            "sucesso": False,
+            "html": f"<b class='status-erro'>Erro: {str(e)}</b>"
+        }), 500
+
+@app.route("/api/presenca/consultar", methods=["POST"])
+def api_presenca_consultar():
+    try:
+        data = request.get_json()
+        cpf = data.get("cpf")
+
+        token = presenca_token()
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json"
+        }
+
+        payload = {"cpf": cpf}
+
+        r = requests.post(
+            "https://presenca-bank-api.azurewebsites.net/v3/operacoes/consignado-privado/consultar-margem",
+            json=payload,
+            headers=headers,
+            timeout=20
+        )
+
+        resposta = r.json()
+        print("📌 RESPOSTA MARGEM:", resposta)
+
+        if isinstance(resposta, list) and len(resposta) > 0:
+            info = resposta[0]
+        else:
+            return jsonify({
+                "html": "<div class='resultado-erro'><i class='fa fa-times-circle'></i> Nenhuma matrícula encontrada.</div>"
+            })
+
+        numero = info.get("numeroInscricaoEmpregador", "—")
+        valorMargem = info.get("valorMargem", "—")
+        matricula = info.get("matricula", "—")
+        dataAdm = info.get("dataAdmissao", "—")
+        dataNas = info.get("dataNascimento", "—")
+        margemAval = info.get("valorMargemAvaliavel", "—")
+        base = info.get("valorBaseMargem", "—")
+        venc = info.get("valorTotalVencimentos", "—")
+        mae = info.get("nomeMae", "—")
+        sexo = info.get("sexo", "—")
+
+        html = f"""
+        <div class='resultado-wrapper'>
+
+            <div style="text-align:center; font-size:18px; font-weight:bold; margin-bottom:20px;">
+                CPF: {cpf}
+            </div>
+
+            <div class='resultado-grid'>
+
+                <div class='resultado-item'><b>Número de Inscrição:</b> {numero}</div>
+                <div class='resultado-item'><b>Matrícula:</b> {matricula}</div>
+
+                <div class='resultado-item'><b>Valor da Margem:</b> R$ {valorMargem}</div>
+                <div class='resultado-item'><b>Margem Avaliável:</b> R$ {margemAval}</div>
+
+                <div class='resultado-item'><b>Base da Margem:</b> R$ {base}</div>
+                <div class='resultado-item'><b>Total de Vencimentos:</b> R$ {venc}</div>
+
+                <div class='resultado-item'><b>Data de Admissão:</b> {dataAdm}</div>
+                <div class='resultado-item'><b>Data de Nascimento:</b> {dataNas}</div>
+
+                <div class='resultado-item'><b>Nome da Mãe:</b> {mae}</div>
+                <div class='resultado-item'><b>Sexo:</b> {sexo}</div>
+
+            </div>
+
+        </div>
+        """
+
+        return jsonify({"html": html})
+
+    except Exception as e:
+        return jsonify({
+            "html": f"<div class='resultado-erro'><i class='fa fa-times-circle'></i> Erro: {str(e)}</div>"
+        })
+    
+#************************************************************************************************************
+# Dashboard
+
+@app.route("/dashboard")
+def dashboard():
+    return render_template("dashboard.html")
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=8600)
