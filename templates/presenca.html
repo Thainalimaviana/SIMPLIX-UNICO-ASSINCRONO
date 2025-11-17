@@ -213,6 +213,30 @@
             transform: scale(1.04);
             background: #06e066;
         }
+
+        .btn-loading {
+            position: relative;
+            pointer-events: none;
+            opacity: 0.8;
+        }
+
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 0.7s linear infinite;
+            display: inline-block;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
     </style>
 
 </head>
@@ -287,9 +311,10 @@
             </div>
 
 
-            <button class="btn btn-gerar" onclick="gerarLink()">
+            <button id="btnGerar" class="btn btn-gerar" onclick="gerarLink()">
                 <i class="fa fa-link"></i> Gerar Link
             </button>
+
 
             <div id="box-gerar" style="display:none;"></div>
 
@@ -306,7 +331,7 @@
             </div>
 
             <div class="linha botoes-acoes">
-                <button class="btn btn-consultar" onclick="consultarCPF()">
+                <button id="btnConsultar" class="btn btn-consultar" onclick="consultarCPF()">
                     <i class="fa fa-search"></i> Consultar
                 </button>
 
@@ -333,6 +358,11 @@
         });
 
         async function gerarLink() {
+            const btn = document.getElementById("btnGerar");
+
+            btn.innerHTML = `<span class="spinner"></span> Gerando...`;
+            btn.classList.add("btn-loading");
+
             const payload = {
                 nome: document.getElementById("nome").value,
                 cpf: document.getElementById("cpf").value,
@@ -348,11 +378,21 @@
             });
 
             const data = await res.json();
+
             document.getElementById("box-gerar").style.display = "block";
             document.getElementById("box-gerar").innerHTML = data.html;
+
+            btn.innerHTML = `<i class="fa fa-link"></i> Gerar Link`;
+            btn.classList.remove("btn-loading");
         }
 
+
         async function consultarCPF() {
+            const btn = document.getElementById("btnConsultar");
+
+            btn.innerHTML = `<span class="spinner"></span> Consultando...`;
+            btn.classList.add("btn-loading");
+
             const res = await fetch("/api/presenca/consultar", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -361,13 +401,12 @@
 
             const data = await res.json();
             const box = document.getElementById("box-consulta");
+
             box.style.display = "block";
             box.innerHTML = data.html;
-        }
 
-        function limparCPF() {
-            document.getElementById("cpfConsulta").value = "";
-            document.getElementById("box-consulta").style.display = "none";
+            btn.innerHTML = `<i class="fa fa-search"></i> Consultar`;
+            btn.classList.remove("btn-loading");
         }
 
     </script>
