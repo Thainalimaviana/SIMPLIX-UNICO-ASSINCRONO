@@ -34,30 +34,8 @@ h1.titulo-tomorrow {
     text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.4);
 }
 
-.menu-toggle {
-    position: fixed;
-    top: 20px;
-    left: 30px;
-    font-size: 22px;
-    background: rgba(255, 255, 255, 0.15);
-    border: none;
-    color: var(--cor-texto);
-    padding: 10px 12px;
-    border-radius: 8px;
-    cursor: pointer;
-    z-index: 999;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: 0.3s;
-}
-
-.menu-toggle:hover {
-    background: rgba(255, 255, 255, 0.25);
-}
-
 .sidebar {
-    width: 230px;
+    width: 150px;
     height: 100vh;
     position: fixed;
     left: 0;
@@ -70,17 +48,11 @@ h1.titulo-tomorrow {
     padding: 25px 20px;
     border-right: 1px solid rgba(255, 255, 255, 0.2);
     box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
-    transform: translateX(-250px);
-    transition: transform 0.4s ease;
-    z-index: 998;
 }
 
-.sidebar.active {
-    transform: translateX(0);
-}
 
 .logo {
-    font-size: 26px;
+    font-size: 23px;
     font-weight: bold;
     text-align: center;
     margin-bottom: 30px;
@@ -103,13 +75,12 @@ h1.titulo-tomorrow {
 .user-info {
     text-align: center;
     margin-bottom: 20px;
-    padding-right: 120px;
 }
 
 .user-info h3 {
     margin: 8px 0 0;
     font-size: 17px;
-    font-weight: 600;
+    font-weight: 900;
     color: var(--cor-texto);
 }
 
@@ -126,7 +97,7 @@ h1.titulo-tomorrow {
 }
 
 .menu li {
-    margin: 10px 0;
+    margin: 5px 0;
 }
 
 .menu a {
@@ -135,8 +106,9 @@ h1.titulo-tomorrow {
     border-radius: 8px;
     color: var(--cor-texto);
     text-decoration: none;
-    font-weight: 500;
+    font-weight: 900;
     transition: 0.3s;
+    font-size: 15px;
 }
 
 .menu a:hover {

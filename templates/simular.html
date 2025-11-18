@@ -15,11 +15,10 @@
 <script src="/static/js/theme.js"></script>
 
 <body class="pagina">
-  <button class="menu-toggle" id="menuToggle"><i class="fa fa-bars"></i></button>
 
   <div class="sidebar" id="sidebar">
     <div>
-      <img src="static/img/logo.png" style="width: 110px; padding-left: 50px;">
+      <img src="static/img/logo.png" style="width: 110px; padding-left: 15px;">
       <div class="logo">SIMPLIX</div>
       <div class="user-info">
         <h3>{{ session["user"] }}</h3>
@@ -31,7 +30,7 @@
         <li><a href="/presenca">▸ PRESENÇA</a></li>
         <li><a href="/c6bank">▸ C6 BANK</a></li>
         {% if session['role'] == 'admin' %}
-        <li><a href="/usuarios">▸ Gerenciar Usuários</a></li>
+        <li><a href="/usuarios">▸ Usuários</a></li>
         <li><a href="/register">▸ Criar Usuário</a></li>
         {% endif %}
       </ul>
@@ -85,16 +84,6 @@
   </div>
 
   <script>
-    const menuToggle = document.getElementById("menuToggle");
-    const sidebar = document.getElementById("sidebar");
-    const content = document.querySelector(".content");
-
-    menuToggle.addEventListener("click", () => {
-      sidebar.classList.toggle("active");
-      content.classList.toggle("active");
-      menuToggle.classList.toggle("mover");
-    });
-
     function abrirCadastro(transactionId, tabelaId, bancarizadora, simulationId, cpf) {
       const confirmar = confirm(`Deseja cadastrar o cliente para ${bancarizadora}?`);
       if (!confirmar) return;
