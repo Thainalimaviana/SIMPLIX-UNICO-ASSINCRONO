@@ -836,11 +836,16 @@ def presenca():
 def api_presenca_gerar_link():
     try:
         data = request.get_json()
+
         nome = data.get("nome")
-        cpf = data.get("cpf")
-        telefone = data.get("telefone")
-        cpfRep = data.get("cpfRep")
+        cpf = limpar_cpf(data.get("cpf"))
+        telefone_raw = data.get("telefone")
+        cpfRep = limpar_cpf(data.get("cpfRep"))
         nomeRep = data.get("nomeRep")
+
+        ddd, telefone = normalizar_telefone(telefone_raw)
+        if not ddd:
+            return jsonify({"html": "<b class='status-erro'>Telefone inválido.</b>"})
 
         token = presenca_token()
         if not token:
@@ -854,7 +859,7 @@ def api_presenca_gerar_link():
         payload = {
             "cpf": cpf,
             "nome": nome,
-            "telefone": telefone,
+            "telefone": f"{ddd}{telefone}",
             "cpfRepresentante": cpfRep,
             "nomeRepresentante": nomeRep,
             "produtoId": 28
@@ -877,6 +882,7 @@ def api_presenca_gerar_link():
         )
 
         v_payload = {"cpf": cpf}
+
         resp2 = requests.post(
             "https://presenca-bank-api.azurewebsites.net/v3/operacoes/consignado-privado/consultar-vinculos",
             json=v_payload,
@@ -1093,9 +1099,14 @@ def normalizar_data(data_str):
 
     return None
 
+def limpar_cpf(cpf_raw):
+    return re.sub(r"\D", "", cpf_raw)
 
 def normalizar_telefone(numero_raw):
     numeros = re.sub(r"\D", "", numero_raw)
+
+    if numeros.startswith("55") and len(numeros) > 11:
+        numeros = numeros[2:]
 
     if len(numeros) < 10:
         return None, None
@@ -1110,7 +1121,7 @@ def api_c6_gerar_link():
     data = request.get_json()
 
     nome = data.get("nome")
-    cpf = data.get("cpf")
+    cpf = limpar_cpf(data.get("cpf"))
     nascimento = data.get("nascimento")
     telefone_raw = data.get("telefone")
 
@@ -1168,7 +1179,6 @@ def api_c6_gerar_link():
     """
 
     return jsonify({"sucesso": True, "html": html})
-
 
 @app.route("/api/c6bank/consultar", methods=["POST"])
 def api_c6_consultar():
