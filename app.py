@@ -1440,11 +1440,17 @@ def hub_vinculo():
         tipo_inscricao = vinc["inscricaoEmpregador"].get("tipo", 1)
         elegivel = vinc["elegivel"]
     except:
+        erro_msg = ""
+        if resp.get("errors"):
+            erro_msg = resp["errors"][0]
+        else:
+            erro_msg = "Cliente Não Elegível"
+
         return jsonify({
-            "html": """
+            "html": f"""
             <div style='padding:20px; font-size:20px; font-weight:bold; 
-                 color:#b30000; background:#ffd6d6; border-radius:10px; text-align:center;'>
-                ❌ Cliente Não Elegível
+                color:#b30000; background:#ffd6d6; border-radius:10px; text-align:center;'>
+                ❌ {erro_msg}
             </div>
             """,
             "elegivel": False
