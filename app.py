@@ -1251,6 +1251,329 @@ def api_c6_consultar():
 
     return jsonify({"html": html})
 
+#*************************************************************************************************************
+#HUB
+
+HUB_TOKEN = None
+HUB_EXPIRA = 0
+
+@app.route("/hub")
+def hub_page():
+    return render_template("hub.html")
+
+def hub_gerar_token():
+    import time
+    global HUB_TOKEN, HUB_EXPIRA
+
+    if HUB_TOKEN and time.time() < HUB_EXPIRA:
+        return HUB_TOKEN
+
+    url = "https://api.hubcredito.com.br/api/Login"
+
+    payload = {
+        "userName": "thaina.admin458",
+        "password": "123456",
+        "grantTypes": "password"
+    }
+
+    headers = {"Content-Type": "application/json"}
+
+    try:
+        r = requests.post(url, json=payload, headers=headers, timeout=20)
+        print("RAW TOKEN HUB:", r.text)
+        resp = r.json()
+    except Exception:
+        print("❌ ERRO AO PARSEAR TOKEN HUB:", r.text)
+        return None
+
+    HUB_TOKEN = resp["value"]["token"]["accessToken"]
+    HUB_EXPIRA = time.time() + 480
+
+    print("🔑 Novo token HUB gerado!")
+    return HUB_TOKEN
+
+def normalizar_cpf_hub(cpf):
+    return re.sub(r"\D", "", cpf)
+
+def normalizar_telefone_hub(tel):
+    tel = re.sub(r"\D", "", tel)
+    if len(tel) < 10:
+        return None
+    return tel
+
+def normalizar_data_hub(data):
+    data = data.replace("/", "-")
+    formatos = ["%Y-%m-%d", "%d-%m-%Y", "%d-%m-%y", "%d/%m/%Y", "%d/%m/%y"]
+    for fmt in formatos:
+        try:
+            return datetime.strptime(data, fmt).strftime("%Y-%m-%d")
+        except:
+            pass
+    return None
+
+@app.route("/api/hub/gerar-termo", methods=["POST"])
+def hub_gerar_termo():
+    data = request.get_json()
+
+    nome = data.get("nome")
+    cpf = normalizar_cpf_hub(data.get("cpf"))
+    email = data.get("email")
+    telefone = normalizar_telefone_hub(data.get("telefone"))
+    nascimento = normalizar_data_hub(data.get("nascimento"))
+    sexo = data.get("sexo")
+    loja_id = 13546
+
+    if not telefone:
+        return jsonify({"html": "<b class='status-erro'>Telefone inválido.</b>"}), 400
+
+    token = hub_gerar_token()
+    if not token:
+        return jsonify({"html": "<b class='status-erro'>Erro ao gerar token HUB.</b>"}), 500
+
+    url = "https://api.hubcredito.com.br/api/Clt/gerar-termo-aceite"
+
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json"
+    }
+
+    payload = {
+        "tipoTermo": "AutorizacaoDataprev",
+        "lojaId": loja_id,
+        "nome": nome,
+        "cpf": cpf,
+        "email": email,
+        "telefone": telefone,
+        "dataNascimento": nascimento,
+        "sexo": sexo
+    }
+
+    r = requests.post(url, json=payload, headers=headers, timeout=20)
+
+    print("\n--- RESPOSTA GERAR TERMO (RAW) ---")
+    print("STATUS:", r.status_code)
+    print("BODY:", r.text)
+    print("----------------------------------\n")
+
+    try:
+        resp = r.json()
+    except:
+        return jsonify({
+            "sucesso": False,
+            "html": """
+                <div style='padding:20px; background:#ffd6d6; color:#b30000;
+                            border-radius:10px; text-align:center;'>
+                    ❌ A API do HUB retornou uma resposta inválida.<br>
+                    Tente novamente em alguns instantes.
+                </div>
+            """
+        })
+
+    termo_id = resp.get("value", {}).get("id")
+    link_assinatura = "https://termo.hubcredito.com.br/"
+
+    html = f"""
+        <b style='font-size:18px;'>Termo criado com sucesso!</b><br><br>
+
+        <div style="display:flex; flex-direction:column; align-items:center; width:100%;">
+
+            <input value="{link_assinatura}" readonly
+                style="
+                    width:90%;
+                    padding:12px 14px;
+                    border-radius:12px;
+                    border:1px solid #bfbfbf;
+                    background: var(--bg-input);
+                    color: var(--cor-texto);
+                    font-size:15px;
+                    margin-bottom:15px;
+                ">
+
+            <button class='copy-btn' onclick="navigator.clipboard.writeText('{link_assinatura}')"
+                style="
+                    background:#0aff73;
+                    color:#000;
+                    padding:12px 20px;
+                    border-radius:12px;
+                    border:none;
+                    cursor:pointer;
+                    font-weight:bold;
+                    font-size:15px;
+                    transition:0.25s;
+                ">
+                <i class="fa fa-copy"></i> Copiar
+            </button>
+
+        </div>
+
+        <br><br>
+        <b>ID Gerado:</b> {termo_id}
+    """
+
+    return jsonify({"html": html, "sucesso": True})
+
+@app.route("/api/hub/vinculo", methods=["POST"])
+def hub_vinculo():
+    data = request.get_json()
+    cpf = normalizar_cpf_hub(data.get("cpf"))
+
+    token = hub_gerar_token()
+    if not token:
+        return jsonify({"erro": "Token inválido"}), 500
+
+    url = f"https://api.hubcredito.com.br/api/Clt/wincred/listar-vinculos?cpfTrabalahador={cpf}"
+
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json"
+    }
+
+    r = requests.get(url, headers=headers, timeout=20)
+    resp = r.json()
+    print("📌 VÍNCULO HUB:", resp)
+
+    try:
+        vinc = resp["value"]["vinculos"][0]
+        idCotacao = resp["value"]["idCotacao"]
+        matricula = vinc["matricula"]
+        inscricao = vinc["inscricaoEmpregador"]["numeroInscricao"]
+        tipo_inscricao = vinc["inscricaoEmpregador"].get("tipo", 1)
+        elegivel = vinc["elegivel"]
+    except:
+        return jsonify({
+            "html": """
+            <div style='padding:20px; font-size:20px; font-weight:bold; 
+                 color:#b30000; background:#ffd6d6; border-radius:10px; text-align:center;'>
+                ❌ Cliente Não Elegível
+            </div>
+            """,
+            "elegivel": False
+        })
+
+    session["hub_idCotacao"] = idCotacao
+    session["hub_matricula"] = matricula
+    session["hub_inscricao"] = inscricao
+    session["hub_tipo_inscricao"] = tipo_inscricao
+    session["hub_cpf"] = cpf
+
+    if elegivel:
+        html = """
+        <div style='padding:20px; font-size:20px; font-weight:bold; 
+             color:#0a7a00; background:#c8ffcc; border-radius:10px; text-align:center;'>
+            ✔️ Cliente Elegível
+        </div>
+        """
+    else:
+        html = """
+        <div style='padding:20px; font-size:20px; font-weight:bold; 
+             color:#b30000; background:#ffd6d6; border-radius:10px; text-align:center;'>
+            ❌ Cliente Não Elegível
+        </div>
+        """
+
+    return jsonify({"html": html, "elegivel": elegivel})
+
+
+@app.route("/api/hub/simulacao", methods=["POST"])
+def hub_simulacao():
+    cpf = session.get("hub_cpf")
+    idCotacao = session.get("hub_idCotacao")
+    matricula = session.get("hub_matricula")
+    inscricao = session.get("hub_inscricao")
+    tipo_inscricao = session.get("hub_tipo_inscricao", 1)
+
+    dados = request.get_json()
+    parcelas = int(dados.get("parcelas"))
+    valor_str = dados.get("valor", "").replace(",", ".").strip()
+
+    if not valor_str:
+        return jsonify({
+            "html": "<div class='resultado-erro'>❌ Informe o valor da simulação!</div>"
+        })
+
+    try:
+        valor = float(valor_str)
+    except:
+        return jsonify({
+            "html": "<div class='resultado-erro'>❌ Valor inválido.</div>"
+    })
+
+    if not all([cpf, idCotacao, matricula, inscricao]):
+        return jsonify({
+            "html": "<div class='resultado-erro'>❌ Consulte o vínculo primeiro!</div>"
+        })
+
+    token = hub_gerar_token()
+
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json"
+    }
+
+    tipo_emp = session.get("hub_tipo_inscricao", 1)
+
+    payload = {
+        "cpf": cpf,
+        "lojaId": 13546,
+        "idCotacao": idCotacao,
+        "numeroParcelas": parcelas,
+        "valor": valor,
+        "matricula": matricula,
+        "codigoInscricaoEmpregador": tipo_inscricao,
+        "numeroInscricaoEmpregador": inscricao
+    }
+
+    r = requests.post(
+        "https://api.hubcredito.com.br/api/Clt/wincred/simular",
+        json=payload,
+        headers=headers,
+        timeout=20
+    )
+
+    try:
+        resp = r.json()
+    except:
+        return jsonify({
+            "html": """
+            <div style='padding:20px; background:#ffd6d6; color:#b30000;
+                        border-radius:10px; text-align:center; font-weight:bold;'>
+                ❌ Erro inesperado na API da WinCred. Tente novamente.
+            </div>
+            """
+        })
+
+    print("📌 SIMULAÇÃO HUB:", resp)
+
+    if resp.get("hasError"):
+        erro = resp.get("errors", ["Erro inesperado"])[0]
+        return jsonify({
+            "html": f"""
+            <div style='padding:20px; background:#ffd6d6; color:#b30000; 
+                        border-radius:10px; text-align:center; font-size:18px;'>
+                ❌ {erro}
+            </div>
+            """
+        })
+
+    if not resp.get("value"):
+        return jsonify({
+            "html": """
+                <div style='padding:20px; background:#ffd6d6; color:#b30000;
+                            border-radius:10px; text-align:center; font-size:18px; font-weight:bold;'>
+                    ❌ Nenhuma simulação disponível para este CPF.
+                </div>
+            """
+        })
+
+    return jsonify({
+        "html": """
+            <div style='padding:20px; background:#ffffb8; color:#575700;
+                        border-radius:10px; text-align:center; font-size:20px; font-weight:bold;'>
+                ✔️ SIMULAÇÃO DISPONÍVEL PEAK
+            </div>
+        """,
+        "simulacao": resp["value"]
+    })
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=8600)

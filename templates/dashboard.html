@@ -53,15 +53,21 @@
         }
 
         .blue {
-            background: linear-gradient(45deg, #007BFF, #005FCC);
+            background: linear-gradient(45deg, #007bff, #00e1ff, #006eff);
         }
+
 
         .orange {
-            background: linear-gradient(45deg, #ff7a00, #ff6300);
+            background: linear-gradient(45deg, #ff8800, #ffc400, #ff7a00);
         }
 
+
         .grey {
-            background: linear-gradient(45deg, #8d8d8d, #5f5f5f);
+            background: linear-gradient(45deg, #9a9a9a, #b6b6b6, #8b8b8b);
+        }
+
+        .greenwater {
+            background: linear-gradient(45deg, #02daae, #44faeb, #00c9a1);
         }
     </style>
 </head>
@@ -83,6 +89,7 @@
                 <li><a href="/index">▸ SIMPLIX</a></li>
                 <li><a href="/presenca">▸ PRESENÇA</a></li>
                 <li><a href="/c6bank">▸ C6 BANK</a></li>
+                <li><a href="/hub">▸ HUB Crédito</a></li>
 
                 {% if session['role'] == 'admin' %}
                 <li><a href="/usuarios">▸ Usuários</a></li>
@@ -114,6 +121,11 @@
 
         <div class="card-dash grey" onclick="window.location.href='/c6bank'">
             <div class="card-title"><i class="fa fa-building-columns"></i> C6 BANK</div>
+            <div class="card-value">Acessar sistema</div>
+        </div>
+
+        <div class="card-dash greenwater" onclick="window.location.href='/hub'">
+            <div class="card-title"><i class="fa fa-link"></i> HUB CRÉDITO</div>
             <div class="card-value">Acessar sistema</div>
         </div>
 
