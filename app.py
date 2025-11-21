@@ -1257,6 +1257,14 @@ def api_c6_consultar():
 HUB_TOKEN = None
 HUB_EXPIRA = 0
 
+def safe_json(response):
+    try:
+        return response.json()
+    except Exception:
+        print("\n❌ JSON inválido recebido da API HUB:")
+        print(response.text)
+        return None
+
 @app.route("/hub")
 def hub_page():
     return render_template("hub.html")
@@ -1412,6 +1420,22 @@ def hub_gerar_termo():
 
     return jsonify({"html": html, "sucesso": True})
 
+def hub_request_get(url, headers):
+    try:
+        r = requests.get(url, headers=headers, timeout=20)
+        return r
+    except requests.exceptions.ReadTimeout:
+        print("⏳ Timeout (1ª tentativa). Retentando...")
+        try:
+            r = requests.get(url, headers=headers, timeout=20)
+            return r
+        except requests.exceptions.ReadTimeout:
+            print("⛔ Timeout novamente. API HUB muito lenta.")
+            return None
+    except Exception as e:
+        print("❌ ERRO DE CONEXÃO HUB:", e)
+        return None
+
 @app.route("/api/hub/vinculo", methods=["POST"])
 def hub_vinculo():
     data = request.get_json()
@@ -1419,39 +1443,90 @@ def hub_vinculo():
 
     token = hub_gerar_token()
     if not token:
-        return jsonify({"erro": "Token inválido"}), 500
+        return jsonify({
+            "html": """
+                <div style='padding:20px;background:#ffd6d6;color:#b30000;border-radius:10px;text-align:center;'>
+                    ❌ Erro ao gerar token Hub.
+                </div>
+            """,
+            "elegivel": False
+        }), 500
 
-    url = f"https://api.hubcredito.com.br/api/Clt/wincred/listar-vinculos?cpfTrabalahador={cpf}"
+    url = f"https://api.hubcredito.com.br/api/Clt/wincred/listar-vinculos?cpfTrabalhador={cpf}"
 
     headers = {
         "Authorization": f"Bearer {token}",
         "Content-Type": "application/json"
     }
 
-    r = requests.get(url, headers=headers, timeout=20)
-    resp = r.json()
+    r = hub_request_get(url, headers)
+
+    if r is None:
+        return jsonify({
+            "html": """
+                <div style='padding:20px;background:#ffd6d6;color:#b30000;border-radius:10px;
+                text-align:center;font-size:18px;font-weight:bold;'>
+                    ❌ A API Hub demorou demais para responder.<br>Tente novamente.
+                </div>
+            """,
+            "elegivel": False
+        })
+
+    try:
+        resp = r.json()
+    except:
+        print("❌ JSON INVÁLIDO HUB:", r.text)
+        return jsonify({
+            "html": f"""
+                <div style='padding:20px;background:#ffd6d6;color:#b30000;border-radius:10px;text-align:center;'>
+                    ❌ A API Hub retornou resposta inválida.<br>
+                    <small>{r.text}</small>
+                </div>
+            """,
+            "elegivel": False
+        })
+
     print("📌 VÍNCULO HUB:", resp)
+
+    if not isinstance(resp, dict):
+        return jsonify({
+            "html": f"""
+                <div style='padding:20px;background:#ffd6d6;color:#b30000;border-radius:10px;
+                text-align:center;font-size:18px;font-weight:bold;'>
+                    ❌ A API HUB retornou erro inesperado.<br>
+                    <small>{resp}</small>
+                </div>
+            """,
+            "elegivel": False
+        })
+
+    if resp.get("hasError"):
+        erro_msg = resp.get("errors", ["Erro desconhecido"])[0]
+        return jsonify({
+            "html": f"""
+                <div style='padding:20px;background:#ffd6d6;color:#b30000;border-radius:10px;
+                text-align:center;font-weight:bold;font-size:18px;'>
+                    ❌ {erro_msg}
+                </div>
+            """,
+            "elegivel": False
+        })
 
     try:
         vinc = resp["value"]["vinculos"][0]
         idCotacao = resp["value"]["idCotacao"]
         matricula = vinc["matricula"]
         inscricao = vinc["inscricaoEmpregador"]["numeroInscricao"]
-        tipo_inscricao = vinc["inscricaoEmpregador"].get("tipo", 1)
+        tipo_inscricao = vinc["inscricaoEmpregador"].get("tipoInscricao", 1)
         elegivel = vinc["elegivel"]
-    except:
-        erro_msg = ""
-        if resp.get("errors"):
-            erro_msg = resp["errors"][0]
-        else:
-            erro_msg = "Cliente Não Elegível"
-
+    except Exception as e:
+        print("❌ ERRO AO LER VÍNCULO:", e)
         return jsonify({
-            "html": f"""
-            <div style='padding:20px; font-size:20px; font-weight:bold; 
-                color:#b30000; background:#ffd6d6; border-radius:10px; text-align:center;'>
-                ❌ {erro_msg}
-            </div>
+            "html": """
+                <div style='padding:20px;background:#ffd6d6;color:#b30000;border-radius:10px;
+                text-align:center;font-size:20px;font-weight:bold;'>
+                    ❌ Cliente não elegível
+                </div>
             """,
             "elegivel": False
         })
@@ -1462,23 +1537,23 @@ def hub_vinculo():
     session["hub_tipo_inscricao"] = tipo_inscricao
     session["hub_cpf"] = cpf
 
+    html_vinculo = """
+        <div style='padding:20px;font-size:20px;font-weight:bold;
+        color:{cor};background:{bg};border-radius:10px;text-align:center;'>
+            {msg}
+        </div>
+    """
+
     if elegivel:
-        html = """
-        <div style='padding:20px; font-size:20px; font-weight:bold; 
-             color:#0a7a00; background:#c8ffcc; border-radius:10px; text-align:center;'>
-            ✔️ Cliente Elegível
-        </div>
-        """
+        html_vinculo = html_vinculo.format(cor="#0a7a00", bg="#c8ffcc", msg="✔️ Cliente Elegível")
     else:
-        html = """
-        <div style='padding:20px; font-size:20px; font-weight:bold; 
-             color:#b30000; background:#ffd6d6; border-radius:10px; text-align:center;'>
-            ❌ Cliente Não Elegível
-        </div>
-        """
+        html_vinculo = html_vinculo.format(cor="#b30000", bg="#ffd6d6", msg="❌ Cliente Não Elegível")
 
-    return jsonify({"html": html, "elegivel": elegivel})
-
+    return jsonify({
+        "html": html_vinculo,
+        "elegivel": elegivel,
+        "simular": elegivel
+    })
 
 @app.route("/api/hub/simulacao", methods=["POST"])
 def hub_simulacao():
@@ -1488,94 +1563,141 @@ def hub_simulacao():
     inscricao = session.get("hub_inscricao")
     tipo_inscricao = session.get("hub_tipo_inscricao", 1)
 
-    dados = request.get_json()
-    parcelas = int(dados.get("parcelas"))
-    valor_str = dados.get("valor", "").replace(",", ".").strip()
-
-    if not valor_str:
-        return jsonify({
-            "html": "<div class='resultado-erro'>❌ Informe o valor da simulação!</div>"
-        })
-
-    try:
-        valor = float(valor_str)
-    except:
-        return jsonify({
-            "html": "<div class='resultado-erro'>❌ Valor inválido.</div>"
-    })
-
     if not all([cpf, idCotacao, matricula, inscricao]):
         return jsonify({
-            "html": "<div class='resultado-erro'>❌ Consulte o vínculo primeiro!</div>"
+            "html": """
+                <div style='padding:18px;background:#ffd6d6;color:#b30000;
+                border-radius:10px;text-align:center;font-weight:bold;'>
+                    ❌ Consulte o vínculo antes de simular.
+                </div>
+            """
         })
+    
+    dados = request.get_json() or {}
+    parcelas_str = str(dados.get("parcelas", "")).strip()
+    valor_str = str(dados.get("valor", "")).replace(",", ".").strip()
+
+    parcelas = None
+    valor = None
+
+    if not parcelas_str and not valor_str:
+        parcelas = 12 
+    else:
+        if parcelas_str:
+            try:
+                parcelas = int(parcelas_str)
+            except:
+                return jsonify({"html": "<div class='resultado-erro'>❌ Número de parcelas inválido.</div>"})
+
+        if valor_str:
+            try:
+                valor = float(valor_str)
+            except:
+                return jsonify({"html": "<div class='resultado-erro'>❌ Valor inválido.</div>"})
 
     token = hub_gerar_token()
+    if not token:
+        return jsonify({
+            "html": """
+                <div style='padding:18px;background:#ffd6d6;color:#b30000;
+                border-radius:10px;text-align:center;'>
+                    ❌ Erro ao gerar token para simulação.
+                </div>
+            """
+        }), 500
 
     headers = {
         "Authorization": f"Bearer {token}",
         "Content-Type": "application/json"
     }
 
-    tipo_emp = session.get("hub_tipo_inscricao", 1)
-
     payload = {
         "cpf": cpf,
         "lojaId": 13546,
         "idCotacao": idCotacao,
-        "numeroParcelas": parcelas,
-        "valor": valor,
         "matricula": matricula,
         "codigoInscricaoEmpregador": tipo_inscricao,
         "numeroInscricaoEmpregador": inscricao
     }
 
-    r = requests.post(
-        "https://api.hubcredito.com.br/api/Clt/wincred/simular",
-        json=payload,
-        headers=headers,
-        timeout=20
-    )
+    if parcelas is not None:
+        payload["numeroParcelas"] = parcelas
+    if valor is not None:
+        payload["valor"] = valor
+
+    print("\n📤 ENVIANDO PAYLOAD PARA SIMULAÇÃO:")
+    print(payload)
+
+    try:
+        r = requests.post(
+            "https://api.hubcredito.com.br/api/Clt/wincred/simular",
+            json=payload,
+            headers=headers,
+            timeout=25
+        )
+    except requests.exceptions.ReadTimeout:
+        return jsonify({
+            "html": """
+                <div style='padding:20px;background:#ffd6d6;color:#b30000;
+                border-radius:10px;text-align:center;font-weight:bold;'>
+                    ⛔ A API Hub demorou para responder. Tente novamente.
+                </div>
+            """
+        })
 
     try:
         resp = r.json()
     except:
+        print("❌ JSON inválido na simulação:", r.text)
         return jsonify({
-            "html": """
-            <div style='padding:20px; background:#ffd6d6; color:#b30000;
-                        border-radius:10px; text-align:center; font-weight:bold;'>
-                ❌ Erro inesperado na API da WinCred. Tente novamente.
-            </div>
+            "html": f"""
+                <div style='padding:20px;background:#ffd6d6;color:#b30000;
+                border-radius:10px;text-align:center;font-weight:bold;'>
+                    ❌ A API Hub retornou resposta inválida.<br>
+                    <small>{r.text}</small>
+                </div>
             """
         })
 
     print("📌 SIMULAÇÃO HUB:", resp)
 
+    if not isinstance(resp, dict):
+        return jsonify({
+            "html": f"""
+                <div style='padding:20px;background:#ffd6d6;color:#b30000;
+                border-radius:10px;text-align:center;font-weight:bold;font-size:18px;'>
+                    ❌ Erro inesperado da Wincred.<br>
+                    <small>{resp}</small>
+                </div>
+            """
+        })
+
     if resp.get("hasError"):
         erro = resp.get("errors", ["Erro inesperado"])[0]
         return jsonify({
             "html": f"""
-            <div style='padding:20px; background:#ffd6d6; color:#b30000; 
-                        border-radius:10px; text-align:center; font-size:18px;'>
-                ❌ {erro}
-            </div>
+                <div style='padding:20px;background:#ffd6d6;color:#b30000;
+                border-radius:10px;text-align:center;font-weight:bold;font-size:18px;'>
+                    ❌ {erro}
+                </div>
             """
         })
 
     if not resp.get("value"):
         return jsonify({
             "html": """
-                <div style='padding:20px; background:#ffd6d6; color:#b30000;
-                            border-radius:10px; text-align:center; font-size:18px; font-weight:bold;'>
-                    ❌ Nenhuma simulação disponível para este CPF.
+                <div style='padding:20px;background:#ffd6d6;color:#b30000;
+                border-radius:10px;text-align:center;font-weight:bold;font-size:18px;'>
+                    ❌ Nenhuma simulação foi encontrada para este CPF.
                 </div>
             """
         })
 
     return jsonify({
         "html": """
-            <div style='padding:20px; background:#ffffb8; color:#575700;
-                        border-radius:10px; text-align:center; font-size:20px; font-weight:bold;'>
-                ✔️ SIMULAÇÃO DISPONÍVEL PEAK
+            <div style='padding:20px;background:#ffffb8;color:#575700;
+            border-radius:10px;text-align:center;font-size:20px;font-weight:bold;'>
+                ✔️ Simulação disponível!
             </div>
         """,
         "simulacao": resp["value"]
