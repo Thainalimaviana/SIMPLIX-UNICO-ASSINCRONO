@@ -19,24 +19,28 @@
   <div class="sidebar" id="sidebar">
     <div>
       <img src="static/img/logo.png" style="width: 110px; padding-left: 15px;">
-      <div class="logo">SIMPLIX</div>
+
+      <div class="logo">Multi Tech</div>
+
       <div class="user-info">
         <h3>{{ session["user"] }}</h3>
         <span>{{ session["role"] }}</span>
       </div>
+
       <ul class="menu">
         <li><a href="/dashboard">▸ Dashboard</a></li>
         <li><a href="/index">▸ SIMPLIX</a></li>
         <li><a href="/presenca">▸ PRESENÇA</a></li>
         <li><a href="/c6bank">▸ C6 BANK</a></li>
         <li><a href="/hub">▸ HUB Crédito</a></li>
+
         {% if session['role'] == 'admin' %}
         <li><a href="/usuarios">▸ Usuários</a></li>
         <li><a href="/register">▸ Criar Usuário</a></li>
         {% endif %}
       </ul>
-
     </div>
+
     <div class="menu-footer">
       <button id="toggle-theme"><i class="fa fa-moon"></i> Tema</button>
       <a href="/logout" class="logout">▸ Sair</a>
