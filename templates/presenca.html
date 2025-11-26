@@ -255,6 +255,54 @@
                 padding: 20px;
             }
         }
+
+        .tabela-item {
+            width: 100%;
+            max-width: 100%;
+            border: 2px solid #00dd88;
+            border-radius: 18px;
+            padding: 25px;
+            margin: 25px auto;
+            background: var(--bg-container);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+
+            box-sizing: border-box;
+            /* essencial para não “estourar” */
+        }
+
+        .tabela-item h3 {
+            margin-bottom: 15px;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .tabela-item p {
+            margin: 5px 0;
+            font-size: 16px;
+        }
+
+        .btn-escolher-tabela {
+            margin-top: 15px;
+            background: #00ff88;
+            color: #000;
+            border: none;
+            padding: 12px 20px;
+            font-weight: bold;
+            font-size: 15px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-escolher-tabela:hover {
+            transform: scale(1.05);
+            background: #00e676;
+        }
     </style>
 
 </head>
@@ -312,7 +360,7 @@
                 </div>
 
                 <div class="col">
-                    <label>Telefone <span style="color:#ff4d4d;">(obrigatório)</span></label>
+                    <label>Telefone <span style="color:#0027d3f3;">(aleatório)</span></label>
                     <input type="text" id="telefone" oninput="aplicarMascaraTelefone(this)" maxlength="15"
                         placeholder="(00) 00000-0000">
                 </div>
@@ -364,9 +412,176 @@
             <div id="box-consulta" style="display:none;"></div>
         </div>
 
+        <div class="card" id="card-digitacao" style="display:none; margin-top: 30px;">
+
+            <h2>Digitação Presença</h2>
+
+            <h3 style="margin-bottom:12px; font-size:20px;">Dados do Cliente</h3>
+
+            <div class="linha">
+                <div class="col">
+                    <label>CPF</label>
+                    <input type="text" id="dig-cpf" readonly style="background:#ceffd7;">
+                </div>
+
+                <div class="col">
+                    <label>Nome</label>
+                    <input type="text" id="dig-nome">
+                </div>
+
+                <div class="col">
+                    <label>Data de Nascimento</label>
+                    <input type="date" id="dig-nascimento">
+                </div>
+            </div>
+
+            <div class="linha">
+                <div class="col">
+                    <label>Nome da Mãe</label>
+                    <input type="text" id="dig-mae">
+                </div>
+
+                <div class="col">
+                    <label>Email <span style="color:#0027d3f3;">(aleatório)</span></label>
+                    <input type="email" id="dig-email">
+                </div>
+
+                <div class="col">
+                    <label>Sexo</label>
+                    <select id="dig-sexo">
+                        <option value="M">Masculino</option>
+                        <option value="F">Feminino</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="linha">
+                <div class="col">
+                    <label>Telefone <span style="color:#0027d3f3;">(aleatório)</span></label>
+                    <input type="text" id="dig-telefone" oninput="aplicarMascaraTelefone(this)" maxlength="15">
+                </div>
+            </div>
+
+            <h3 style="margin-top:25px; font-size:20px;">Vínculo Empregatício</h3>
+
+            <div class="linha">
+                <div class="col">
+                    <label>Matrícula</label>
+                    <input type="text" id="dig-matricula" readonly style="background:#ceffd7;">
+                </div>
+
+                <div class="col">
+                    <label>Nº Inscrição Empregador</label>
+                    <input type="text" id="dig-inscricao" readonly style="background:#ceffd7;">
+                </div>
+            </div>
+
+            <h3 style="margin-top:25px; font-size:20px;">Endereço</h3>
+
+            <div class="linha">
+                <div class="col">
+                    <label>CEP <span style="color:#0027d3f3;">(aleatório)</span></label>
+                    <input type="text" id="dig-cep">
+                </div>
+
+                <div class="col">
+                    <label>Rua</label>
+                    <input type="text" id="dig-rua">
+                </div>
+
+                <div class="col">
+                    <label>Número</label>
+                    <input type="text" id="dig-numero">
+                </div>
+            </div>
+
+            <div class="linha">
+                <div class="col">
+                    <label>Complemento <span style="color:#999;">(opcional)</span></label>
+                    <input type="text" id="dig-complemento">
+                </div>
+
+                <div class="col">
+                    <label>Bairro</label>
+                    <input type="text" id="dig-bairro">
+                </div>
+
+                <div class="col">
+                    <label>Cidade</label>
+                    <input type="text" id="dig-cidade">
+                </div>
+
+                <div class="col">
+                    <label>Estado</label>
+                    <input type="text" id="dig-estado" maxlength="2">
+                </div>
+            </div>
+
+            <h3 style="margin-top:25px; font-size:20px;">Dados Bancários</h3>
+
+            <div class="linha">
+                <div class="col">
+                    <label>Banco (código)</label>
+                    <input type="text" id="dig-banco" placeholder="Ex: 001">
+                </div>
+
+                <div class="col">
+                    <label>Agência</label>
+                    <input type="text" id="dig-agencia">
+                </div>
+
+                <div class="col">
+                    <label>Conta</label>
+                    <input type="text" id="dig-conta">
+                </div>
+
+                <div class="col">
+                    <label>Dígito</label>
+                    <input type="text" id="dig-digito" maxlength="1">
+                </div>
+            </div>
+
+            <div class="linha">
+                <div class="col">
+                    <label>Forma de Crédito</label>
+                    <select id="dig-forma">
+                        <option value="1">TED</option>
+                        <option value="2">Conta Corrente</option>
+                    </select>
+                </div>
+            </div>
+
+            <h3 style="margin-top:25px; font-size:20px;">Proposta</h3>
+
+            <div class="linha">
+                <div class="col">
+                    <label>Valor Solicitado</label>
+                    <input type="number" id="dig-valor" value="0" readonly style="background:#ceffd7;">
+                </div>
+
+                <div class="col">
+                    <label>Nº de Parcelas</label>
+                    <input type="number" id="dig-parcelas" value="0" readonly style="background:#ceffd7;">
+                </div>
+
+                <div class="col">
+                    <label>Valor Parcela</label>
+                    <input type="number" id="dig-vparcela" step="0.01">
+                </div>
+            </div>
+
+            <button class="btn btn-consultar" id="btnTabelas" onclick="buscarTabelas()">
+                <i class="fa fa-table"></i> Buscar Tabelas
+            </button>
+
+            <div id="box-tabelas" style="display:none; margin-top:25px;"></div>
+
+        </div>
+
     </div>
 
     <script>
+
         async function gerarLink() {
             const btn = document.getElementById("btnGerar");
 
@@ -389,13 +604,17 @@
 
             const data = await res.json();
 
+            if (!data.sucesso || data.erro || data.errors) {
+                mostrarErroAPI(data.errors || data.erro || "Erro desconhecido");
+                return;
+            }
+
             document.getElementById("box-gerar").style.display = "block";
             document.getElementById("box-gerar").innerHTML = data.html;
 
             btn.innerHTML = `<i class="fa fa-link"></i> Gerar Link`;
             btn.classList.remove("btn-loading");
         }
-
 
         async function consultarCPF() {
             const btn = document.getElementById("btnConsultar");
@@ -460,6 +679,237 @@
             input.value = v;
         }
     </script>
+    <script>
+
+        let dadosAuto = null;
+
+        async function consultarCPF() {
+            const btn = document.getElementById("btnConsultar");
+
+            btn.innerHTML = `<span class="spinner"></span> Consultando...`;
+            btn.classList.add("btn-loading");
+
+            const res = await fetch("/api/presenca/consultar", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ cpf: document.getElementById("cpfConsulta").value })
+            });
+
+            const data = await res.json();
+            const box = document.getElementById("box-consulta");
+
+            box.style.display = "block";
+            box.innerHTML = data.html;
+
+            btn.innerHTML = `<i class="fa fa-search"></i> Consultar`;
+            btn.classList.remove("btn-loading");
+
+            if (!data.erro) preencherDigitacao(data.dados);
+        }
+
+        function preencherDigitacao(d) {
+            dadosAuto = d;
+
+            document.getElementById("card-digitacao").style.display = "block";
+
+            document.getElementById("dig-cpf").value = d.cpf;
+            document.getElementById("dig-matricula").value = d.matricula;
+            document.getElementById("dig-inscricao").value = d.numeroInscricaoEmpregador;
+
+            document.getElementById("dig-mae").value = d.nomeMae || "";
+            document.getElementById("dig-sexo").value = d.sexo || "M";
+
+            if (d.dataNascimento)
+                document.getElementById("dig-nascimento").value = d.dataNascimento;
+        }
+
+        async function buscarTabelas() {
+
+            const btn = document.getElementById("btnTabelas");
+
+            btn.innerHTML = `<span class="spinner"></span> Buscando...`;
+            btn.classList.add("btn-loading");
+            btn.disabled = true;
+
+            const payload = {
+                cpf: dadosAuto.cpf,
+                nome: document.getElementById("dig-nome").value,
+                nomeMae: document.getElementById("dig-mae").value,
+                dataNascimento: document.getElementById("dig-nascimento").value,
+                sexo: document.getElementById("dig-sexo").value,
+                email: document.getElementById("dig-email").value,
+
+                ddd: document.getElementById("dig-telefone").value.replace(/\D/g, "").slice(0, 2),
+                telefone: document.getElementById("dig-telefone").value.replace(/\D/g, "").slice(2),
+
+                matricula: dadosAuto.matricula,
+                numeroInscricaoEmpregador: dadosAuto.numeroInscricaoEmpregador,
+
+                banco: document.getElementById("dig-banco").value,
+                agencia: document.getElementById("dig-agencia").value,
+                conta: document.getElementById("dig-conta").value,
+                digito: document.getElementById("dig-digito").value,
+                formaCredito: document.getElementById("dig-forma").value,
+
+                endereco: {
+                    cep: document.getElementById("dig-cep").value,
+                    rua: document.getElementById("dig-rua").value,
+                    numero: document.getElementById("dig-numero").value,
+                    complemento: document.getElementById("dig-complemento").value,
+                    cidade: document.getElementById("dig-cidade").value,
+                    estado: document.getElementById("dig-estado").value,
+                    bairro: document.getElementById("dig-bairro").value
+                },
+
+                valorSolicitado: Number(document.getElementById("dig-valor").value),
+                parcelas: Number(document.getElementById("dig-parcelas").value),
+                valorParcela: Number(document.getElementById("dig-vparcela").value)
+            };
+
+            const res = await fetch("/api/presenca/tabelas", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await res.json();
+
+            btn.innerHTML = `<i class="fa fa-table"></i> Buscar Tabelas`;
+            btn.classList.remove("btn-loading");
+            btn.disabled = false;
+
+            if (!data.sucesso) {
+                mostrarErroAPI(data.errors);
+                return;
+            }
+
+            renderizarTabelas(data.tabelas);
+        }
+
+
+        function renderizarTabelas(tabelas) {
+            const box = document.getElementById("box-tabelas");
+            box.style.display = "block";
+
+            let html = `<h3 style="margin-bottom:12px;">Tabelas Disponíveis</h3>`;
+
+            tabelas.forEach(t => {
+                html += `
+                <div class="tabela-item">
+                    <b>${t.nome}</b><br>
+                    Prazo: ${t.prazo}x<br>
+                    Taxa: ${t.taxaJuros}%<br>
+                    Parcela: R$ ${t.valorParcela}<br>
+                    <button class="btn btn-gerar" onclick='criarOperacao(${t.id}, ${t.prazo}, ${t.valorParcela})'>
+                        Selecionar esta tabela
+                    </button>
+                </div>
+            `;
+            });
+
+            box.innerHTML = html;
+
+            if (!tabelas || tabelas.errors) {
+                mostrarErroAPI(tabelas.errors || "Erro desconhecido.");
+                return;
+            }
+
+        }
+
+        async function criarOperacao(tabelaId, parcelas, valorParcela) {
+
+            const payload = {
+                tomador: {
+                    telefone: {
+                        ddd: document.getElementById("dig-telefone").value.replace(/\D/g, "").slice(0, 2),
+                        numero: document.getElementById("dig-telefone").value.replace(/\D/g, "").slice(2)
+                    },
+                    cpf: dadosAuto.cpf,
+                    nome: document.getElementById("dig-nome").value,
+                    dataNascimento: document.getElementById("dig-nascimento").value,
+                    nomeMae: document.getElementById("dig-mae").value,
+                    email: document.getElementById("dig-email").value,
+                    sexo: document.getElementById("dig-sexo").value,
+
+                    vinculoEmpregaticio: {
+                        cnpjEmpregador: dadosAuto.numeroInscricaoEmpregador,
+                        registroEmpregaticio: dadosAuto.matricula
+                    },
+
+                    dadosBancarios: {
+                        codigoBanco: document.getElementById("dig-banco").value,
+                        agencia: document.getElementById("dig-agencia").value,
+                        conta: document.getElementById("dig-conta").value,
+                        digitoConta: document.getElementById("dig-digito").value,
+                        formaCredito: document.getElementById("dig-forma").value
+                    },
+
+                    endereco: {
+                        cep: document.getElementById("dig-cep").value,
+                        rua: document.getElementById("dig-rua").value,
+                        numero: document.getElementById("dig-numero").value,
+                        complemento: document.getElementById("dig-complemento").value,
+                        cidade: document.getElementById("dig-cidade").value,
+                        estado: document.getElementById("dig-estado").value,
+                        bairro: document.getElementById("dig-bairro").value
+                    }
+                },
+
+                proposta: {
+                    valorSolicitado: Number(document.getElementById("dig-valor").value),
+                    quantidadeParcelas: parcelas,
+                    produtoId: 28,
+                    valorParcela: valorParcela,
+                    tabelaId: tabelaId
+                }
+            };
+
+            const r = await fetch("/api/presenca/criar-operacao", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            const resp = await r.json();
+
+            if (resp.errors || resp.erro) {
+                mostrarErroAPI(resp.errors || resp.erro);
+                return;
+            }
+
+            alert("Operação criada com sucesso:\n" + JSON.stringify(resp, null, 2));
+
+        }
+
+        function mostrarErroAPI(erro) {
+            const box = document.getElementById("box-tabelas");
+            box.style.display = "block";
+
+            if (Array.isArray(erro)) {
+                erro = erro.join("<br>");
+            }
+
+            box.innerHTML = `
+        <div style="
+            padding:18px;
+            border-radius:12px;
+            background:rgba(255, 70, 70, 0.18);
+            border:2px solid #ff4c4c;
+            color:#ff3333;
+            font-weight:bold;
+            text-align:center;
+            font-size:16px;
+            box-shadow:0 4px 10px rgba(0,0,0,0.15);
+            margin-bottom:20px;
+        ">
+            ❌ Erro retornado pela API:<br><br>
+            ${erro}
+        </div>
+    `;
+        }
+
+    </script>
+
 
 </body>
 

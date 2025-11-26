@@ -972,23 +972,23 @@ def api_presenca_consultar():
         resposta = r.json()
         print("📌 RESPOSTA MARGEM:", resposta)
 
-        if isinstance(resposta, list) and len(resposta) > 0:
-            info = resposta[0]
-        else:
+        if not isinstance(resposta, list) or len(resposta) == 0:
             return jsonify({
+                "erro": True,
                 "html": "<div class='resultado-erro'><i class='fa fa-times-circle'></i> Nenhuma matrícula encontrada.</div>"
             })
 
-        numero = info.get("numeroInscricaoEmpregador", "—")
-        valorMargem = info.get("valorMargem", "—")
-        matricula = info.get("matricula", "—")
-        dataAdm = info.get("dataAdmissao", "—")
-        dataNas = info.get("dataNascimento", "—")
-        margemAval = info.get("valorMargemAvaliavel", "—")
-        base = info.get("valorBaseMargem", "—")
-        venc = info.get("valorTotalVencimentos", "—")
-        mae = info.get("nomeMae", "—")
-        sexo = info.get("sexo", "—")
+        info = resposta[0]
+
+        dados = {
+            "cpf": cpf,
+            "nomeMae": info.get("nomeMae", ""),
+            "sexo": info.get("sexo", ""),
+            "dataNascimento": info.get("dataNascimento", ""),
+            "matricula": info.get("matricula", ""),
+            "numeroInscricaoEmpregador": info.get("numeroInscricaoEmpregador", ""),
+            "tipoInscricaoEmpregador": info.get("tipoInscricaoEmpregador", 1),
+        }
 
         html = f"""
         <div class='resultado-wrapper'>
@@ -998,33 +998,123 @@ def api_presenca_consultar():
             </div>
 
             <div class='resultado-grid'>
-
-                <div class='resultado-item'><b>Número de Inscrição:</b> {numero}</div>
-                <div class='resultado-item'><b>Matrícula:</b> {matricula}</div>
-
-                <div class='resultado-item'><b>Valor da Margem:</b> R$ {valorMargem}</div>
-                <div class='resultado-item'><b>Margem Avaliável:</b> R$ {margemAval}</div>
-
-                <div class='resultado-item'><b>Base da Margem:</b> R$ {base}</div>
-                <div class='resultado-item'><b>Total de Vencimentos:</b> R$ {venc}</div>
-
-                <div class='resultado-item'><b>Data de Admissão:</b> {dataAdm}</div>
-                <div class='resultado-item'><b>Data de Nascimento:</b> {dataNas}</div>
-
-                <div class='resultado-item'><b>Nome da Mãe:</b> {mae}</div>
-                <div class='resultado-item'><b>Sexo:</b> {sexo}</div>
-
+                <div class='resultado-item'><b>Matrícula:</b> {dados['matricula']}</div>
+                <div class='resultado-item'><b>Inscrição Empregador:</b> {dados['numeroInscricaoEmpregador']}</div>
+                <div class='resultado-item'><b>Nome da mãe:</b> {dados['nomeMae']}</div>
+                <div class='resultado-item'><b>Sexo:</b> {dados['sexo']}</div>
+                <div class='resultado-item'><b>Data nascimento:</b> {dados['dataNascimento']}</div>
             </div>
 
         </div>
         """
 
-        return jsonify({"html": html})
+        return jsonify({"erro": False, "html": html, "dados": dados})
 
     except Exception as e:
         return jsonify({
+            "erro": True,
             "html": f"<div class='resultado-erro'><i class='fa fa-times-circle'></i> Erro: {str(e)}</div>"
         })
+    
+@app.route("/api/presenca/tabelas", methods=["POST"])
+def api_presenca_tabelas():
+    try:
+        data = request.get_json()
+
+        token = presenca_token()
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json"
+        }
+
+        payload = {
+            "tomador": {
+                "telefone": {
+                    "ddd": data["ddd"],
+                    "numero": data["telefone"]
+                },
+                "cpf": data["cpf"],
+                "nome": data["nome"],
+                "dataNascimento": data["dataNascimento"],
+                "nomeMae": data["nomeMae"],
+                "email": data["email"],
+                "sexo": data["sexo"],
+                "vinculoEmpregaticio": {
+                    "cnpjEmpregador": data["numeroInscricaoEmpregador"],
+                    "registroEmpregaticio": data["matricula"]
+                },
+                "dadosBancarios": {
+                    "codigoBanco": data["banco"],
+                    "agencia": data["agencia"],
+                    "conta": data["conta"],
+                    "digitoConta": data["digito"],
+                    "formaCredito": data["formaCredito"]
+                },
+                "endereco": data["endereco"]
+            },
+            "proposta": {
+                "valorSolicitado": data["valorSolicitado"],
+                "quantidadeParcelas": data["parcelas"],
+                "produtoId": 28,
+                "valorParcela": data["valorParcela"]
+            },
+            "documentos": []
+        }
+
+        r = requests.post(
+            "https://presenca-bank-api.azurewebsites.net/v3/tabelas/simulacao/inss/disponiveis",
+            json=payload,
+            headers=headers,
+            timeout=20
+        )
+
+        tabelas = r.json()
+        print("📌 TABELAS DISPONÍVEIS:", tabelas)
+
+        if "errors" in tabelas:
+            return jsonify({
+                "sucesso": False,
+                "errors": tabelas["errors"]
+            })
+
+        return jsonify({"sucesso": True, "tabelas": tabelas})
+
+    except Exception as e:
+        return jsonify({"sucesso": False, "erro": str(e)})
+    
+@app.route("/api/presenca/criar-operacao", methods=["POST"])
+def api_presenca_criar_operacao():
+    try:
+        data = request.get_json()
+
+        token = presenca_token()
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json"
+        }
+
+        payload = {
+            "type": "credito-privado-v3",
+            "tomador": data["tomador"],
+            "proposta": data["proposta"],
+            "documentos": []
+        }
+
+        r = requests.post(
+            "https://presenca-bank-api.azurewebsites.net/v3/operacoes",
+            json=payload,
+            headers=headers,
+            timeout=20
+        )
+
+        resp = r.json()
+        print("📌 CRIAR OPERAÇÃO:", resp)
+
+        return jsonify(resp)
+
+    except Exception as e:
+        return jsonify({"erro": str(e)})
+
     
 #************************************************************************************************************
 # Dashboard
