@@ -467,12 +467,14 @@
             <div class="linha">
                 <div class="col">
                     <label>Matrícula</label>
-                    <input type="text" id="dig-matricula" readonly style="background:#ceffd7;">
+                    <input type="text" id="dig-matricula" readonly
+                        style="background: linear-gradient(40deg, var(--gradiente-inicio), var(--gradiente-fim));">
                 </div>
 
                 <div class="col">
                     <label>Nº Inscrição Empregador</label>
-                    <input type="text" id="dig-inscricao" readonly style="background:#ceffd7;">
+                    <input type="text" id="dig-inscricao" readonly
+                        style="background: linear-gradient(40deg, var(--gradiente-inicio), var(--gradiente-fim));">
                 </div>
             </div>
 
@@ -779,6 +781,10 @@
             btn.disabled = false;
 
             if (!data.sucesso) {
+                btn.innerHTML = `<i class="fa fa-table"></i> Buscar Tabelas`;
+                btn.classList.remove("btn-loading");
+                btn.disabled = false;
+
                 mostrarErroAPI(data.errors);
                 return;
             }
@@ -786,37 +792,64 @@
             renderizarTabelas(data.tabelas);
         }
 
-
         function renderizarTabelas(tabelas) {
             const box = document.getElementById("box-tabelas");
             box.style.display = "block";
 
-            let html = `<h3 style="margin-bottom:12px;">Tabelas Disponíveis</h3>`;
-
-            tabelas.forEach(t => {
-                html += `
-                <div class="tabela-item">
-                    <b>${t.nome}</b><br>
-                    Prazo: ${t.prazo}x<br>
-                    Taxa: ${t.taxaJuros}%<br>
-                    Parcela: R$ ${t.valorParcela}<br>
-                    <button class="btn btn-gerar" onclick='criarOperacao(${t.id}, ${t.prazo}, ${t.valorParcela})'>
-                        Selecionar esta tabela
-                    </button>
-                </div>
-            `;
-            });
-
-            box.innerHTML = html;
-
-            if (!tabelas || tabelas.errors) {
+            if (!Array.isArray(tabelas)) {
                 mostrarErroAPI(tabelas.errors || "Erro desconhecido.");
                 return;
             }
 
+            if (tabelas.length === 0) {
+                mostrarErroAPI("Nenhuma tabela retornada pela API.");
+                return;
+            }
+
+            let html = `<h3 style="margin-bottom:12px;">Tabelas Disponíveis</h3>`;
+
+            tabelas.forEach(t => {
+                const encoded = btoa(JSON.stringify(t));
+
+                html += `
+        <div class="tabela-item">
+            <b>${t.nome}</b><br>
+            Prazo: ${t.prazo}x<br>
+            Taxa: ${t.taxaJuros}%<br>
+            Parcela: R$ ${t.valorParcela}<br>
+            <button class="btn btn-gerar" onclick='selecionarTabela("${encoded}")'>
+                Selecionar esta tabela
+            </button>
+        </div>
+        `;
+            });
+
+            box.innerHTML = html;
         }
 
-        async function criarOperacao(tabelaId, parcelas, valorParcela) {
+        function selecionarTabela(encoded) {
+            const t = JSON.parse(atob(encoded));
+
+            document.getElementById("dig-valor").value = t.valorLiberado ?? t.valorParcela ?? 0;
+            document.getElementById("dig-parcelas").value = t.prazo;
+            document.getElementById("dig-vparcela").value = t.valorParcela;
+
+            if (!t.valorLiberado || t.valorLiberado <= 0) {
+                mostrarErroAPI("A tabela selecionada não retornou um valor liberado. Não é possível criar a operação.");
+                return;
+            }
+
+            criarOperacao(t.id, t.prazo, t.valorParcela, t.valorLiberado);
+        }
+
+        async function criarOperacao(tabelaId, parcelas, valorParcela, valorLiberado) {
+
+            const valorSolicitado = Number(document.getElementById("dig-valor").value);
+
+            if (!valorSolicitado || valorSolicitado <= 0) {
+                mostrarErroAPI("O valor solicitado está inválido. Selecione novamente a tabela.");
+                return;
+            }
 
             const payload = {
                 tomador: {
@@ -856,7 +889,7 @@
                 },
 
                 proposta: {
-                    valorSolicitado: Number(document.getElementById("dig-valor").value),
+                    valorSolicitado: valorLiberado ?? valorSolicitado,
                     quantidadeParcelas: parcelas,
                     produtoId: 28,
                     valorParcela: valorParcela,
@@ -878,7 +911,6 @@
             }
 
             alert("Operação criada com sucesso:\n" + JSON.stringify(resp, null, 2));
-
         }
 
         function mostrarErroAPI(erro) {
