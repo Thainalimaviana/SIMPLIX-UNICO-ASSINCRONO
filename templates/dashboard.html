@@ -13,16 +13,11 @@
             padding: 20px;
             margin-left: 260px;
             width: calc(100% - 260px);
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-        }
 
-        h1 {
-            text-align: center;
-            font-size: 42px;
-            margin-bottom: 30px;
-            color: var(--cor-texto);
+            display: grid;
+            grid-template-columns: 450px 450px;
+            column-gap: 60px;
+            row-gap: 20px;
         }
 
         .card-dash {
@@ -30,7 +25,6 @@
             padding: 18px;
             border-radius: 18px;
             color: #fff;
-            margin-bottom: 20px;
             cursor: pointer;
             transition: 0.3s;
             box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
@@ -69,6 +63,10 @@
         .greenwater {
             background: linear-gradient(45deg, #02daae, #44faeb, #00c9a1);
         }
+
+        .purple {
+            background: linear-gradient(45deg, #7b2ff7, #9f44ff, #6a00ff);
+        }
     </style>
 </head>
 
@@ -90,6 +88,7 @@
                 <li><a href="/presenca">▸ PRESENÇA</a></li>
                 <li><a href="/c6bank">▸ C6 BANK</a></li>
                 <li><a href="/hub">▸ HUB Crédito</a></li>
+                <li><a href="/v8">▸ V8 Sistema</a></li>
 
                 {% if session['role'] == 'admin' %}
                 <li><a href="/usuarios">▸ Usuários</a></li>
@@ -106,13 +105,17 @@
 
     <div class="dashboard-container">
 
-        <h1>Dashboard</h1>
+        <h1 style="grid-column: 1 / 3;">Dashboard</h1>
 
         <div class="card-dash blue" onclick="window.location.href='/index'">
             <div class="card-title"><i class="fa fa-database"></i> SIMPLIX</div>
             <div class="card-value">Acessar sistema</div>
         </div>
 
+        <div class="card-dash purple" onclick="window.location.href='/v8'">
+            <div class="card-title"><i class="fa fa-gear"></i> V8 SISTEMA</div>
+            <div class="card-value">Acessar sistema</div>
+        </div>
 
         <div class="card-dash orange" onclick="window.location.href='/presenca'">
             <div class="card-title"><i class="fa fa-user-check"></i> PRESENÇA</div>
@@ -130,6 +133,7 @@
         </div>
 
     </div>
+
 
     <script src="/static/js/theme.js"></script>
 

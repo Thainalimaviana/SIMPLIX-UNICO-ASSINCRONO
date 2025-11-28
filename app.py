@@ -1793,5 +1793,175 @@ def hub_simulacao():
         "simulacao": resp["value"]
     })
 
+#*************************************************************************************************************
+#V8
+
+V8_TOKEN = None
+V8_TOKEN_EXPIRA = 0
+
+def gerar_token_v8():
+    global V8_TOKEN, V8_TOKEN_EXPIRA
+
+    if V8_TOKEN and time.time() < V8_TOKEN_EXPIRA:
+        return V8_TOKEN
+
+    url = "https://auth.v8sistema.com/oauth/token"
+
+    payload = {
+        "grant_type": "password",
+        "username": "thaina737373@gmail.com",
+        "password": "Tech@2028",
+        "audience": "https://bff.v8sistema.com",
+        "scope": "offline_access",
+        "client_id": "DHWogdaYmEI8n5bwwxPDzulMlSK7dwIn"
+    }
+
+    headers = {"Content-Type": "application/x-www-form-urlencoded"}
+
+    r = requests.post(url, data=payload, headers=headers, timeout=20)
+    data = r.json()
+    print("🔑 TOKEN V8:", data)
+
+    token = data.get("access_token")
+    if not token:
+        raise Exception("Erro ao gerar token V8.")
+
+    V8_TOKEN = token
+    V8_TOKEN_EXPIRA = time.time() + 3500
+
+    return token
+
+def esperar_termo_finalizar(termo_id, headers):
+    """
+    Faz polling até o status ser aprovado.
+    """
+    url = f"https://bff.v8sistema.com/private-consignment/consult/{termo_id}"
+
+    for _ in range(30):
+        r = requests.get(url, headers=headers, timeout=20)
+        data = r.json()
+
+        status = data.get("status", "")
+        print("🔄 STATUS TERMO:", status)
+
+        if status in ["CONSENT_APPROVED", "FINISHED", "APPROVED"]:
+            print("✅ TERMO FINALIZOU!")
+            return True
+
+        time.sleep(0.5)
+
+    print("❌ TERMO NÃO FINALIZOU A TEMPO")
+    return False
+
+@app.route("/v8")
+def pagina_v8():
+    if "user" not in session:
+        return redirect(url_for("login"))
+    return render_template("v8.html")
+
+
+@app.route("/api/v8/termo", methods=["POST"])
+def api_v8_termo():
+    try:
+        data = request.get_json()
+
+        token = gerar_token_v8()
+
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json"
+        }
+
+        r = requests.post(
+            "https://bff.v8sistema.com/private-consignment/consult",
+            json=data,
+            headers=headers,
+            timeout=20
+        )
+
+        resp = r.json()
+        print("📌 TERMO V8:", resp)
+
+        termo_id = resp.get("id")
+        if not termo_id:
+            return jsonify({"erro": resp}), 400
+
+        r2 = requests.post(
+            f"https://bff.v8sistema.com/private-consignment/consult/{termo_id}/authorize",
+            headers=headers,
+            json={},
+            timeout=20
+        )
+
+        print("📌 AUTORIZAÇÃO V8 STATUS:", r2.status_code)
+        print("📌 AUTORIZAÇÃO V8 BODY:", r2.text)
+
+
+        return jsonify({"id": termo_id})
+
+    except Exception as e:
+        return jsonify({"erro": str(e)})
+
+@app.route("/api/v8/configs", methods=["POST"])
+def api_v8_configs():
+    try:
+        data = request.get_json()
+        consult_id = data.get("consult_id")
+
+        if not consult_id:
+            return jsonify({"erro": "consult_id obrigatório"}), 400
+
+        token = gerar_token_v8()
+
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json"
+        }
+
+        r = requests.get(
+            "https://bff.v8sistema.com/private-consignment/simulation/configs",
+            headers=headers,
+            timeout=20
+        )
+
+        resp = r.json()
+        print("📌 CONFIGS V8:", resp)
+
+        return jsonify({
+            "consult_id": consult_id,
+            "configs": resp.get("configs", [])
+        })
+
+    except Exception as e:
+        return jsonify({"erro": str(e)})
+
+@app.route("/api/v8/simular", methods=["POST"])
+def api_v8_simular():
+    try:
+        data = request.get_json()
+
+        token = gerar_token_v8()
+
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json"
+        }
+
+        r = requests.post(
+            "https://bff.v8sistema.com/private-consignment/simulation",
+            json=data,
+            headers=headers,
+            timeout=20
+        )
+
+        resp = r.json()
+        print("📌 SIMULAÇÃO V8:", resp)
+
+        return jsonify(resp)
+
+    except Exception as e:
+        return jsonify({"erro": str(e)})
+
+
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=8600)
