@@ -1832,9 +1832,6 @@ def gerar_token_v8():
     return token
 
 def esperar_termo_finalizar(termo_id, headers):
-    """
-    Faz polling até o status ser aprovado.
-    """
     url = f"https://bff.v8sistema.com/private-consignment/consult/{termo_id}"
 
     for _ in range(30):

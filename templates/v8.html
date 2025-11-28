@@ -260,25 +260,86 @@
     </div>
 
     <script>
-        document.getElementById("cpf").addEventListener("input", e => {
-            e.target.value = e.target.value.replace(/[^\d.-]/g, "");
+        const cpfInput = document.getElementById("cpf");
+
+        cpfInput.addEventListener("input", e => {
+            let v = e.target.value.replace(/\D/g, "");
+            v = v.slice(0, 11);
+            e.target.value = v;
         });
 
-        document.getElementById("telefone").addEventListener("input", e => {
-            e.target.value = e.target.value.replace(/[^\d()\-.\s]/g, "");
+        cpfInput.addEventListener("paste", e => {
+            e.preventDefault();
+            let txt = (e.clipboardData || window.clipboardData).getData("text");
+            txt = txt.replace(/\D/g, "").slice(0, 11);
+            cpfInput.value = txt;
+        });
+
+        const telInput = document.getElementById("telefone");
+
+        telInput.addEventListener("input", e => {
+            let v = e.target.value.replace(/\D/g, "");
+            v = v.slice(0, 11);
+            e.target.value = v;
+        });
+
+        telInput.addEventListener("paste", e => {
+            e.preventDefault();
+            let txt = (e.clipboardData || window.clipboardData).getData("text");
+            txt = txt.replace(/\D/g, "").slice(0, 11);
+            telInput.value = txt;
+        });
+
+        document.getElementById("nasc").addEventListener("paste", e => {
+            e.preventDefault();
+            let txt = (e.clipboardData || window.clipboardData).getData("text");
+
+            txt = txt.replace(/\D/g, "");
+
+            if (txt.length === 8) {
+                const dia = txt.slice(0, 2);
+                const mes = txt.slice(2, 4);
+                const ano = txt.slice(4, 8);
+                e.target.value = `${ano}-${mes}-${dia}`;
+                return;
+            }
+
+            const m = (e.clipboardData || window.clipboardData)
+                .getData("text")
+                .match(/(\d{1,2})[\/\-\.\s]?(\d{1,2})[\/\-\.\s]?(\d{4})/);
+
+            if (m) {
+                const dia = m[1].padStart(2, "0");
+                const mes = m[2].padStart(2, "0");
+                const ano = m[3];
+                e.target.value = `${ano}-${mes}-${dia}`;
+            }
         });
 
         async function gerarTermo() {
+
+            const cpf = document.getElementById("cpf").value.replace(/\D/g, "");
+            const tel = document.getElementById("telefone").value.replace(/\D/g, "");
+
+            if (cpf.length !== 11) {
+                alert("CPF deve conter 11 números.");
+                return;
+            }
+
+            if (tel.length < 10 || tel.length > 11) {
+                alert("Telefone deve conter entre 10 e 11 números.");
+                return;
+            }
+
             const btn = document.getElementById("btnGerar");
             btn.innerHTML = `<span class="spinner"></span> Gerando...`;
             btn.classList.add("btn-loading");
 
-            const tel = document.getElementById("telefone").value.replace(/\D/g, "");
             const area = tel.slice(0, 2);
             const num = tel.slice(2);
 
             const payload = {
-                borrowerDocumentNumber: document.getElementById("cpf").value.replace(/\D/g, ""),
+                borrowerDocumentNumber: cpf,
                 gender: document.getElementById("sexo").value,
                 birthDate: document.getElementById("nasc").value,
                 signerName: document.getElementById("nome").value,
@@ -304,7 +365,7 @@
 
             if (!data.id) {
                 document.getElementById("resultado-termo").innerHTML =
-                    `<div class='resultado'>Erro: ${data.erro}</div>`;
+                    `<div class='resultado'>Erro: ${JSON.stringify(data.erro)}</div>`;
                 return;
             }
 
@@ -328,16 +389,15 @@
             let html = "";
 
             data.configs.forEach(c => {
-
                 const taxa = (Number(c.monthly_interest_rate) * 100).toFixed(2).replace('.', ',');
 
                 html += `
-            <div class="config-card" onclick='selecionarConfig(${JSON.stringify(c)})'>
-                <div class="config-title">${c.slug}</div>
-                <div>Taxa mensal: <b>${taxa}%</b></div>
-                <div>Parcelas disponíveis: <b>${c.number_of_installments.join(", ")}</b></div>
-            </div>
-        `;
+                <div class="config-card" onclick='selecionarConfig(${JSON.stringify(c)})'>
+                    <div class="config-title">${c.slug}</div>
+                    <div>Taxa mensal: <b>${taxa}%</b></div>
+                    <div>Parcelas disponíveis: <b>${c.number_of_installments.join(", ")}</b></div>
+                </div>
+            `;
             });
 
             document.getElementById("lista-configs").innerHTML = html;
@@ -346,9 +406,7 @@
 
         function selecionarConfig(cfg) {
             window.v8Config = cfg;
-
             document.getElementById("card-simulacao").style.display = "block";
-
             document.getElementById("numParcelas").value = cfg.number_of_installments[0];
         }
 
@@ -378,7 +436,7 @@
 
                 if (d.type === "simulation_consult_not_finished") {
 
-                    if (tentativa >= 15) {
+                    if (tentativa >= 25) {
                         document.getElementById("resultado-simulacao").innerHTML =
                             `<div class='resultado'>❌ Não finalizou a tempo. Tente novamente.</div>`;
                         btn.innerHTML = `<i class="fa fa-calculator"></i> Simular`;
@@ -394,32 +452,30 @@
                 const pct = v => (Number(v) * 100).toFixed(2).replace('.', ',') + "%";
 
                 let html = `
-        <div class="resultado">
-
-            <div class="simulacao-item"><b>Parcela:</b> ${fmt(d.installment_value)}</div>
-            <div class="simulacao-item"><b>Nº Parcelas:</b> ${d.number_of_installments}</div>
-            <div class="simulacao-item"><b>Total Financiado:</b> ${fmt(d.operation_amount)}</div>
-            <div class="simulacao-item"><b>Liberado:</b> ${fmt(d.disbursement_amount)}</div>
-            <div class="simulacao-item"><b>Valor de Emissão:</b> ${fmt(d.issue_amount)}</div>
-            <div class="simulacao-item"><b>IOF:</b> ${fmt(d.iof_amount)}</div>
-            ${d.insurance_amount ? `<div class="simulacao-item"><b>Seguro:</b> ${fmt(d.insurance_amount)}</div>` : ""}
-            <div class="simulacao-item"><b>Taxa Mensal:</b> ${pct(d.monthly_interest_rate)}</div>
-            <div class="simulacao-item"><b>1ª Parcela:</b> ${d.first_installment_date.split("-").reverse().join("/")}</div>
-            <div class="simulacao-item"><b>Produto:</b> ${d.simulation_config_slug}</div>
-
-        </div>`;
+                <div class="resultado">
+                    <div class="simulacao-item"><b>Parcela:</b> ${fmt(d.installment_value)}</div>
+                    <div class="simulacao-item"><b>Nº Parcelas:</b> ${d.number_of_installments}</div>
+                    <div class="simulacao-item"><b>Total Financiado:</b> ${fmt(d.operation_amount)}</div>
+                    <div class="simulacao-item"><b>Liberado:</b> ${fmt(d.disbursement_amount)}</div>
+                    <div class="simulacao-item"><b>Valor de Emissão:</b> ${fmt(d.issue_amount)}</div>
+                    <div class="simulacao-item"><b>IOF:</b> ${fmt(d.iof_amount)}</div>
+                    ${d.insurance_amount ? `<div class="simulacao-item"><b>Seguro:</b> ${fmt(d.insurance_amount)}</div>` : ""}
+                    <div class="simulacao-item"><b>Taxa Mensal:</b> ${pct(d.monthly_interest_rate)}</div>
+                    <div class="simulacao-item"><b>1ª Parcela:</b> ${d.first_installment_date.split("-").reverse().join("/")}</div>
+                    <div class="simulacao-item"><b>Produto:</b> ${d.simulation_config_slug}</div>
+                </div>`;
 
                 btn.innerHTML = `<i class="fa fa-calculator"></i> Simular`;
                 btn.disabled = false;
 
                 document.getElementById("resultado-simulacao").innerHTML = html;
-
             }
 
             tentarSimulacao();
         }
 
     </script>
+
 
 </body>
 
