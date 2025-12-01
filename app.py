@@ -1838,13 +1838,16 @@ def esperar_termo_finalizar(termo_id, headers):
         r = requests.get(url, headers=headers, timeout=20)
         data = r.json()
 
-        status = data.get("status", "")
+        status = str(data.get("status", "")).upper()
         print("🔄 STATUS TERMO:", status)
 
-        if status in ["CONSENT_APPROVED", "FINISHED", "APPROVED"]:
+        if status in ["SUCCESS", "CONSENT_APPROVED", "FINISHED", "APPROVED"]:
             print("✅ TERMO FINALIZOU!")
             return True
 
+        if status in ["404", "NOT_FOUND"]:
+            print("⏳ TERMO AINDA NÃO DISPONÍVEL, TENTANDO NOVAMENTE...")
+        
         time.sleep(0.5)
 
     print("❌ TERMO NÃO FINALIZOU A TEMPO")
@@ -1890,14 +1893,19 @@ def api_v8_termo():
             timeout=20
         )
 
-        print("📌 AUTORIZAÇÃO V8 STATUS:", r2.status_code)
-        print("📌 AUTORIZAÇÃO V8 BODY:", r2.text)
+        print("📌 AUTORIZAÇÃO STATUS:", r2.status_code)
+        print("📌 BODY:", r2.text)
 
+        finalizado = esperar_termo_finalizar(termo_id, headers)
 
-        return jsonify({"id": termo_id})
+        return jsonify({
+            "id": termo_id,
+            "finalizado": finalizado
+        })
 
     except Exception as e:
         return jsonify({"erro": str(e)})
+
 
 @app.route("/api/v8/configs", methods=["POST"])
 def api_v8_configs():
@@ -1953,6 +1961,32 @@ def api_v8_simular():
 
         resp = r.json()
         print("📌 SIMULAÇÃO V8:", resp)
+
+        return jsonify(resp)
+
+    except Exception as e:
+        return jsonify({"erro": str(e)})
+
+@app.route("/api/v8/proposta", methods=["POST"])
+def api_v8_proposta():
+    try:
+        data = request.get_json()
+        token = gerar_token_v8()
+
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json"
+        }
+
+        r = requests.post(
+            "https://bff.v8sistema.com/private-consignment/operation",
+            json=data,
+            headers=headers,
+            timeout=20
+        )
+
+        resp = r.json()
+        print("📌 PROPOSTA V8:", resp)
 
         return jsonify(resp)
 
