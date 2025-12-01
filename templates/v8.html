@@ -241,7 +241,7 @@
             <div class="linha">
                 <div class="col">
                     <label>Valor Parcela (R$)</label>
-                    <input id="parcela">
+                    <input id="parcela" oninput="this.value = this.value.replace(/[^0-9,]/g, '')">
                 </div>
 
                 <div class="col">
@@ -257,7 +257,6 @@
             <div id="resultado-simulacao"></div>
         </div>
 
-        <!--  AGORA O CARD DA PROPOSTA ESTÁ DENTRO DO .content  -->
         <div class="card" id="card-proposta" style="display:none;">
             <h2>Finalizar Proposta</h2>
 
@@ -487,7 +486,7 @@
             document.getElementById("resultado-termo").innerHTML =
                 `<div class='resultado'>Termo ID: <b>${data.id}</b> (autorizado automaticamente)</div>`;
 
-            await new Promise(res => setTimeout(res, 2000));    
+            await new Promise(res => setTimeout(res, 2000));
 
             carregarConfigs(data.id);
         }
@@ -536,7 +535,9 @@
             const payload = {
                 consult_id: window.v8ConsultID,
                 config_id: window.v8Config.id,
-                installment_face_value: Number(document.getElementById("parcela").value),
+                installment_face_value: Number(
+                    document.getElementById("parcela").value.replace(",", ".")
+                ),
                 number_of_installments: Number(document.getElementById("numParcelas").value),
                 provider: "QI"
             };
