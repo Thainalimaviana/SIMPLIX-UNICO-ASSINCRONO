@@ -1832,23 +1832,32 @@ def gerar_token_v8():
     return token
 
 def esperar_termo_finalizar(termo_id, headers):
-    url = f"https://bff.v8sistema.com/private-consignment/consult/{termo_id}"
+    url_consult = f"https://bff.v8sistema.com/private-consignment/consult/{termo_id}"
 
-    for _ in range(30):
-        r = requests.get(url, headers=headers, timeout=20)
-        data = r.json()
+    for tent in range(40):
+        try:
+            r = requests.get(url_consult, headers=headers, timeout=20)
+            data = r.json()
 
-        status = str(data.get("status", "")).upper()
-        print("🔄 STATUS TERMO:", status)
+            status = str(data.get("status", "")).upper()
+            print("🔄 STATUS TERMO:", status)
 
-        if status in ["SUCCESS", "CONSENT_APPROVED", "FINISHED", "APPROVED"]:
-            print("✅ TERMO FINALIZOU!")
-            return True
+            if status in ["SUCCESS", "CONSENT_APPROVED", "APPROVED", "FINISHED"]:
+                print("✅ TERMO FINALIZOU!")
+                return True
 
-        if status in ["404", "NOT_FOUND"]:
-            print("⏳ TERMO AINDA NÃO DISPONÍVEL, TENTANDO NOVAMENTE...")
-        
-        time.sleep(0.5)
+            if status in ["CONSENT_PENDING", "WAITING", "PENDING"]:
+                time.sleep(0.5)
+                continue
+
+            if status == "" or status == "404":
+                print("⏳ TERMO AINDA NÃO DISPONÍVEL...")
+                time.sleep(0.5)
+                continue
+
+        except:
+            time.sleep(0.5)
+            continue
 
     print("❌ TERMO NÃO FINALIZOU A TEMPO")
     return False
@@ -1867,15 +1876,15 @@ def api_v8_termo():
 
         token = gerar_token_v8()
 
-        headers = {
+        headers_create = {
             "Authorization": f"Bearer {token}",
             "Content-Type": "application/json"
         }
 
         r = requests.post(
             "https://bff.v8sistema.com/private-consignment/consult",
-            json=data,
-            headers=headers,
+            data=json.dumps(data),   
+            headers=headers_create,
             timeout=20
         )
 
@@ -1886,26 +1895,36 @@ def api_v8_termo():
         if not termo_id:
             return jsonify({"erro": resp}), 400
 
+        url_aut = f"https://bff.v8sistema.com/private-consignment/consult/{termo_id}/authorize"
+
+        headers_aut = {
+            "Authorization": f"Bearer {token}",
+            "Accept": "*/*"
+        }
+
         r2 = requests.post(
-            f"https://bff.v8sistema.com/private-consignment/consult/{termo_id}/authorize",
-            headers=headers,
-            json={},
-            timeout=20
+            url_aut,
+            headers=headers_aut,
+            data=None
         )
 
-        print("📌 AUTORIZAÇÃO STATUS:", r2.status_code)
-        print("📌 BODY:", r2.text)
+        print("📌 AUTORIZAÇÃO RETORNO:", r2.status_code, r2.text)
 
-        finalizado = esperar_termo_finalizar(termo_id, headers)
+        finalizado = esperar_termo_finalizar(termo_id, headers_create)
+
+        if not finalizado:
+            return jsonify({
+                "erro": "Termo não finalizado — não é possível seguir.",
+                "id": termo_id
+            }), 400
 
         return jsonify({
             "id": termo_id,
-            "finalizado": finalizado
+            "finalizado": True
         })
 
     except Exception as e:
         return jsonify({"erro": str(e)})
-
 
 @app.route("/api/v8/configs", methods=["POST"])
 def api_v8_configs():
@@ -1920,7 +1939,6 @@ def api_v8_configs():
 
         headers = {
             "Authorization": f"Bearer {token}",
-            "Content-Type": "application/json"
         }
 
         r = requests.get(
@@ -1949,7 +1967,6 @@ def api_v8_simular():
 
         headers = {
             "Authorization": f"Bearer {token}",
-            "Content-Type": "application/json"
         }
 
         r = requests.post(
@@ -1975,7 +1992,6 @@ def api_v8_proposta():
 
         headers = {
             "Authorization": f"Bearer {token}",
-            "Content-Type": "application/json"
         }
 
         r = requests.post(
