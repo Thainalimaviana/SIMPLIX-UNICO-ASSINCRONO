@@ -1825,37 +1825,6 @@ def gerar_token_v8():
 
     return token
 
-def esperar_termo_finalizar(termo_id, headers):
-    url_consult = f"https://bff.v8sistema.com/private-consignment/consult/{termo_id}"
-
-    for tent in range(40):
-        try:
-            r = requests.get(url_consult, headers=headers, timeout=20)
-            data = r.json()
-
-            status = str(data.get("status", "")).upper()
-            print("🔄 STATUS TERMO:", status)
-
-            if status in ["SUCCESS", "CONSENT_APPROVED", "APPROVED", "FINISHED"]:
-                print("✅ TERMO FINALIZOU!")
-                return True
-
-            if status in ["CONSENT_PENDING", "WAITING", "PENDING"]:
-                time.sleep(0.5)
-                continue
-
-            if status == "" or status == "404":
-                print("⏳ TERMO AINDA NÃO DISPONÍVEL...")
-                time.sleep(0.5)
-                continue
-
-        except:
-            time.sleep(0.5)
-            continue
-
-    print("❌ TERMO NÃO FINALIZOU A TEMPO")
-    return False
-
 @app.route("/v8")
 def pagina_v8():
     if "user" not in session:
@@ -1875,10 +1844,6 @@ def api_v8_termo():
             "Content-Type": "application/json"
         }
 
-        headers_get = {
-            "Authorization": f"Bearer {token}"
-        }
-
         r = requests.post(
             "https://bff.v8sistema.com/private-consignment/consult",
             data=json.dumps(data),
@@ -1893,24 +1858,16 @@ def api_v8_termo():
         if not termo_id:
             return jsonify({"erro": resp}), 400
 
-
         url_aut = f"https://bff.v8sistema.com/private-consignment/consult/{termo_id}/authorize"
+        headers_aut = {"Authorization": f"Bearer {token}"}
 
-        r2 = requests.post(url_aut, headers=headers_get)
+        r2 = requests.post(url_aut, headers=headers_aut)
         print("📌 AUTORIZAÇÃO RETORNO:", r2.status_code, r2.text)
-
-        finalizado = esperar_termo_finalizar(termo_id, headers_get)
-
-        if not finalizado:
-            return jsonify({
-                "id": termo_id,
-                "finalizado": False,
-                "aviso": "O termo foi criado, mas ainda não finalizou. Clique em Consultar Situação em alguns segundos."
-            })
 
         return jsonify({
             "id": termo_id,
-            "finalizado": True
+            "autorizado": (r2.status_code == 200),
+            "mensagem": "Termo criado e autorizado com sucesso. Agora use /api/v8/consulta para buscar o resultado."
         })
 
     except Exception as e:
