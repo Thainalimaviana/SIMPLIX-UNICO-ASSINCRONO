@@ -1796,7 +1796,6 @@ def hub_simulacao():
 
 #*************************************************************************************************************
 #V8
-
 V8_TOKEN = None
 V8_TOKEN_EXPIRA = 0
 
@@ -1876,6 +1875,10 @@ def api_v8_termo():
             "Content-Type": "application/json"
         }
 
+        headers_get = {
+            "Authorization": f"Bearer {token}"
+        }
+
         r = requests.post(
             "https://bff.v8sistema.com/private-consignment/consult",
             data=json.dumps(data),
@@ -1890,16 +1893,13 @@ def api_v8_termo():
         if not termo_id:
             return jsonify({"erro": resp}), 400
 
-        url_aut = f"https://bff.v8sistema.com/private-consignment/consult/{termo_id}/authorize"
-        headers_aut = {
-            "Authorization": f"Bearer {token}",
-            "Accept": "*/*"
-        }
 
-        r2 = requests.post(url_aut, headers=headers_aut, data=None)
+        url_aut = f"https://bff.v8sistema.com/private-consignment/consult/{termo_id}/authorize"
+
+        r2 = requests.post(url_aut, headers=headers_get)
         print("📌 AUTORIZAÇÃO RETORNO:", r2.status_code, r2.text)
 
-        finalizado = esperar_termo_finalizar(termo_id, headers_create)
+        finalizado = esperar_termo_finalizar(termo_id, headers_get)
 
         if not finalizado:
             return jsonify({
@@ -1915,6 +1915,7 @@ def api_v8_termo():
 
     except Exception as e:
         return jsonify({"erro": str(e)})
+
 
 @app.route("/api/v8/consulta", methods=["POST"])
 def v8_consulta():
