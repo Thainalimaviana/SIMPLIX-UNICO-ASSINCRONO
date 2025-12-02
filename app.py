@@ -1801,11 +1801,6 @@ V8_TOKEN = None
 V8_TOKEN_EXPIRA = 0
 
 def gerar_token_v8():
-    global V8_TOKEN, V8_TOKEN_EXPIRA
-
-    if V8_TOKEN and time.time() < V8_TOKEN_EXPIRA:
-        return V8_TOKEN
-
     url = "https://auth.v8sistema.com/oauth/token"
 
     payload = {
@@ -1829,8 +1824,6 @@ def gerar_token_v8():
     if not token:
         raise Exception("Erro ao gerar token V8.")
 
-    V8_TOKEN = token
-    V8_TOKEN_EXPIRA = time.time() + 3500
     return token
 
 def esperar_termo_finalizar(termo_id, headers):
@@ -1928,8 +1921,10 @@ def v8_consulta():
     data = request.json
     cpf = data.get("cpf")
 
+    token = gerar_token_v8()
+
     headers = {
-        "Authorization": f"Bearer {V8_TOKEN}",
+        "Authorization": f"Bearer {token}",
         "Content-Type": "application/json"
     }
 
@@ -1952,7 +1947,6 @@ def v8_consulta():
         return jsonify(r.json())
     except:
         return jsonify({"erro": "resposta inesperada", "raw": r.text})
-
 
 @app.route("/api/v8/configs", methods=["GET"])
 def api_v8_configs():
