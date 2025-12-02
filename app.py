@@ -6,6 +6,7 @@ import time
 import json
 import sqlite3
 import threading
+import urllib.parse
 import os, re
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -1818,7 +1819,9 @@ def gerar_token_v8():
 
     headers = {"Content-Type": "application/x-www-form-urlencoded"}
 
-    r = requests.post(url, data=payload, headers=headers, timeout=20)
+    encoded_payload = urllib.parse.urlencode(payload)
+
+    r = requests.post(url, data=encoded_payload, headers=headers, timeout=20)
     data = r.json()
     print("🔑 TOKEN V8:", data)
 
@@ -1828,7 +1831,6 @@ def gerar_token_v8():
 
     V8_TOKEN = token
     V8_TOKEN_EXPIRA = time.time() + 3500
-
     return token
 
 def esperar_termo_finalizar(termo_id, headers):

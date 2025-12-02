@@ -233,7 +233,7 @@
 
                 <div class="col">
                     <label>Data de Nascimento</label>
-                    <input type="date" id="nasc">
+                    <input type="date" id="nasc" onpaste="formatarData(event)">
                 </div>
             </div>
 
@@ -691,6 +691,21 @@
                 .replace(/(\d{5})(\d)/, "$1-$2");
         }
 
+        function formatarData(e) {
+            e.preventDefault();
+            let texto = (e.clipboardData || window.clipboardData).getData("text");
+
+            texto = texto.replace(/[^0-9]/g, "");
+
+            if (texto.length === 8) {
+                const dia = texto.slice(0, 2);
+                const mes = texto.slice(2, 4);
+                const ano = texto.slice(4, 8);
+
+                const iso = `${ano}-${mes}-${dia}`;
+                document.getElementById("nasc").value = iso;
+            }
+        }
     </script>
 
 </body>
