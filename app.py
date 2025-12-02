@@ -1883,7 +1883,7 @@ def api_v8_termo():
 
         r = requests.post(
             "https://bff.v8sistema.com/private-consignment/consult",
-            data=json.dumps(data),   
+            data=json.dumps(data),
             headers=headers_create,
             timeout=20
         )
@@ -1896,27 +1896,22 @@ def api_v8_termo():
             return jsonify({"erro": resp}), 400
 
         url_aut = f"https://bff.v8sistema.com/private-consignment/consult/{termo_id}/authorize"
-
         headers_aut = {
             "Authorization": f"Bearer {token}",
             "Accept": "*/*"
         }
 
-        r2 = requests.post(
-            url_aut,
-            headers=headers_aut,
-            data=None
-        )
-
+        r2 = requests.post(url_aut, headers=headers_aut, data=None)
         print("📌 AUTORIZAÇÃO RETORNO:", r2.status_code, r2.text)
 
         finalizado = esperar_termo_finalizar(termo_id, headers_create)
 
         if not finalizado:
             return jsonify({
-                "erro": "Termo não finalizado — não é possível seguir.",
-                "id": termo_id
-            }), 400
+                "id": termo_id,
+                "finalizado": False,
+                "aviso": "O termo foi criado, mas ainda não finalizou. Clique em Consultar Situação em alguns segundos."
+            })
 
         return jsonify({
             "id": termo_id,
@@ -1926,15 +1921,40 @@ def api_v8_termo():
     except Exception as e:
         return jsonify({"erro": str(e)})
 
-@app.route("/api/v8/configs", methods=["POST"])
+@app.route("/api/v8/consulta", methods=["POST"])
+def v8_consulta():
+    data = request.json
+    cpf = data.get("cpf")
+
+    headers = {
+        "Authorization": f"Bearer {V8_TOKEN}",
+        "Content-Type": "application/json"
+    }
+
+    params = {
+        "startDate": datetime.now().strftime("%Y-%m-%dT00:00:00Z"),
+        "endDate": datetime.now().strftime("%Y-%m-%dT23:59:59Z"),
+        "limit": 50,
+        "page": 1,
+        "provider": "QI",
+        "search": cpf,
+        "status": "SUCCESS"
+    }
+
+    url = "https://bff.v8sistema.com/private-consignment/consult"
+    r = requests.get(url, headers=headers, params=params)
+
+    print("📌 CONSULTA MARGEM:", r.text)
+
+    try:
+        return jsonify(r.json())
+    except:
+        return jsonify({"erro": "resposta inesperada", "raw": r.text})
+
+
+@app.route("/api/v8/configs", methods=["GET"])
 def api_v8_configs():
     try:
-        data = request.get_json()
-        consult_id = data.get("consult_id")
-
-        if not consult_id:
-            return jsonify({"erro": "consult_id obrigatório"}), 400
-
         token = gerar_token_v8()
 
         headers = {
@@ -1950,10 +1970,7 @@ def api_v8_configs():
         resp = r.json()
         print("📌 CONFIGS V8:", resp)
 
-        return jsonify({
-            "consult_id": consult_id,
-            "configs": resp.get("configs", [])
-        })
+        return jsonify(resp)
 
     except Exception as e:
         return jsonify({"erro": str(e)})
@@ -2008,7 +2025,6 @@ def api_v8_proposta():
 
     except Exception as e:
         return jsonify({"erro": str(e)})
-
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=8600)

@@ -109,25 +109,12 @@
             font-size: 16px;
         }
 
-        .config-card {
-            background: linear-gradient(40deg, var(--gradiente-inicio), var(--gradiente-fim));
-            border: 2px solid #00d47f;
-            padding: 15px;
+        .margem-card {
+            background: rgba(0, 255, 88, 0.15);
+            border: 2px solid #00ff88;
+            padding: 18px;
             border-radius: 12px;
-            margin-bottom: 15px;
-            transition: 0.2s;
-        }
-
-        .config-card:hover {
-            transform: scale(1.02);
-            background: linear-gradient(40deg, var(--gradiente-inicio), var(--gradiente-fim));
-            color: var(--cor-texto);
-        }
-
-        .config-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--cor-texto);
+            margin-top: 15px;
         }
 
         .simulacao-item {
@@ -139,9 +126,56 @@
             border-bottom: none;
         }
 
+        .config-card {
+            background: linear-gradient(40deg, var(--gradiente-inicio), var(--gradiente-fim));
+            border: 2px solid #00d47f;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            transition: 0.25s ease;
+            cursor: pointer;
+        }
+
+        .config-card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 15px rgba(0, 255, 153, 0.3);
+        }
+
+        .config-card.selected {
+            transform: scale(1.05);
+            box-shadow: 0 0 25px rgba(0, 255, 153, 0.55);
+            border-color: #00ff99;
+        }
+
+        select {
+            background: var(--bg-input);
+            color: var(--cor-texto);
+        }
+
+        select::-ms-expand {
+            display: none;
+        }
+
         select option {
-            background-color: #062408 !important;
-            color: #ffffff !important;
+            background: var(--bg-input);
+            color: var(--cor-texto);
+        }
+
+        select option:hover {
+            background: #00ff88 !important;
+            color: #000 !important;
+        }
+
+        @-moz-document url-prefix() {
+            select {
+                background-color: var(--bg-input);
+                color: var(--cor-texto);
+            }
+
+            select option {
+                background-color: var(--bg-input) !important;
+                color: var(--cor-texto) !important;
+            }
         }
     </style>
 </head>
@@ -188,24 +222,24 @@
 
             <div class="linha">
                 <div class="col">
-                    <label>CPF <span style="color:#ff4d4d;">(obrigatório)</span></label>
-                    <input id="cpf" placeholder="12345678900">
+                    <label>CPF</label>
+                    <input id="cpf" placeholder="12345678900" oninput="this.value = formatarCPF(this.value)">
                 </div>
 
                 <div class="col">
-                    <label>Nome Completo <span style="color:#ff4d4d;">(obrigatório)</span></label>
+                    <label>Nome Completo</label>
                     <input id="nome">
                 </div>
 
                 <div class="col">
-                    <label>Data de Nascimento <span style="color:#ff4d4d;">(obrigatório)</span></label>
+                    <label>Data de Nascimento</label>
                     <input type="date" id="nasc">
                 </div>
             </div>
 
             <div class="linha">
                 <div class="col">
-                    <label>Sexo <span style="color:#ff4d4d;">(obrigatório)</span></label>
+                    <label>Sexo</label>
                     <select id="sexo">
                         <option value="male">Masculino</option>
                         <option value="female">Feminino</option>
@@ -213,13 +247,13 @@
                 </div>
 
                 <div class="col">
-                    <label>Email <span style="color:#1f45f1f3;">(aleatório)</span></label>
+                    <label>Email</label>
                     <input id="email">
                 </div>
 
                 <div class="col">
-                    <label>Telefone (DDD + Número) <span style="color:#1f45f1f3;">(aleatório)</span></label>
-                    <input id="telefone" placeholder="11987654321">
+                    <label>Telefone</label>
+                    <input id="telefone" placeholder="11987654321" oninput="this.value = formatarTelefone(this.value)">
                 </div>
             </div>
 
@@ -227,7 +261,13 @@
                 <i class="fa fa-file-signature"></i> Gerar Termo
             </button>
 
+            <button onclick="consultarUsuario()" id="btnConsultar" class="btn btn-acao"
+                style="display:none; margin-left:10px;">
+                <i class="fa fa-search"></i> Consultar Situação / Margem
+            </button>
+
             <div id="resultado-termo"></div>
+            <div id="resultado-consulta"></div>
         </div>
 
         <div class="card" id="card-configs" style="display:none;">
@@ -240,7 +280,7 @@
 
             <div class="linha">
                 <div class="col">
-                    <label>Valor Parcela (R$)</label>
+                    <label>Valor da Parcela (R$)</label>
                     <input id="parcela">
                 </div>
 
@@ -250,14 +290,13 @@
                 </div>
             </div>
 
-            <button onclick="simular()" class="btn btn-acao" id="btnSimular">
+            <button onclick="simular()" id="btnSimular" class="btn btn-acao">
                 <i class="fa fa-calculator"></i> Simular
             </button>
 
             <div id="resultado-simulacao"></div>
         </div>
 
-        <!--  AGORA O CARD DA PROPOSTA ESTÁ DENTRO DO .content  -->
         <div class="card" id="card-proposta" style="display:none;">
             <h2>Finalizar Proposta</h2>
 
@@ -288,14 +327,14 @@
                 </div>
 
                 <div class="col">
-                    <label>Emissor do Documento</label>
+                    <label>Órgão Expedidor</label>
                     <input id="document_issuer" placeholder="SSP-SP">
                 </div>
             </div>
 
             <div class="linha">
                 <div class="col">
-                    <label>Tipo Documento</label>
+                    <label>Tipo Doc.</label>
                     <select id="document_type">
                         <option value="rg">RG</option>
                         <option value="cnh">CNH</option>
@@ -303,7 +342,7 @@
                 </div>
 
                 <div class="col">
-                    <label>Número Documento</label>
+                    <label>Número Doc.</label>
                     <input id="document_number">
                 </div>
             </div>
@@ -344,8 +383,8 @@
 
             <div class="linha">
                 <div class="col">
-                    <label>Chave PIX (CPF)</label>
-                    <input id="pix_key" placeholder="Somente números">
+                    <label>PIX (CPF)</label>
+                    <input id="pix_key">
                 </div>
             </div>
 
@@ -359,99 +398,13 @@
     </div>
 
     <script>
-        const cpfInput = document.getElementById("cpf");
-
-        cpfInput.addEventListener("input", e => {
-            let v = e.target.value.replace(/\D/g, "");
-            v = v.slice(0, 11);
-            e.target.value = v;
-        });
-
-        cpfInput.addEventListener("paste", e => {
-            e.preventDefault();
-            let txt = (e.clipboardData || window.clipboardData).getData("text");
-            txt = txt.replace(/\D/g, "").slice(0, 11);
-            cpfInput.value = txt;
-        });
-
-        const telInput = document.getElementById("telefone");
-
-        telInput.addEventListener("input", e => {
-            let v = e.target.value.replace(/\D/g, "");
-            v = v.slice(0, 11);
-            e.target.value = v;
-        });
-
-        telInput.addEventListener("paste", e => {
-            e.preventDefault();
-            let txt = (e.clipboardData || window.clipboardData).getData("text");
-            txt = txt.replace(/\D/g, "").slice(0, 11);
-            telInput.value = txt;
-        });
-
-        document.getElementById("nasc").addEventListener("paste", e => {
-            e.preventDefault();
-            let txt = (e.clipboardData || window.clipboardData).getData("text");
-
-            txt = txt.replace(/\D/g, "");
-
-            if (txt.length === 8) {
-                const dia = txt.slice(0, 2);
-                const mes = txt.slice(2, 4);
-                const ano = txt.slice(4, 8);
-                e.target.value = `${ano}-${mes}-${dia}`;
-                return;
-            }
-
-            const m = (e.clipboardData || window.clipboardData)
-                .getData("text")
-                .match(/(\d{1,2})[\/\-\.\s]?(\d{1,2})[\/\-\.\s]?(\d{4})/);
-
-            if (m) {
-                const dia = m[1].padStart(2, "0");
-                const mes = m[2].padStart(2, "0");
-                const ano = m[3];
-                e.target.value = `${ano}-${mes}-${dia}`;
-            }
-        });
-
-        document.getElementById("postal_code").addEventListener("input", async function () {
-            let cep = this.value.replace(/\D/g, "");
-
-            if (cep.length === 8) {
-                const req = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-                const data = await req.json();
-
-                if (!data.erro) {
-                    document.getElementById("street").value = data.logradouro || "";
-                    document.getElementById("neighborhood").value = data.bairro || "";
-                    document.getElementById("city").value = data.localidade || "";
-                    document.getElementById("state").value = data.uf || "";
-                }
-            }
-        });
-
         async function gerarTermo() {
-
-            const cpf = document.getElementById("cpf").value.replace(/\D/g, "");
-            const tel = document.getElementById("telefone").value.replace(/\D/g, "");
-
-            if (cpf.length !== 11) {
-                alert("CPF deve conter 11 números.");
-                return;
-            }
-
-            if (tel.length < 10 || tel.length > 11) {
-                alert("Telefone deve conter entre 10 e 11 números.");
-                return;
-            }
-
             const btn = document.getElementById("btnGerar");
             btn.innerHTML = `<span class="spinner"></span> Gerando...`;
             btn.classList.add("btn-loading");
 
-            const area = tel.slice(0, 2);
-            const num = tel.slice(2);
+            const cpf = document.getElementById("cpf").value.replace(/\D/g, "");
+            const tel = document.getElementById("telefone").value.replace(/\D/g, "");
 
             const payload = {
                 borrowerDocumentNumber: cpf,
@@ -460,9 +413,9 @@
                 signerName: document.getElementById("nome").value,
                 signerEmail: document.getElementById("email").value,
                 signerPhone: {
-                    phoneNumber: num,
+                    phoneNumber: tel.slice(2),
                     countryCode: "55",
-                    areaCode: area
+                    areaCode: tel.slice(0, 2)
                 },
                 provider: "QI"
             };
@@ -480,39 +433,100 @@
 
             if (!data.id) {
                 document.getElementById("resultado-termo").innerHTML =
-                    `<div class='resultado'>Erro: ${JSON.stringify(data.erro)}</div>`;
+                    `<div class="resultado">Erro: ${JSON.stringify(data)}</div>`;
                 return;
             }
 
-            document.getElementById("resultado-termo").innerHTML =
-                `<div class='resultado'>Termo ID: <b>${data.id}</b> (autorizado automaticamente)</div>`;
+            window.v8ConsultID = data.id;
 
-            carregarConfigs(data.id);
+            document.getElementById("resultado-termo").innerHTML =
+                `<div class="resultado">Termo criado: <b>${data.id}</b></div>`;
+
+            document.getElementById("btnConsultar").style.display = "inline-block";
         }
 
-        async function carregarConfigs(consultId) {
-            const req = await fetch("/api/v8/configs", {
+        async function consultarUsuario() {
+            const btn = document.getElementById("btnConsultar");
+            btn.innerHTML = `<span class="spinner"></span> Consultando...`;
+            btn.classList.add("btn-loading");
+
+            const cpf = document.getElementById("cpf").value.replace(/\D/g, "");
+
+            const req = await fetch("/api/v8/consulta", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ consult_id: consultId })
+                body: JSON.stringify({ cpf })
             });
 
+            const resposta = await req.json();
+
+            btn.innerHTML = `<i class="fa fa-search"></i> Consultar Situação / Margem`;
+            btn.classList.remove("btn-loading");
+
+            if (resposta.status === 400 || resposta.detail) {
+                document.getElementById("resultado-consulta").innerHTML =
+                    `<div class="resultado">Situação ainda não disponível<br>
+             Motivo: ${resposta.detail || "aguardando finalização"}</div>`;
+                return;
+            }
+
+            if (!resposta.data || resposta.data.length === 0) {
+                document.getElementById("resultado-consulta").innerHTML =
+                    `<div class="resultado">Nenhum registro encontrado.</div>`;
+                return;
+            }
+
+            const info = resposta.data[0];
+
+            window.v8ConsultID = info.id;
+
+            const margem = Number(info.availableMarginValue || 0)
+                .toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+            const description = info.description ? info.description : "Nenhuma descrição";
+
+            document.getElementById("resultado-consulta").innerHTML = `
+                <div class="margem-card">
+                <b>Status:</b> ${info.status}<br>
+                <b>Margem Disponível:</b> ${margem}<br>
+                <b>Descrição:</b> ${description}<br>
+            </div>
+        `;
+
+            await carregarConfigs();
+
+        }
+
+        async function carregarConfigs() {
+
+            const btn = document.getElementById("btnConsultar");
+            btn.innerHTML = `<span class="spinner"></span> Carregando Produtos...`;
+            btn.disabled = true;
+
+            const req = await fetch("/api/v8/configs");
             const data = await req.json();
 
-            window.v8ConsultID = data.consult_id;
+            btn.innerHTML = `<i class="fa fa-search"></i> Consultar Situação / Margem`;
+            btn.disabled = false;
+
+            if (!data.configs) {
+                document.getElementById("lista-configs").innerHTML =
+                    `<div class="resultado">Nenhum produto encontrado.</div>`;
+                return;
+            }
 
             let html = "";
+            data.configs.forEach(cfg => {
 
-            data.configs.forEach(c => {
-                const taxa = (Number(c.monthly_interest_rate) * 100).toFixed(2).replace('.', ',');
+                window.v8Config = cfg;
 
                 html += `
-                <div class="config-card" onclick='selecionarConfig(${JSON.stringify(c)})'>
-                    <div class="config-title">${c.slug}</div>
-                    <div>Taxa mensal: <b>${taxa}%</b></div>
-                    <div>Parcelas disponíveis: <b>${c.number_of_installments.join(", ")}</b></div>
-                </div>
-            `;
+        <div class="config-card" onclick='selecionarConfig(${JSON.stringify(cfg)})'>
+            <div class="config-title">${cfg.slug}</div>
+            <div>Taxa Mensal: <b>${(Number(cfg.monthly_interest_rate) * 100).toFixed(2).replace('.', ',')}%</b></div>
+            <div>Parcelas: <b>${cfg.number_of_installments.join(", ")}</b></div>
+        </div>
+        `;
             });
 
             document.getElementById("lista-configs").innerHTML = html;
@@ -521,113 +535,96 @@
 
         function selecionarConfig(cfg) {
             window.v8Config = cfg;
+
+            document.querySelectorAll(".config-card").forEach(c => {
+                c.classList.remove("selected");
+            });
+
+            event.currentTarget.classList.add("selected");
+
             document.getElementById("card-simulacao").style.display = "block";
-            document.getElementById("numParcelas").value = cfg.number_of_installments[0];
+
+            console.log("Config selecionada:", cfg.slug);
         }
 
-        async function simular() {
 
-            const btn = document.querySelector("#btnSimular");
+        async function simular() {
+            const btn = document.getElementById("btnSimular");
             btn.innerHTML = `<span class="spinner"></span> Simulando...`;
-            btn.disabled = true;
+            btn.classList.add("btn-loading");
 
             const payload = {
                 consult_id: window.v8ConsultID,
                 config_id: window.v8Config.id,
-                installment_face_value: Number(document.getElementById("parcela").value),
+                installment_face_value: Number(
+                    document.getElementById("parcela").value.replace(",", ".")),
                 number_of_installments: Number(document.getElementById("numParcelas").value),
                 provider: "QI"
             };
 
-            async function tentarSimulacao(tentativa = 1) {
+            const req = await fetch("/api/v8/simular", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
 
-                const req = await fetch("/api/v8/simular", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload)
-                });
+            const d = await req.json();
 
-                const d = await req.json();
+            btn.innerHTML = `<i class="fa fa-calculator"></i> Simular`;
+            btn.classList.remove("btn-loading");
 
-                if (d.type === "simulation_consult_not_finished") {
-
-                    if (tentativa >= 25) {
-                        document.getElementById("resultado-simulacao").innerHTML =
-                            `<div class='resultado'>❌ Não finalizou a tempo. Tente novamente.</div>`;
-                        btn.innerHTML = `<i class="fa fa-calculator"></i> Simular`;
-                        btn.disabled = false;
-                        return;
-                    }
-
-                    await new Promise(res => setTimeout(res, 3000));
-                    return tentarSimulacao(tentativa + 1);
-                }
-
-                const fmt = v => Number(v).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-                const pct = v => (Number(v) * 100).toFixed(2).replace('.', ',') + "%";
-
-                let html = `
-                <div class="resultado">
-                    <div class="simulacao-item"><b>Parcela:</b> ${fmt(d.installment_value)}</div>
-                    <div class="simulacao-item"><b>Nº Parcelas:</b> ${d.number_of_installments}</div>
-                    <div class="simulacao-item"><b>Total Financiado:</b> ${fmt(d.operation_amount)}</div>
-                    <div class="simulacao-item"><b>Liberado:</b> ${fmt(d.disbursement_amount)}</div>
-                    <div class="simulacao-item"><b>Valor de Emissão:</b> ${fmt(d.issue_amount)}</div>
-                    <div class="simulacao-item"><b>IOF:</b> ${fmt(d.iof_amount)}</div>
-                    ${d.insurance_amount ? `<div class="simulacao-item"><b>Seguro:</b> ${fmt(d.insurance_amount)}</div>` : ""}
-                    <div class="simulacao-item"><b>Taxa Mensal:</b> ${pct(d.monthly_interest_rate)}</div>
-                    <div class="simulacao-item"><b>1ª Parcela:</b> ${d.first_installment_date.split("-").reverse().join("/")}</div>
-                    <div class="simulacao-item"><b>Produto:</b> ${d.simulation_config_slug}</div>
-                </div>`;
-
-                mostrarCardProposta();
-                window.v8SimulationID = d.id_simulation;
-
-                btn.innerHTML = `<i class="fa fa-calculator"></i> Simular`;
-                btn.disabled = false;
-
-                document.getElementById("resultado-simulacao").innerHTML = html;
+            if (d.type === "simulation_consult_not_finished") {
+                alert("Consulta ainda não finalizada. Clique novamente em Consultar Situação.");
+                return;
             }
 
-            tentarSimulacao();
-        }
+            window.v8SimulationID = d.id_simulation;
 
-        function mostrarCardProposta() {
+            const fmt = v => Number(v).toLocaleString("pt-BR", {
+                style: "currency",
+                currency: "BRL"
+            });
+
+            document.getElementById("resultado-simulacao").innerHTML = `
+        <div class="resultado">
+            <div class="simulacao-item"><b>Parcela:</b> ${fmt(d.installment_value)}</div>
+            <div class="simulacao-item"><b>Total:</b> ${fmt(d.operation_amount)}</div>
+            <div class="simulacao-item"><b>Liberado:</b> ${fmt(d.disbursement_amount)}</div>
+        </div>
+    `;
+
             document.getElementById("card-proposta").style.display = "block";
         }
 
         async function criarProposta() {
-
             const btn = document.getElementById("btnProposta");
-            btn.innerHTML = `<span class="spinner"></span> Enviando...`;
+
+            btn.innerHTML = `<span class="spinner"></span> Criando...`;
+            btn.classList.add("btn-loading");
             btn.disabled = true;
 
             const cpf = document.getElementById("cpf").value.replace(/\D/g, "");
             const tel = document.getElementById("telefone").value.replace(/\D/g, "");
-            const area = tel.slice(0, 2);
-            const num = tel.slice(2);
 
             const payload = {
                 borrower: {
                     name: document.getElementById("nome").value,
                     email: document.getElementById("email").value,
                     phone: {
-                        area_code: area,
+                        area_code: tel.slice(0, 2),
                         country_code: "55",
-                        number: num
+                        number: tel.slice(2)
                     },
                     political_exposition: false,
-
                     address: {
                         city: document.getElementById("city").value,
-                        state: document.getElementById("state").value.toUpperCase(),
+                        state: document.getElementById("state").value,
                         number: document.getElementById("number").value,
                         street: document.getElementById("street").value,
                         complement: "",
                         postal_code: document.getElementById("postal_code").value,
                         neighborhood: document.getElementById("neighborhood").value
                     },
-
                     birth_date: document.getElementById("nasc").value,
                     mother_name: document.getElementById("mother_name").value,
                     nationality: document.getElementById("nationality").value,
@@ -639,14 +636,12 @@
                     document_identification_date: document.getElementById("nasc").value,
                     document_identification_type: document.getElementById("document_type").value,
                     document_identification_number: document.getElementById("document_number").value,
-
                     bank: {
                         transfer_method: "pix",
                         pix_key: document.getElementById("pix_key").value,
                         pix_key_type: "cpf"
                     }
                 },
-
                 simulation_id: window.v8SimulationID,
                 provider: "QI"
             };
@@ -660,38 +655,43 @@
             const data = await req.json();
 
             btn.innerHTML = `<i class="fa fa-check-circle"></i> Criar Proposta`;
+            btn.classList.remove("btn-loading");
             btn.disabled = false;
 
             if (data.formalization_url) {
-                document.getElementById("resultado-proposta").innerHTML =
-                    `<div class='resultado' style="background:#003f1f;border:2px solid #00ff88">
-            <b>Proposta criada com sucesso!</b><br>
-            <a href="${data.formalization_url}" target="_blank" style="color:#00ff88;font-weight:bold;">
-                👉 Abrir Formalização
-            </a>
-        </div>`;
-                return;
+                document.getElementById("resultado-proposta").innerHTML = `
+            <div class="resultado">
+                <b>Proposta criada!</b><br>
+                <a href="${data.formalization_url}" target="_blank">Abrir Formalização</a>
+            </div>
+        `;
+            } else {
+                document.getElementById("resultado-proposta").innerHTML = `
+            <div class="resultado">Erro: ${JSON.stringify(data)}</div>
+        `;
             }
-
-            let mensagem = "";
-
-            if (data.detail) mensagem = data.detail;
-
-            else if (data.title) mensagem = data.title;
-
-            else mensagem = "Não foi possível criar a proposta.";
-
-            mensagem = mensagem
-                .replace("Proposta Não Elegível (0000).", "Proposta Não Elegível.")
-                .replace("Fora da Política de Crédito", "Fora da Política de Crédito");
-
-            document.getElementById("resultado-proposta").innerHTML =
-                `<div class='resultado' style="background:#3b0000;border:2px solid #ff4d4d;color:white;">
-        ❌ <b>${mensagem}</b>
-    </div>`;
         }
-    </script>
 
+        function limparNumero(valor) {
+            return valor.replace(/\D/g, "");
+        }
+
+        function formatarCPF(cpf) {
+            cpf = limparNumero(cpf).slice(0, 11);
+            return cpf
+                .replace(/(\d{3})(\d)/, "$1.$2")
+                .replace(/(\d{3})(\d)/, "$1.$2")
+                .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+        }
+
+        function formatarTelefone(tel) {
+            tel = limparNumero(tel).slice(0, 11);
+            return tel
+                .replace(/(\d{2})(\d)/, "($1) $2")
+                .replace(/(\d{5})(\d)/, "$1-$2");
+        }
+
+    </script>
 
 </body>
 
