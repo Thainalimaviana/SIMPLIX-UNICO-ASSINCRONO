@@ -581,6 +581,17 @@
             btn.innerHTML = `<i class="fa fa-calculator"></i> Simular`;
             btn.classList.remove("btn-loading");
 
+            if (!d.id_simulation) {
+                document.getElementById("resultado-simulacao").innerHTML = `
+                    <div class="resultado" style="border-color:red;background:rgba(255,0,0,0.15);">
+                        <b>Erro na simulação:</b><br>
+                        ${d.title || "Erro desconhecido"}<br>
+                        <small>${d.detail || ""}</small>
+                    </div>
+                `;
+                return;
+            }
+
             if (d.type === "simulation_consult_not_finished") {
                 alert("Consulta ainda não finalizada. Clique novamente em Consultar Situação.");
                 return;
@@ -668,16 +679,32 @@
 
             if (data.formalization_url) {
                 document.getElementById("resultado-proposta").innerHTML = `
-            <div class="resultado">
-                <b>Proposta criada!</b><br>
-                <a href="${data.formalization_url}" target="_blank">Abrir Formalização</a>
-            </div>
-        `;
-            } else {
-                document.getElementById("resultado-proposta").innerHTML = `
-            <div class="resultado">Erro: ${JSON.stringify(data)}</div>
-        `;
+        <div class="resultado">
+            <b>Proposta criada!</b><br>
+            <a href="${data.formalization_url}" target="_blank">Abrir Formalização</a>
+        </div>
+    `;
             }
+            else if (data.detail && data.detail.toLowerCase().includes("timeout")) {
+
+                document.getElementById("resultado-proposta").innerHTML = `
+        <div class="resultado">
+            A proposta está sendo processada pelo sistema.<br>
+            Tentando novamente automaticamente...
+        </div>
+    `;
+                setTimeout(() => {
+                    criarProposta();
+                }, 5000);
+            }
+            else {
+                document.getElementById("resultado-proposta").innerHTML = `
+        <div class="resultado" style="border-color:red;background:rgba(255,0,0,0.15);">
+            <b>Erro:</b> ${data.detail || JSON.stringify(data)}
+        </div>
+    `;
+            }
+
         }
 
         function limparNumero(valor) {
@@ -714,7 +741,7 @@
                 document.getElementById("nasc").value = iso;
             }
         }
-        
+
     </script>
 
 </body>
