@@ -447,8 +447,16 @@
 
         async function consultarUsuario() {
             const btn = document.getElementById("btnConsultar");
-            btn.innerHTML = `<span class="spinner"></span> Consultando...`;
+            const divResultado = document.getElementById("resultado-consulta");
+
+            btn.innerHTML = `<span class="spinner"></span> Aguardando processamento...`;
             btn.classList.add("btn-loading");
+            btn.disabled = true;
+
+            divResultado.innerHTML =
+                `<div class="resultado">Aguardando processamento do termo...</div>`;
+
+            await new Promise(resolve => setTimeout(resolve, 5000));
 
             const cpf = document.getElementById("cpf").value.replace(/\D/g, "");
 
@@ -462,17 +470,18 @@
 
             btn.innerHTML = `<i class="fa fa-search"></i> Consultar Situação / Margem`;
             btn.classList.remove("btn-loading");
+            btn.disabled = false;
 
-            if (resposta.status === 400 || resposta.detail) {
-                document.getElementById("resultado-consulta").innerHTML =
-                    `<div class="resultado">Situação ainda não disponível<br>
-             Motivo: ${resposta.detail || "aguardando finalização"}</div>`;
+            if (!resposta.data || resposta.data.length === 0) {
+                divResultado.innerHTML =
+                    `<div class="resultado">Cliente recusado, verificar no sistema V8.</div>`;
                 return;
             }
 
-            if (!resposta.data || resposta.data.length === 0) {
-                document.getElementById("resultado-consulta").innerHTML =
-                    `<div class="resultado">Nenhum registro encontrado.</div>`;
+            if (resposta.status === 400 || resposta.detail) {
+                divResultado.innerHTML =
+                    `<div class="resultado">Situação ainda não disponível<br>
+        Motivo: ${resposta.detail || "aguardando finalização"}</div>`;
                 return;
             }
 
@@ -485,16 +494,15 @@
 
             const description = info.description ? info.description : "Nenhuma descrição";
 
-            document.getElementById("resultado-consulta").innerHTML = `
-                <div class="margem-card">
-                <b>Status:</b> ${info.status}<br>
-                <b>Margem Disponível:</b> ${margem}<br>
-                <b>Descrição:</b> ${description}<br>
-            </div>
-        `;
+            divResultado.innerHTML = `
+        <div class="margem-card">
+            <b>Status:</b> ${info.status}<br>
+            <b>Margem Disponível:</b> ${margem}<br>
+            <b>Descrição:</b> ${description}<br>
+        </div>
+    `;
 
             await carregarConfigs();
-
         }
 
         async function carregarConfigs() {
@@ -706,6 +714,7 @@
                 document.getElementById("nasc").value = iso;
             }
         }
+        
     </script>
 
 </body>
