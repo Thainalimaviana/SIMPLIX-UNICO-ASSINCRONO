@@ -200,6 +200,8 @@
                 <li><a href="/c6bank">▸ C6 BANK</a></li>
                 <li><a href="/hub">▸ HUB Crédito</a></li>
                 <li><a class="active" href="/v8">▸ V8 Sistema</a></li>
+                <li><a href="/facta">▸ FACTA CLT</a></li>
+
                 {% if session['role'] == 'admin' %}
                 <li><a href="/usuarios">▸ Usuários</a></li>
                 <li><a href="/register">▸ Criar Usuário</a></li>
@@ -222,17 +224,17 @@
 
             <div class="linha">
                 <div class="col">
-                    <label>CPF</label>
+                    <label>CPF <span style="color:#ff4d4d;">(obrigatório)</span></label>
                     <input id="cpf" placeholder="12345678900" oninput="this.value = formatarCPF(this.value)">
                 </div>
 
                 <div class="col">
-                    <label>Nome Completo</label>
+                    <label>Nome Completo <span style="color:#ff4d4d;">(obrigatório)</span></label>
                     <input id="nome">
                 </div>
 
                 <div class="col">
-                    <label>Data de Nascimento</label>
+                    <label>Data de Nascimento <span style="color:#ff4d4d;">(obrigatório)</span></label>
                     <input type="date" id="nasc" onpaste="formatarData(event)">
                 </div>
             </div>
@@ -247,12 +249,12 @@
                 </div>
 
                 <div class="col">
-                    <label>Email</label>
+                    <label>Email <span style="color:#0027d3f3;">(aleatório)</span></label>
                     <input id="email">
                 </div>
 
                 <div class="col">
-                    <label>Telefone</label>
+                    <label>Telefone <span style="color:#0027d3f3;">(aleatório)</span></label>
                     <input id="telefone" placeholder="11987654321" oninput="this.value = formatarTelefone(this.value)">
                 </div>
             </div>
@@ -322,19 +324,19 @@
 
             <div class="linha">
                 <div class="col">
-                    <label>Nome da Mãe</label>
+                    <label>Nome da Mãe <span style="color:#ff4d4d;">(obrigatório)</span></label>
                     <input id="mother_name">
                 </div>
 
                 <div class="col">
-                    <label>Órgão Expedidor</label>
+                    <label>Órgão Expedidor <span style="color:#ff4d4d;">(obrigatório)</span></label>
                     <input id="document_issuer" placeholder="SSP-SP">
                 </div>
             </div>
 
             <div class="linha">
                 <div class="col">
-                    <label>Tipo Doc.</label>
+                    <label>Tipo Doc. <span style="color:#0027d3f3;">(aleatório)</span></label>
                     <select id="document_type">
                         <option value="rg">RG</option>
                         <option value="cnh">CNH</option>
@@ -349,34 +351,34 @@
 
             <div class="linha">
                 <div class="col">
-                    <label>CEP</label>
+                    <label>CEP <span style="color:#0027d3f3;">(aleatório)</span></label>
                     <input id="postal_code" maxlength="8">
                 </div>
 
                 <div class="col">
-                    <label>Cidade</label>
+                    <label>Cidade <span style="color:#0027d3f3;">(aleatório)</span></label>
                     <input id="city">
                 </div>
 
                 <div class="col">
-                    <label>UF</label>
+                    <label>UF <span style="color:#ff4d4d;">(obrigatório)</span></label>
                     <input id="state" maxlength="2">
                 </div>
             </div>
 
             <div class="linha">
                 <div class="col">
-                    <label>Bairro</label>
+                    <label>Bairro <span style="color:#0027d3f3;">(aleatório)</span></label>
                     <input id="neighborhood">
                 </div>
 
                 <div class="col">
-                    <label>Rua</label>
+                    <label>Rua <span style="color:#0027d3f3;">(aleatório)</span></label>
                     <input id="street">
                 </div>
 
                 <div class="col">
-                    <label>Número</label>
+                    <label>Número <span style="color:#0027d3f3;">(aleatório)</span></label>
                     <input id="number">
                 </div>
             </div>

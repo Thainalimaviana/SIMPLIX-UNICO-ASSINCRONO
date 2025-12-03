@@ -1980,5 +1980,114 @@ def api_v8_proposta():
     except Exception as e:
         return jsonify({"erro": str(e)})
 
+#*************************************************************************************************************
+# FACTA
+
+@app.route("/facta")
+def facta_page():
+    if "user" not in session:
+        return redirect(url_for("login"))
+    return render_template("facta.html")
+
+
+import base64
+
+FACTA_BASIC = "OTkzNjU6bW1ub2Z4b2o3MTZ3cDN2eHdtOHE="
+FACTA_URL_TOKEN = "https://webservice.facta.com.br/gera-token"
+FACTA_URL_AUTORIZAR = "https://webservice.facta.com.br/solicita-autorizacao-consulta"
+FACTA_URL_CONSULTAR = "https://webservice.facta.com.br/consignado-trabalhador/autoriza-consulta"
+
+def gerar_token_facta():
+    headers = {"Authorization": f"Basic {FACTA_BASIC}"}
+    try:
+        r = requests.get(FACTA_URL_TOKEN, headers=headers, timeout=20)
+        data = r.json()
+        print("🔑 TOKEN FACTA:", data)
+        return data.get("token")
+    except Exception as e:
+        print("❌ Erro ao gerar token Facta:", e)
+        return None
+
+def facta_request(method, url, headers=None, data=None, params=None):
+
+    token = gerar_token_facta()
+    if not token:
+        return {"erro": True, "mensagem": "Falha ao gerar token FACTA"}
+
+    if headers is None:
+        headers = {}
+
+    headers["Authorization"] = f"Bearer {token}"
+
+    r = requests.request(method, url, headers=headers, data=data, params=params, timeout=20)
+    resp = r.json()
+
+    msg_string = str(resp).lower()
+
+    token_invalido = (
+        "token inválido" in msg_string or
+        "token invalido" in msg_string or
+        ("erro" in resp and "token" in str(resp.get("mensagem","")).lower())
+    )
+
+    if token_invalido:
+        print("⚠ TOKEN INVÁLIDO — gerando novo token e repetindo requisição...")
+
+        token = gerar_token_facta()
+        if not token:
+            return {"erro": True, "mensagem": "Falha ao renovar token FACTA"}
+
+        headers["Authorization"] = f"Bearer {token}"
+
+        r = requests.request(method, url, headers=headers, data=data, params=params, timeout=20)
+        resp = r.json()
+
+    return resp
+
+@app.route("/api/facta/solicitar-autorizacao", methods=["POST"])
+def facta_solicitar_autorizacao():
+    try:
+        data = request.get_json()
+
+        payload = {
+            "averbador": "10010",
+            "nome": data.get("nome"),
+            "cpf": data.get("cpf"),
+            "celular": data.get("celular"),
+            "tipo_envio": data.get("tipo_envio"),
+            "matricula": data.get("matricula")
+        }
+
+        resp = facta_request(
+            "POST",
+            FACTA_URL_AUTORIZAR,
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            data=payload
+        )
+
+        print("📩 RETORNO AUTORIZAÇÃO FACTA:", resp)
+        return jsonify(resp)
+
+    except Exception as e:
+        return jsonify({"erro": True, "mensagem": str(e)})
+
+@app.route("/api/facta/consultar", methods=["POST"])
+def facta_consultar():
+    try:
+        cpf = request.json.get("cpf")
+
+        resp = facta_request(
+            "GET",
+            FACTA_URL_CONSULTAR,
+            params={"cpf": cpf}
+        )
+
+        print("📊 CONSULTA FACTA:", resp)
+        return jsonify(resp)
+
+    except Exception as e:
+        return jsonify({"erro": True, "mensagem": str(e)})
+
+
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=8600)

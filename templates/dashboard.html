@@ -67,6 +67,10 @@
         .purple {
             background: linear-gradient(45deg, #7b2ff7, #9f44ff, #6a00ff);
         }
+
+        .facta {
+            background: linear-gradient(45deg, #ffd300, #c99703, #fffb00);
+        }
     </style>
 </head>
 
@@ -89,6 +93,7 @@
                 <li><a href="/c6bank">▸ C6 BANK</a></li>
                 <li><a href="/hub">▸ HUB Crédito</a></li>
                 <li><a href="/v8">▸ V8 Sistema</a></li>
+                <li><a href="/facta">▸ FACTA CLT</a></li>
 
                 {% if session['role'] == 'admin' %}
                 <li><a href="/usuarios">▸ Usuários</a></li>
@@ -132,6 +137,10 @@
             <div class="card-value">Acessar sistema</div>
         </div>
 
+        <div class="card-dash facta" onclick="window.location.href='/facta'">
+            <div class="card-title"><i class="fa fa-file-contract"></i> FACTA CLT</div>
+            <div class="card-value">Acessar sistema</div>
+        </div>
     </div>
 
 

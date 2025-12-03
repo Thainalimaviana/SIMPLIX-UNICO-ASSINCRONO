@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title>FACTA CLT - Multi Tech</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}">
+
+    <style>
+        .card {
+            background: var(--bg-container);
+            padding: 25px;
+            border-radius: 16px;
+            margin-bottom: 25px;
+            width: 100%;
+            max-width: 1200px;
+            color: var(--cor-texto);
+            backdrop-filter: blur(8px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.25);
+        }
+
+        .card h2 {
+            margin-bottom: 18px;
+            font-size: 26px;
+            font-weight: 600;
+            text-align: left;
+        }
+
+        .linha {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+
+        .linha .col {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        input,
+        select {
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 0, 0, 0.25);
+            background: var(--bg-input);
+            color: var(--cor-texto);
+            font-size: 15px;
+        }
+
+        .btn {
+            padding: 12px 18px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            transition: 0.3s;
+            font-weight: bold;
+        }
+
+        .btn:hover {
+            transform: scale(1.04);
+        }
+
+        .btn-ok {
+            background: #0aff73;
+            color: #000;
+        }
+
+        .btn-consultar {
+            background: #00e1ff;
+            color: #000;
+        }
+
+        .spinner {
+            border: 3px solid rgba(0, 0, 0, 0.2);
+            border-top: 3px solid white;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            display: inline-block;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .resultado-area {
+            margin-top: 20px;
+            padding: 25px;
+            border-radius: 12px;
+            background: rgba(0, 255, 150, 0.10);
+            border: 2px solid #00dd88;
+            color: var(--cor-texto);
+        }
+
+        .resultado-area h3 {
+            text-align: center;
+            font-size: 20px;
+            margin-bottom: 18px;
+        }
+
+        .linha-resultado {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 6px;
+            font-size: 15px;
+            border-bottom: 1px solid rgba(0, 255, 180, 0.25);
+        }
+
+        .linha-resultado span {
+            font-weight: bold;
+            min-width: 150px;
+        }
+
+        .linha-resultado b {
+            font-weight: normal;
+        }
+
+        .erro-box {
+            padding: 18px;
+            border-radius: 12px;
+            background: rgba(255, 70, 70, 0.18);
+            border: 2px solid #ff4c4c;
+            color: #ff3333;
+            font-weight: bold;
+            margin-top: 15px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<script src="/static/js/theme.js"></script>
+
+<body class="pagina">
+
+    <div class="sidebar">
+        <img src="/static/img/logo.png" style="width:110px; padding-left:15px;">
+        <div class="logo">Multi Tech</div>
+
+        <div class="user-info">
+            <h3>{{ session['user'] }}</h3>
+            <span>{{ session['role'] }}</span>
+        </div>
+
+        <ul class="menu">
+            <li><a href="/dashboard">▸ Dashboard</a></li>
+            <li><a href="/index">▸ SIMPLIX</a></li>
+            <li><a href="/presenca">▸ PRESENÇA</a></li>
+            <li><a href="/c6bank">▸ C6 BANK</a></li>
+            <li><a href="/hub">▸ HUB Crédito</a></li>
+            <li><a href="/v8">▸ V8 Sistema</a></li>
+            <li><a href="/facta">▸ FACTA CLT</a></li>
+
+            {% if session['role'] == 'admin' %}
+            <li><a href="/usuarios">▸ Usuários</a></li>
+            <li><a href="/register">▸ Criar Usuário</a></li>
+            {% endif %}
+        </ul>
+
+        <div class="menu-footer">
+            <button id="toggle-theme"><i class="fa fa-moon"></i> Tema</button>
+            <a href="/logout" class="logout">▸ Sair</a>
+        </div>
+    </div>
+
+    <div class="content">
+
+        <h1 class="titulo-tomorrow">FACTA CLT</h1>
+
+        <div class="card">
+            <h2>Solicitar Autorização</h2>
+
+            <div class="linha">
+                <div class="col">
+                    <label>Nome <span style="color:#0027d3f3;">(aleatório)</span></label>
+                    <input id="nome">
+                </div>
+
+                <div class="col">
+                    <label>CPF <span style="color:#ff4d4d;">(obrigatório)</span></label>
+                    <input id="cpf" oninput="aplicarMascaraCPF(this)">
+                </div>
+            </div>
+
+            <div class="linha">
+                <div class="col">
+                    <label>Celular <span style="color:#ff4d4d;">(obrigatório)</span></label>
+                    <input id="celular" oninput="aplicarMascaraTelefone(this)">
+                </div>
+
+                <div class="col">
+                    <label>Matrícula <span style="color:#0027d3f3;">(aleatório)</span></label>
+                    <input id="matricula">
+                </div>
+
+                <div class="col">
+                    <label>Tipo de Envio <span style="color:#ff4d4d;">(obrigatório)</span></label>
+                    <select id="tipo_envio">
+                        <option value="SMS">SMS</option>
+                        <option value="WHATSAPP">WHATSAPP</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="btn btn-ok" onclick="solicitarAutorizacao()">
+                <i class="fa fa-paper-plane"></i> Enviar Autorização
+            </button>
+
+            <div id="retorno-aut" style="display:none;"></div>
+        </div>
+
+        <div class="card">
+            <h2>Consultar Dados</h2>
+
+            <div class="linha">
+                <div class="col">
+                    <label>CPF</label>
+                    <input id="cpfConsulta">
+                </div>
+            </div>
+
+            <button class="btn btn-consultar" onclick="consultarDados()">
+                <i class="fa fa-search"></i> Consultar
+            </button>
+
+            <div id="retorno-consulta" style="display:none;"></div>
+        </div>
+
+    </div>
+
+
+    <script>
+        function aplicarMascaraCPF(input) {
+            let v = input.value.replace(/\D/g, "");
+            if (v.length > 11) v = v.slice(0, 11);
+            if (v.length > 9) v = v.replace(/(\d{3})(\d{3})(\d{3})(\d{0,2})/, "$1.$2.$3-$4");
+            else if (v.length > 6) v = v.replace(/(\d{3})(\d{3})(\d{0,3})/, "$1.$2.$3");
+            else if (v.length > 3) v = v.replace(/(\d{3})(\d{0,3})/, "$1.$2");
+            input.value = v;
+        }
+
+        function aplicarMascaraTelefone(input) {
+            let v = input.value.replace(/\D/g, "");
+            if (v.length > 11) v = v.slice(0, 11);
+            if (v.length > 10) v = v.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3");
+            else if (v.length > 6) v = v.replace(/(\d{2})(\d{4})(\d{0,4})/, "($1) $2-$3");
+            else if (v.length > 2) v = v.replace(/(\d{2})(\d{0,5})/, "($1) $2");
+            input.value = v;
+        }
+
+        function extractMessage(data) {
+            if (Array.isArray(data))
+                return data[0]?.mensagem || "Resposta desconhecida";
+
+            if (typeof data === "object")
+                return data.mensagem || data.erro || "Resposta desconhecida";
+
+            return String(data);
+        }
+
+        async function solicitarAutorizacao() {
+            const payload = {
+                nome: document.getElementById("nome").value,
+                cpf: document.getElementById("cpf").value.replace(/\D/g, ""),
+                celular: document.getElementById("celular").value,
+                tipo_envio: document.getElementById("tipo_envio").value,
+                matricula: document.getElementById("matricula").value
+            };
+
+            const box = document.getElementById("retorno-aut");
+            box.style.display = "block";
+            box.innerHTML = "<div class='spinner'></div> Enviando...";
+
+            const r = await fetch("/api/facta/solicitar-autorizacao", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await r.json();
+            const msg = extractMessage(data);
+
+            if (data.erro) {
+                box.innerHTML = `<div class="erro-box">❌ ${msg}</div>`;
+            } else {
+                box.innerHTML = `<div class="resultado-area">✔️ ${msg}</div>`;
+            }
+        }
+
+        async function consultarDados() {
+            const cpf = document.getElementById("cpfConsulta").value.replace(/\D/g, "");
+
+            const box = document.getElementById("retorno-consulta");
+            box.style.display = "block";
+            box.innerHTML = "<div class='spinner'></div> Consultando...";
+
+            const r = await fetch("/api/facta/consultar", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ cpf })
+            });
+
+            const data = await r.json();
+
+            if (data.erro) {
+                box.innerHTML = `<div class="erro-box">❌ ${data.mensagem}</div>`;
+                return;
+            }
+
+            try {
+                const d = data.dados_trabalhador.dados[0];
+
+                box.innerHTML = `
+        <div class="resultado-area">
+            <h3>Resultado da Consulta</h3>
+
+            <div class="linha-resultado"><span>Nome:</span> ${d.nome}</div>
+            <div class="linha-resultado"><span>CPF:</span> ${d.cpf}</div>
+            <div class="linha-resultado"><span>Matrícula:</span> ${d.matricula}</div>
+            <div class="linha-resultado"><span>Empregador:</span> ${d.nomeEmpregador}</div>
+            <div class="linha-resultado"><span>CNPJ/Inscrição:</span> ${d.numeroInscricaoEmpregador}</div>
+
+            <div class="linha-resultado"><span>Elegível:</span> ${d.elegivel}</div>
+            <div class="linha-resultado"><span>Margem Disponível:</span> ${d.valorMargemDisponivel}</div>
+            <div class="linha-resultado"><span>Vencimentos:</span> ${d.valorTotalVencimentos}</div>
+
+            <div class="linha-resultado"><span>Categoria:</span> ${d.codigoCategoriaTrabalhador}</div>
+            <div class="linha-resultado"><span>CBO:</span> ${d.cbo_descricao}</div>
+            <div class="linha-resultado"><span>CNAE:</span> ${d.cnae_descricao}</div>
+
+            <div class="linha-resultado"><span>Data Nasc.:</span> ${d.dataNascimento}</div>
+            <div class="linha-resultado"><span>Mãe:</span> ${d.nomeMae}</div>
+            <div class="linha-resultado"><span>Nacionalidade:</span> ${d.paisNacionalidade_descricao}</div>
+        </div>`;
+            } catch (e) {
+                box.innerHTML = "<div class='erro-box'>⚠ Erro ao exibir dados.</div>";
+            }
+        }
+    </script>
+
+</body>
+
+</html>
