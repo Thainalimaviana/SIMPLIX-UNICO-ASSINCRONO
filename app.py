@@ -2018,7 +2018,7 @@ def gerar_token_facta():
 
 def facta_post(url, payload):
     token = gerar_token_facta()
-
+    
     headers = {
         "Authorization": f"Bearer {token}",
         "Content-Type": "application/x-www-form-urlencoded"

@@ -729,6 +729,18 @@
         function finalizarProposta(codigo_cliente) {
             const btn = document.createElement("div");
 
+            document.getElementById("retorno-etapa6").innerHTML = `
+        <div class="resultado-area">
+            <h3>Proposta criada com sucesso! </h3>
+            <p><b>Código do Cliente:</b> ${codigo_cliente}</p>
+
+            <div id="loading-link" style="margin-top:10px; text-align:center;">
+                <div class="spinner" style="border-top-color:#00e1ff; margin-right:6px;"></div>
+                Gerando link de formalização...
+            </div>
+        </div>
+    `;
+
             safeFetch(btn, "/api/facta/proposta", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -739,29 +751,24 @@
             }).then(data => {
 
                 if (data.erro) {
-                    document.getElementById("retorno-etapa6").innerHTML = `
-                    <div class="erro-box">❌ ${data.mensagem}</div>
-                `;
+                    document.getElementById("loading-link").innerHTML =
+                        `<div class="erro-box">❌ ${data.mensagem}</div>`;
                     return;
                 }
 
                 const link = data.url_formalizacao;
 
-                document.getElementById("retorno-etapa6").innerHTML = `
-                <div class="resultado-area">
-                    <h3>Proposta criada com sucesso! </h3>
-                    <p><b>Código do Cliente:</b> ${data.codigo}</p>
-                    <p><b>Link Formalização:</b> 
-                        <span id="formalizacao-link">${link}</span>
-                    </p>
+                document.getElementById("loading-link").innerHTML = `
+            <p><b>Link Formalização:</b> 
+                <span id="formalizacao-link">${link}</span>
+            </p>
 
-                    <div class="btn-center">
-                        <button class="btn btn-consultar" onclick="copiarFormalizacao()">
-                            Copiar Link
-                        </button>
-                    </div>
-                </div>
-            `;
+            <div class="btn-center">
+                <button class="btn btn-consultar" onclick="copiarFormalizacao()">
+                    Copiar Link
+                </button>
+            </div>
+        `;
             });
         }
 
