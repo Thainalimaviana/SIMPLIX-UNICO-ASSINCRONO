@@ -1983,110 +1983,280 @@ def api_v8_proposta():
 #*************************************************************************************************************
 # FACTA
 
+FACTA_BASIC = "OTkzNjU6bW1ub2Z4b2o3MTZ3cDN2eHdtOHE=" 
+FACTA_URL_TOKEN = "https://webservice.facta.com.br/gera-token"
+
+FACTA_URL_AUTORIZA = "https://webservice.facta.com.br/solicita-autorizacao-consulta"
+FACTA_URL_CONSULTA = "https://webservice.facta.com.br/consignado-trabalhador/autoriza-consulta"
+
+FACTA_URL_OPERACOES = "https://webservice.facta.com.br/proposta/operacoes-disponiveis"
+FACTA_URL_SIMULACAO = "https://webservice.facta.com.br/proposta/etapa1-simulador"
+FACTA_URL_ETAPA6 = "https://webservice.facta.com.br/proposta/etapa2-dados-pessoais"
+
+cache_matriculas = {}
+
 @app.route("/facta")
 def facta_page():
-    if "user" not in session:
-        return redirect(url_for("login"))
     return render_template("facta.html")
 
-
-import base64
-
-FACTA_BASIC = "OTkzNjU6bW1ub2Z4b2o3MTZ3cDN2eHdtOHE="
-FACTA_URL_TOKEN = "https://webservice.facta.com.br/gera-token"
-FACTA_URL_AUTORIZAR = "https://webservice.facta.com.br/solicita-autorizacao-consulta"
-FACTA_URL_CONSULTAR = "https://webservice.facta.com.br/consignado-trabalhador/autoriza-consulta"
-
 def gerar_token_facta():
-    headers = {"Authorization": f"Basic {FACTA_BASIC}"}
-    try:
-        r = requests.get(FACTA_URL_TOKEN, headers=headers, timeout=20)
-        data = r.json()
-        print("🔑 TOKEN FACTA:", data)
-        return data.get("token")
-    except Exception as e:
-        print("❌ Erro ao gerar token Facta:", e)
-        return None
-
-def facta_request(method, url, headers=None, data=None, params=None):
-
-    token = gerar_token_facta()
-    if not token:
-        return {"erro": True, "mensagem": "Falha ao gerar token FACTA"}
-
-    if headers is None:
-        headers = {}
-
-    headers["Authorization"] = f"Bearer {token}"
-
-    r = requests.request(method, url, headers=headers, data=data, params=params, timeout=20)
-    resp = r.json()
-
-    msg_string = str(resp).lower()
-
-    token_invalido = (
-        "token inválido" in msg_string or
-        "token invalido" in msg_string or
-        ("erro" in resp and "token" in str(resp.get("mensagem","")).lower())
+    r = requests.get(
+        FACTA_URL_TOKEN,
+        headers={"Authorization": f"Basic {FACTA_BASIC}"},
+        timeout=20
     )
 
-    if token_invalido:
-        print("⚠ TOKEN INVÁLIDO — gerando novo token e repetindo requisição...")
+    data = r.json()
+    print("TOKEN FACTA:", data)
 
-        token = gerar_token_facta()
-        if not token:
-            return {"erro": True, "mensagem": "Falha ao renovar token FACTA"}
+    token = data.get("token")
+    if not token:
+        raise Exception("❌ Erro ao obter token FACTA")
 
-        headers["Authorization"] = f"Bearer {token}"
+    return token 
 
-        r = requests.request(method, url, headers=headers, data=data, params=params, timeout=20)
-        resp = r.json()
 
-    return resp
+def facta_post(url, payload):
+    token = gerar_token_facta()
 
-@app.route("/api/facta/solicitar-autorizacao", methods=["POST"])
-def facta_solicitar_autorizacao():
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/x-www-form-urlencoded"
+    }
+
+    r = requests.post(url, headers=headers, data=payload, timeout=30)
+
     try:
-        data = request.get_json()
+        return r.json()
+    except:
+        return {"erro": True, "mensagem": r.text}
 
-        payload = {
-            "averbador": "10010",
-            "nome": data.get("nome"),
-            "cpf": data.get("cpf"),
-            "celular": data.get("celular"),
-            "tipo_envio": data.get("tipo_envio"),
-            "matricula": data.get("matricula")
-        }
 
-        resp = facta_request(
-            "POST",
-            FACTA_URL_AUTORIZAR,
-            headers={"Content-Type": "application/x-www-form-urlencoded"},
-            data=payload
-        )
+@app.route("/api/facta/autoriza", methods=["POST"])
+def facta_autorizar():
+    data = request.get_json()
 
-        print("📩 RETORNO AUTORIZAÇÃO FACTA:", resp)
-        return jsonify(resp)
+    payload = {
+        "averbador": "10010",
+        "nome": data.get("nome"),
+        "cpf": data.get("cpf"),
+        "celular": data.get("celular"),
+        "tipo_envio": data.get("tipo_envio"),
+        "matricula": data.get("matricula")
+    }
 
-    except Exception as e:
-        return jsonify({"erro": True, "mensagem": str(e)})
+    resp = facta_post(FACTA_URL_AUTORIZA, payload)
+    print("📌 AUTORIZAÇÃO FACTA:", resp)
 
-@app.route("/api/facta/consultar", methods=["POST"])
-def facta_consultar():
+    return jsonify(resp)
+
+
+@app.route("/api/facta/consulta", methods=["POST"])
+def facta_consulta():
+    data = request.get_json()
+    cpf = data.get("cpf")
+
+    token = gerar_token_facta()
+
+    r = requests.get(
+        FACTA_URL_CONSULTA,
+        headers={"Authorization": f"Bearer {token}"},
+        params={"cpf": cpf},
+        timeout=20
+    )
+
+    resp = r.json()
+    print("📌 CONSULTA TRABALHADOR:", resp)
+
+    if resp.get("erro"):
+        return jsonify({"erro": True, "mensagem": resp.get("mensagem")})
+
     try:
-        cpf = request.json.get("cpf")
+        d = resp["dados_trabalhador"]["dados"][0]
+    except:
+        return jsonify({"erro": True, "mensagem": "Não retornou dados do trabalhador"})
 
-        resp = facta_request(
-            "GET",
-            FACTA_URL_CONSULTAR,
-            params={"cpf": cpf}
-        )
+    resultado = {
+        "cpf": d.get("cpf"),
+        "nome": d.get("nome"),
+        "matricula": d.get("matricula"),
+        "nomeEmpregador": d.get("nomeEmpregador"),
+        "numeroInscricaoEmpregador": d.get("numeroInscricaoEmpregador"),
+        "elegivel": d.get("elegivel"),
+        "valorMargemDisponivel": d.get("valorMargemDisponivel"),
+        "valorTotalVencimentos": d.get("valorTotalVencimentos"),
+        "dataNascimento": d.get("dataNascimento"),
+        "nomeMae": d.get("nomeMae"),
+        "codigoCategoriaTrabalhador": d.get("codigoCategoriaTrabalhador"),
+        "cbo_descricao": d.get("cbo_descricao"),
+        "cnae_descricao": d.get("cnae_descricao"),
+        "paisNacionalidade_descricao": d.get("paisNacionalidade_descricao"),
+        "sexo_codigo": d.get("sexo_codigo"),
+    }
 
-        print("📊 CONSULTA FACTA:", resp)
-        return jsonify(resp)
+    global cache_matriculas
+    cache_matriculas[cpf] = resultado["matricula"]
 
-    except Exception as e:
-        return jsonify({"erro": True, "mensagem": str(e)})
+    return jsonify({"erro": False, "dados": resultado})
+
+
+@app.route("/api/facta/operacoes", methods=["POST"])
+def facta_operacoes():
+    data = request.get_json()
+
+    params = {
+        "produto": "D",
+        "tipo_operacao": "13",
+        "averbador": "10010",
+        "convenio": "3",
+        "opcao_valor": "2",
+
+        "cpf": data.get("cpf"),
+        "data_nascimento": data.get("data_nascimento"),
+        "valor_parcela": data.get("valor_parcela"),
+        "valor_renda": data.get("renda")
+    }
+
+    token = gerar_token_facta()
+
+    r = requests.get(
+        FACTA_URL_OPERACOES,
+        headers={"Authorization": f"Bearer {token}"},
+        params=params,
+        timeout=25
+    )
+
+    resp = r.json()
+    print("📌 OPERACOES RAW:", resp)
+
+    lista = resp if isinstance(resp, list) else resp.get("lista") or resp.get("tabelas") or []
+
+    tabelas = []
+
+    for t in lista:
+        tabelas.append({
+            "tabela": t.get("tabela"),
+            "codigoTabela": t.get("codigoTabela") or t.get("codigo_tabela"),
+            "prazo": t.get("prazo"),
+            "coeficiente": t.get("coeficiente"),
+            "parcela": t.get("parcela") or t.get("valor_parcela"),
+            "contrato": t.get("contrato"),
+            "valor_liquido": t.get("valor_liquido"),
+        })
+
+    return jsonify({"tabelas": tabelas})
+
+@app.route("/api/facta/simular", methods=["POST"])
+def facta_simular():
+    data = request.get_json()
+
+    payload = {
+        "produto": "D",
+        "tipo_operacao": "13",
+        "averbador": "10010",
+        "convenio": "3",
+
+        "cpf": data.get("cpf"),
+        "codigo_tabela": data.get("codigo_tabela"),
+        "prazo": data.get("prazo"),
+        "coeficiente": data.get("coeficiente"),
+
+        "valor_parcela": data.get("valor_parcela"),
+        "valor_operacao": data.get("valor_operacao"),
+
+        "data_nascimento": data.get("data_nascimento"),
+
+        "login_certificado": "99365_biancafaria",
+        "vendedor": "99365_biancafaria",
+    }
+
+    resp = facta_post(FACTA_URL_SIMULACAO, payload)
+    print("📌 SIMULAÇÃO FACTA:", resp)
+
+    return jsonify(resp)
+
+@app.route("/api/facta/etapa6", methods=["POST"])
+def facta_etapa6():
+    data = request.get_json()
+    cpf = data.get("cpf")
+
+    matricula = cache_matriculas.get(cpf)
+    if not matricula:
+        return {"erro": True, "mensagem": "Matrícula não localizada. Consulte o trabalhador primeiro."}
+
+    payload = {
+        "id_simulador": data.get("id_simulador"),
+        "cpf": cpf,
+        "nome": data.get("nome"),
+        "sexo": data.get("sexo"),
+        "estado_civil": data.get("estado_civil"),
+
+        "rg": data.get("rg"),
+        "estado_rg": data.get("estado_rg"),
+        "orgao_emissor": "SSP",
+        "data_expedicao": data.get("data_expedicao"),
+        "data_nascimento": data.get("data_nascimento"),
+
+        "estado_natural": "RS",
+        "cidade_natural": 35,
+        "nacionalidade": 1,
+
+        "celular": data.get("celular"),
+        "renda": data.get("renda"),
+
+        "cep": "90020011",
+        "endereco": "Rua Não Informada",
+        "numero": "1",
+        "bairro": "Centro",
+        "cidade": 35,
+        "estado": "RS",
+
+        "nome_mae": "NAO DECLARADO",
+        "nome_pai": "NAO DECLARADO",
+
+        "valor_patrimonio": 1,
+        "cliente_iletrado_impossibilitado": "N",
+
+        "matricula": matricula,
+
+        "tipo_conta": "C",
+        "banco": data.get("banco"),
+        "agencia": data.get("agencia"),
+        "conta": data.get("conta"),
+
+        "tipo_chave_pix": 1,
+        "chave_pix": cpf,
+    }
+
+    resp = facta_post(FACTA_URL_ETAPA6, payload)
+    print("📌 ETAPA 6 FACTA:", resp)
+
+    return jsonify({
+        "erro": resp.get("erro", False),
+        "mensagem": resp.get("mensagem"),
+        "codigo_cliente": resp.get("codigo_cliente")
+    })
+
+FACTA_URL_ETAPA7 = "https://webservice.facta.com.br/proposta/etapa3-proposta-cadastro"
+
+@app.route("/api/facta/proposta", methods=["POST"])
+def facta_proposta():
+    data = request.get_json()
+
+    codigo_cliente = data.get("codigo_cliente")
+    id_simulador = data.get("id_simulador")
+    tipo_formalizacao = data.get("tipo_formalizacao", "DIG")
+
+    payload = {
+        "codigo_cliente": codigo_cliente,
+        "id_simulador": id_simulador,
+        "tipo_formalizacao": tipo_formalizacao
+    }
+
+    resp = facta_post(FACTA_URL_ETAPA7, payload)
+    print("📌 ETAPA 7 FACTA:", resp)
+
+    return jsonify(resp)
 
 
 if __name__ == "__main__":
