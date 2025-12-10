@@ -10,44 +10,238 @@
   <link href="https://fonts.googleapis.com/css2?family=Tomorrow&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
+
+<style>
+  .sidebar-modern {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 70px;
+    height: 100vh;
+    background: #7a7a7a4f;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px 0;
+    justify-content: space-between;
+    overflow-y: auto;
+    overflow-x: visible;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+
+    z-index: 999;
+  }
+
+  .sidebar-logo img {
+    width: 45px;
+    margin-bottom: 20px;
+  }
+
+  .sidebar-items {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    align-items: center;
+  }
+
+  .sidebar-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    align-items: center;
+    padding-bottom: 20px;
+  }
+
+  .sidebar-item {
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+
+    position: relative;
+    transition: 0.25s;
+  }
+
+  .sidebar-item:hover {
+    background: rgba(255, 255, 255, 0.30);
+    transform: scale(1.08);
+  }
+
+  .sidebar-item img {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+  }
+
+  .material-icons {
+    font-size: 26px;
+    color: var(--cor-texto);
+  }
+
+  .sidebar-item::after {
+    content: attr(data-label);
+    position: absolute;
+    left: 75px;
+    top: 50%;
+    transform: translateY(-50%);
+
+    background: #ffffff;
+    color: black;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+
+    opacity: 0;
+    pointer-events: none;
+    transition: 0.25s;
+
+    z-index: 9999;
+  }
+
+  .sidebar-item:hover::after {
+    opacity: 1;
+    transform: translate(10px, -50%);
+  }
+
+  #toggle-theme {
+    width: 38px !important;
+    height: 38px !important;
+    border-radius: 10px !important;
+    padding: 0 !important;
+  }
+
+  #toggle-theme .material-icons {
+    font-size: 20px !important;
+  }
+
+  .sidebar-modern::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .sidebar-modern::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+  }
+
+  @media (max-height: 750px) {
+    .sidebar-item {
+      width: 40px;
+      height: 40px;
+    }
+
+    .sidebar-item img {
+      width: 22px;
+      height: 22px;
+    }
+
+    .sidebar-item .material-icons {
+      font-size: 20px;
+    }
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.20);
+    border-radius: 20px;
+    transition: background 0.3s;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.45);
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.20) transparent;
+  }
+</style>
 
 <script src="/static/js/theme.js"></script>
 
 <body class="pagina">
 
-  <div class="sidebar" id="sidebar">
-    <div>
+  <div class="sidebar-modern">
 
-      <div class="logo">Multi Tech</div>
+    <div class="sidebar-logo">
+      <img src="/static/img/logo.png">
+    </div>
 
-      <div class="user-info">
-        <h3>{{ session["user"] }}</h3>
-        <span>{{ session["role"] }}</span>
+    <div class="sidebar-items">
+
+      <div class="sidebar-item" onclick="window.location.href='/dashboard'" data-label="Dashboard">
+        <span class="material-icons">dashboard</span>
       </div>
 
-      <ul class="menu">
-        <li><a href="/dashboard">▸ Dashboard</a></li>
-        <li><a href="/index">▸ SIMPLIX</a></li>
-        <li><a href="/presenca">▸ PRESENÇA</a></li>
-        <li><a href="/c6bank">▸ C6 BANK</a></li>
-        <li><a href="/hub">▸ HUB Crédito</a></li>
-        <li><a href="/v8">▸ V8 Sistema</a></li>
-        <li><a href="/facta">▸ FACTA CLT</a></li>
-        <li><a href="/factaoff">▸ FACTA OFF</a></li>
+      <div class="sidebar-item" onclick="window.location.href='/index'" data-label="SIMPLIX">
+        <img src="/static/img/simplix.png">
+      </div>
 
-        {% if session['role'] == 'admin' %}
-        <li><a href="/usuarios">▸ Usuários</a></li>
-        <li><a href="/register">▸ Criar Usuário</a></li>
-        {% endif %}
-      </ul>
+      <div class="sidebar-item" onclick="window.location.href='/presenca'" data-label="PRESENÇA">
+        <img src="/static/img/presenca.png">
+      </div>
+
+      <div class="sidebar-item" onclick="window.location.href='/c6bank'" data-label="C6 BANK">
+        <img src="/static/img/c6.png" style="width: 36px; height: 36px; border-radius: 6px;">
+      </div>
+
+      <div class="sidebar-item" onclick="window.location.href='/hub'" data-label="HUB Crédito">
+        <img src="/static/img/hub.png">
+      </div>
+
+      <div class="sidebar-item" onclick="window.location.href='/v8'" data-label="V8 Sistema">
+        <img src="/static/img/v8.png">
+      </div>
+
+      <div class="sidebar-item" onclick="window.location.href='/facta'" data-label="FACTA CLT">
+        <img src="/static/img/facta.png">
+      </div>
+
+      <div class="sidebar-item" onclick="window.location.href='/factaoff'" data-label="FACTA OFF">
+        <img src="/static/img/factaoff.png" style="width: 36px; height: 36px; border-radius: 6px;">
+      </div>
+
+      {% if session['role'] == 'admin' %}
+      <div class="sidebar-item" onclick="window.location.href='/usuarios'" data-label="Usuários">
+        <span class="material-icons">groups</span>
+      </div>
+
+      <div class="sidebar-item" onclick="window.location.href='/register'" data-label="Criar Usuário">
+        <span class="material-icons">person_add</span>
+      </div>
+      {% endif %}
+
     </div>
 
-    <div class="menu-footer">
-      <button id="toggle-theme"><i class="fa fa-moon"></i> Tema</button>
-      <a href="/logout" class="logout">▸ Sair</a>
+    <div class="sidebar-footer">
+      <div class="sidebar-item" id="toggle-theme" data-label="Tema">
+        <span class="material-icons">dark_mode</span>
+      </div>
+
+      <div class="sidebar-item" onclick="window.location.href='/logout'" data-label="Sair">
+        <span class="material-icons">logout</span>
+      </div>
     </div>
+
   </div>
+
+
   <div class="content">
     <h1 class="titulo-tomorrow">Simulação Simplix - FGTS</h1>
 
