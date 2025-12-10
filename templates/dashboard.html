@@ -61,7 +61,7 @@
         }
 
         .greenwater {
-            background: linear-gradient(45deg, #02daae, #44faeb, #00c9a1);
+            background: linear-gradient(45deg, #02daae, #0082ce, #00c9a1);
         }
 
         .purple {
@@ -70,6 +70,10 @@
 
         .facta {
             background: linear-gradient(45deg, #ffd300, #c99703, #fffb00);
+        }
+
+        .factaoff {
+            background: linear-gradient(45deg, #ffcc00, #ff00c8, #ffc400);
         }
     </style>
 </head>
@@ -94,6 +98,7 @@
                 <li><a href="/hub">▸ HUB Crédito</a></li>
                 <li><a href="/v8">▸ V8 Sistema</a></li>
                 <li><a href="/facta">▸ FACTA CLT</a></li>
+                <li><a href="/factaoff">▸ FACTA OFF</a></li>
 
                 {% if session['role'] == 'admin' %}
                 <li><a href="/usuarios">▸ Usuários</a></li>
@@ -141,6 +146,12 @@
             <div class="card-title"><i class="fa fa-file-contract"></i> FACTA CLT</div>
             <div class="card-value">Acessar sistema</div>
         </div>
+
+        <div class="card-dash factaoff" onclick="window.location.href='/factaoff'">
+            <div class="card-title"><i class="fa fa-file-circle-check"></i> FACTA CLT OFF</div>
+            <div class="card-value">Acessar sistema</div>
+        </div>
+
     </div>
 
 

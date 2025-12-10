@@ -2258,6 +2258,176 @@ def facta_proposta():
 
     return jsonify(resp)
 
+#*************************************************************************************************************
+# FACTA CLT OFF
+
+FACTA_OFF_TOKEN = None
+FACTA_OFF_EXPIRA = None
+FACTA_OFF_BASIC = "OTkzNjU6bW1ub2Z4b2o3MTZ3cDN2eHdtOHE="
+
+def gerar_token_facta_off():
+    global FACTA_OFF_TOKEN, FACTA_OFF_EXPIRA, FACTA_OFF_COOKIE
+
+    if FACTA_OFF_TOKEN and FACTA_OFF_EXPIRA and datetime.now() < FACTA_OFF_EXPIRA:
+        return FACTA_OFF_TOKEN
+
+    try:
+        headers = {
+            "Authorization": f"Basic {FACTA_OFF_BASIC}",
+            "Accept": "*/*",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                          "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Connection": "keep-alive",
+            "Cache-Control": "no-cache",
+            "Pragma": "no-cache"
+        }
+
+        s = requests.Session()
+        r = s.get(
+            "https://cltoff.facta.com.br/gera-token",
+            headers=headers,
+            allow_redirects=True 
+        )
+
+        print("📌 RAW TOKEN RESPONSE:", r.text)
+
+        FACTA_OFF_COOKIE = s.cookies.get_dict()
+        print("🍪 COOKIE CAPTURADO:", FACTA_OFF_COOKIE)
+
+        data = r.json()
+        FACTA_OFF_TOKEN = data["token"]
+        FACTA_OFF_EXPIRA = datetime.now() + timedelta(minutes=20)
+
+        return FACTA_OFF_TOKEN
+
+    except Exception as e:
+        print("❌ ERRO TOKEN FACTA OFF:", e)
+        return None
+    
+def consultar_facta_off(cpf):
+    token = gerar_token_facta_off()
+    if not token:
+        return {"erro": True, "mensagem": "Falha ao gerar token FACTA OFF"}
+
+    try:
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Accept": "*/*",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                          "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Connection": "keep-alive",
+            "Cache-Control": "no-cache"
+        }
+
+        print("🔎 ENVIANDO COOKIE:", FACTA_OFF_COOKIE)
+
+        r = requests.get(
+            "https://cltoff.facta.com.br/clt/base-offline",
+            headers=headers,
+            params={"cpf": cpf},
+            cookies=FACTA_OFF_COOKIE,
+            allow_redirects=True,
+            timeout=15
+        )
+
+        print("📌 RAW CONSULTA FACTA:", r.text)
+
+        return r.json()
+
+    except Exception as e:
+        return {"erro": True, "mensagem": f"Erro ao consultar: {e}"}
+
+@app.route("/factaoff")
+def factaoff_page():
+    return render_template("factaoff.html")
+
+@app.route("/api/factaoff/consulta", methods=["POST"])
+def api_factaoff_consulta():
+    data = request.get_json(silent=True) or {}
+    cpf = data.get("cpf", "").replace(".", "").replace("-", "")
+
+    if not cpf:
+        return jsonify({"erro": True, "html": "CPF não informado."})
+
+    resposta = consultar_facta_off(cpf)
+
+    if resposta.get("erro") is True:
+        return jsonify({
+            "erro": True,
+            "html": f"<div class='erro-box'>{resposta.get('mensagem', 'Erro desconhecido')}</div>"
+        })
+
+    dados = resposta.get("dados", [])
+    if not dados:
+        return jsonify({
+            "erro": True,
+            "html": "<div class='erro-box'>Nenhum dado encontrado para este CPF.</div>"
+        })
+
+    d = dados[0]
+
+    e = str(d.get("elegivel", "")).strip()
+    if e == "1":
+        d["elegivel_formatado"] = "SIM"
+    elif e in ["0", "2"]:
+        d["elegivel_formatado"] = "NÃO"
+    else:
+        d["elegivel_formatado"] = "-"
+
+    d["valorMargemDisponivel"] = formatar_valor(d.get("valorMargemDisponivel"))
+    d["valorTotalVencimentos"] = formatar_valor(d.get("valorTotalVencimentos"))
+    d["valorBaseMargem"] = formatar_valor(d.get("valorBaseMargem"))
+
+    d["dataNascimento"] = formatar_data(d.get("dataNascimento"))
+    d["dataAdmissao"] = formatar_data(d.get("dataAdmissao"))
+
+
+    html = f"""
+    <div class='resultado-area'>
+        <h3>Resultado da Consulta</h3>
+
+        <div class='linha-resultado'>Nome: {d.get('nome','-')}</div>
+        <div class='linha-resultado'>CPF: {d.get('cpf','-')}</div>
+        <div class='linha-resultado'>Matrícula: {d.get('matricula','-')}</div>
+        <div class='linha-resultado'>Empregador: {d.get('nomeEmpregador','-')}</div>
+        <div class='linha-resultado'>CNPJ: {d.get('numeroInscricaoEmpregador','-')}</div>
+
+        <div class='linha-resultado'>Elegível: {d.get('elegivel_formatado','-')}</div>
+        <div class='linha-resultado'>Margem Disponível: {d.get('valorMargemDisponivel','-')}</div>
+        <div class='linha-resultado'>Margem Base: {d.get('valorBaseMargem','-')}</div>
+        <div class='linha-resultado'>Vencimentos: {d.get('valorTotalVencimentos','-')}</div>
+
+        <div class='linha-resultado'>Categoria: {d.get('codigoCategoriaTrabalhador','-')}</div>
+
+        <div class='linha-resultado'>CBO: {d.get('cbo_descricao','-')}</div>
+        <div class='linha-resultado'>CNAE: {d.get('cnae_descricao','-')}</div>
+
+        <div class='linha-resultado'>Data de Admissão: {d.get('dataAdmissao','-')}</div>
+        <div class='linha-resultado'>Data de Nascimento: {d.get('dataNascimento','-')}</div>
+
+        <div class='linha-resultado'>Nome da Mãe: {d.get('nomeMae','-')}</div>
+        <div class='linha-resultado'>Nacionalidade: {d.get('paisNacionalidade_descricao','-')}</div>
+
+        <div class='linha-resultado'>Exposta Politicamente: {d.get('pessoaExpostaPoliticamente_descricao','-')}</div>
+        <div class='linha-resultado'>Possui Alertas: {d.get('possuiAlertas','-')}</div>
+    </div>
+"""
+
+    return jsonify({"erro": False, "html": html})
+
+def formatar_valor(v):
+    try:
+        v = float(v)
+        return f"R$ {v:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    except:
+        return v
+
+def formatar_data(dt):
+    try:
+        return dt.split("-")[2] + "/" + dt.split("-")[1] + "/" + dt.split("-")[0]
+    except:
+        return dt
+
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=8600)

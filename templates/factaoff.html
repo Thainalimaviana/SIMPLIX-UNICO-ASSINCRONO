@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title>FACTA CLT OFF - Multi Tech</title>
+
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}">
+
+    <style>
+        .card {
+            background: var(--bg-container);
+            padding: 25px;
+            border-radius: 16px;
+            margin-bottom: 25px;
+            width: 100%;
+            max-width: 850px;
+            margin-left: auto;
+            margin-right: auto;
+            color: var(--cor-texto);
+            backdrop-filter: blur(8px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.25);
+        }
+
+        input {
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 0, 0, 0.25);
+            background: var(--bg-input);
+            color: var(--cor-texto);
+            font-size: 15px;
+            width: 100%;
+        }
+
+        .input-cpf {
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+            display: block;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            margin-top: 20px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            transition: .3s;
+            display: block;
+        }
+
+        .btn-consultar {
+            background: #00a846;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+        }
+
+        .resultado-area {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 12px;
+            background: rgba(0, 255, 150, 0.10);
+            border: 2px solid #00dd88;
+        }
+
+        .linha-resultado {
+            padding: 12px;
+            border-bottom: 1px solid rgba(0, 255, 180, 0.25);
+        }
+
+        .linha-resultado:hover {
+            background: rgba(0, 255, 150, 0.15);
+        }
+
+        .spinner {
+            border: 4px solid #ccc;
+            border-top-color: #00e1ff;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            animation: girar 0.8s linear infinite;
+            display: inline-block;
+            margin-right: 8px;
+        }
+
+        @keyframes girar {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .erro-box {
+            padding: 15px;
+            background: rgba(255, 50, 50, 0.2);
+            border: 2px solid red;
+            border-radius: 12px;
+            margin-top: 15px;
+            text-align: center;
+            font-weight: bold;
+            color: red;
+        }
+
+        .btn-center {
+            display: block;
+            margin: 20px auto 0 auto;
+        }
+    </style>
+</head>
+
+<script src="/static/js/theme.js"></script>
+
+<body class="pagina">
+
+    <div class="sidebar">
+        <img src="/static/img/logo.png" style="width:110px; padding-left:15px;">
+        <div class="logo">Multi Tech</div>
+
+        <div class="user-info">
+            <h3>{{ session['user'] }}</h3>
+            <span>{{ session['role'] }}</span>
+        </div>
+
+        <ul class="menu">
+            <li><a href="/dashboard">▸ Dashboard</a></li>
+            <li><a href="/index">▸ SIMPLIX</a></li>
+            <li><a href="/presenca">▸ PRESENÇA</a></li>
+            <li><a href="/c6bank">▸ C6 BANK</a></li>
+            <li><a href="/hub">▸ HUB Crédito</a></li>
+            <li><a href="/v8">▸ V8 Sistema</a></li>
+            <li><a href="/facta">▸ FACTA CLT</a></li>
+            <li><a class="active" href="/factaoff">▸ FACTA OFF</a></li>
+
+            {% if session['role'] == 'admin' %}
+            <li><a href="/usuarios">▸ Usuários</a></li>
+            <li><a href="/register">▸ Criar Usuário</a></li>
+            {% endif %}
+        </ul>
+
+        <div class="menu-footer">
+            <button id="toggle-theme"><i class="fa fa-moon"></i> Tema</button>
+            <a href="/logout" class="logout">▸ Sair</a>
+        </div>
+    </div>
+
+    <div class="content">
+        <h1 class="titulo-tomorrow">FACTA CLT OFF</h1>
+
+        <div class="card">
+            <h2>Consultar Dados do Trabalhador</h2>
+
+            <label>CPF</label>
+            <input id="cpf" class="input-cpf" oninput="aplicarMascaraCPF(this)">
+
+            <button class="btn btn-consultar btn-center" onclick="consultarOff()">
+
+                Consultar
+            </button>
+
+            <div id="resultado"></div>
+        </div>
+
+    </div>
+
+    <script>
+
+        function aplicarMascaraCPF(input) {
+            let v = input.value.replace(/\D/g, "");
+            if (v.length > 11) v = v.slice(0, 11);
+            if (v.length > 9) v = v.replace(/(\d{3})(\d{3})(\d{3})(\d{0,2})/, "$1.$2.$3-$4");
+            else if (v.length > 6) v = v.replace(/(\d{3})(\d{3})(\d{0,3})/, "$1.$2.$3");
+            else if (v.length > 3) v = v.replace(/(\d{3})(\d{0,3})/, "$1.$2");
+            input.value = v;
+        }
+
+        async function consultarOff() {
+            const cpf = document.getElementById("cpf").value.replace(/\D/g, "");
+
+            const box = document.getElementById("resultado");
+            box.innerHTML = "<div class='spinner'></div> Consultando...";
+
+            const r = await fetch("/api/factaoff/consulta", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ cpf })
+            });
+
+            const data = await r.json();
+
+            if (data.erro) {
+                box.innerHTML = `<div class='erro-box'>${data.html}</div>`;
+                return;
+            }
+
+            box.innerHTML = data.html;
+        }
+
+    </script>
+
+</body>
+
+</html>
