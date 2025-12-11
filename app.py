@@ -1830,7 +1830,7 @@ def api_v8_proposta():
 #*************************************************************************************************************
 # FACTA
 
-FACTA_BASIC = "OTkzNjU6bW1ub2Z4b2o3MTZ3cDN2eHdtOHE=" 
+FACTA_BASIC = "OTY1NTI6ZjRzaXV0azJ1ZWNhNDVldXhnOXc=" 
 FACTA_URL_TOKEN = "https://webservice.facta.com.br/gera-token"
 
 FACTA_URL_AUTORIZA = "https://webservice.facta.com.br/solicita-autorizacao-consulta"
@@ -2111,7 +2111,7 @@ def facta_proposta():
 
 FACTA_OFF_TOKEN = None
 FACTA_OFF_EXPIRA = None
-FACTA_OFF_BASIC = "OTkzNjU6bW1ub2Z4b2o3MTZ3cDN2eHdtOHE="
+FACTA_OFF_BASIC = "OTY1NTI6ZjRzaXV0azJ1ZWNhNDVldXhnOXc="
 
 def gerar_token_facta_off():
     global FACTA_OFF_TOKEN, FACTA_OFF_EXPIRA, FACTA_OFF_COOKIE
