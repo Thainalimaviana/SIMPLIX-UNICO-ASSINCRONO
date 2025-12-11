@@ -2013,8 +2013,8 @@ def facta_simular():
 
         "data_nascimento": data.get("data_nascimento"),
 
-        "login_certificado": "99365_biancafaria",
-        "vendedor": "99365_biancafaria",
+        "login_certificado": "96552_biancafaria",
+        "vendedor": "96552_biancafaria",
     }
 
     resp = facta_post(FACTA_URL_SIMULACAO, payload)
