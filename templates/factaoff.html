@@ -18,29 +18,32 @@
             border-radius: 16px;
             margin-bottom: 25px;
             width: 100%;
-            max-width: 850px;
-            margin-left: auto;
-            margin-right: auto;
+            max-width: 900px;
             color: var(--cor-texto);
             backdrop-filter: blur(8px);
             box-shadow: 0 5px 20px rgba(0, 0, 0, 0.25);
         }
 
-        input {
+        .linha {
+            display: flex;
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .linha .col {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        input,
+        select {
             padding: 12px;
             border-radius: 8px;
             border: 1px solid rgba(0, 0, 0, 0.25);
             background: var(--bg-input);
             color: var(--cor-texto);
             font-size: 15px;
-            width: 100%;
-        }
-
-        .input-cpf {
-            max-width: 400px;
-            margin-left: auto;
-            margin-right: auto;
-            display: block;
         }
 
         .btn {
@@ -51,7 +54,6 @@
             cursor: pointer;
             font-weight: bold;
             transition: .3s;
-            display: block;
         }
 
         .btn-consultar {
@@ -71,32 +73,6 @@
             border: 2px solid #00dd88;
         }
 
-        .linha-resultado {
-            padding: 12px;
-            border-bottom: 1px solid rgba(0, 255, 180, 0.25);
-        }
-
-        .linha-resultado:hover {
-            background: rgba(0, 255, 150, 0.15);
-        }
-
-        .spinner {
-            border: 4px solid #ccc;
-            border-top-color: #00e1ff;
-            border-radius: 50%;
-            width: 18px;
-            height: 18px;
-            animation: girar 0.8s linear infinite;
-            display: inline-block;
-            margin-right: 8px;
-        }
-
-        @keyframes girar {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
         .erro-box {
             padding: 15px;
             background: rgba(255, 50, 50, 0.2);
@@ -108,9 +84,37 @@
             color: red;
         }
 
-        .btn-center {
-            display: block;
-            margin: 20px auto 0 auto;
+        .linha-resultado {
+            padding: 12px;
+            border-bottom: 1px solid rgba(0, 255, 180, 0.25);
+            cursor: pointer;
+        }
+
+        .linha-resultado:hover {
+            background: rgba(0, 255, 150, 0.15);
+        }
+
+        .tabela-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+            margin-top: 25px;
+        }
+
+        .tabela-card {
+            background: rgba(0, 255, 150, 0.08);
+            border: 1px solid rgba(0, 255, 150, 0.3);
+            border-radius: 14px;
+            padding: 18px;
+            color: var(--cor-texto);
+            cursor: pointer;
+            transition: 0.25s;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+        }
+
+        .tabela-card:hover {
+            transform: scale(1.03);
+            background: rgba(0, 255, 150, 0.15);
         }
 
         .sidebar-modern {
@@ -124,7 +128,7 @@
             flex-direction: column;
             align-items: center;
             padding: 12px 0;
-            justify-content: space-between;
+            justify-content: flex-start;
             overflow-y: auto;
             overflow-x: visible;
             scrollbar-width: thin;
@@ -144,6 +148,7 @@
             gap: 12px;
             width: 100%;
             align-items: center;
+            margin-bottom: auto;
         }
 
         .sidebar-footer {
@@ -274,7 +279,7 @@
         .content,
         .container,
         .main {
-            margin-left: 85px !important;
+            margin-left: 30px !important;
         }
     </style>
 </head>
@@ -304,8 +309,9 @@
             </div>
 
             <div class="sidebar-item" onclick="window.location.href='/c6bank'" data-label="C6 BANK">
-                <img src="/static/img/c6.png" style="width: 36px; height: 36px; border-radius: 6px;">
+                <img src="/static/img/c6.png" style="width:36px; height:36px; border-radius:6px;">
             </div>
+
 
             <div class="sidebar-item" onclick="window.location.href='/hub'" data-label="HUB Crédito">
                 <img src="/static/img/hub.png">
@@ -320,7 +326,7 @@
             </div>
 
             <div class="sidebar-item" onclick="window.location.href='/factaoff'" data-label="FACTA OFF">
-                <img src="/static/img/factaoff.png" style="width: 36px; height: 36px; border-radius: 6px;">
+                <img src="/static/img/factaoff.png" style="width:36px; height:36px; border-radius:6px;">
             </div>
 
             {% if session['role'] == 'admin' %}
@@ -347,7 +353,6 @@
 
     </div>
 
-
     <div class="content">
         <h1 class="titulo-tomorrow">FACTA CLT OFF</h1>
 
@@ -355,52 +360,464 @@
             <h2>Consultar Dados do Trabalhador</h2>
 
             <label>CPF</label>
-            <input id="cpf" class="input-cpf" oninput="aplicarMascaraCPF(this)">
+            <input id="cpf_off" oninput="aplicarMascaraCPF(this)" class="input-cpf">
 
             <button class="btn btn-consultar btn-center" onclick="consultarOff()">
-
                 Consultar
             </button>
 
-            <div id="resultado"></div>
+            <div id="resultado_off"></div>
         </div>
 
-    </div>
+        <div class="card" id="card-dados" style="display:none;">
+            <h2>Dados do Trabalhador</h2>
+            <div id="dados-consulta"></div>
+        </div>
 
-    <script>
+        <div class="card" id="card-operacoes" style="display:none;">
+            <h2>Operações Disponíveis</h2>
 
-        function aplicarMascaraCPF(input) {
-            let v = input.value.replace(/\D/g, "");
-            if (v.length > 11) v = v.slice(0, 11);
-            if (v.length > 9) v = v.replace(/(\d{3})(\d{3})(\d{3})(\d{0,2})/, "$1.$2.$3-$4");
-            else if (v.length > 6) v = v.replace(/(\d{3})(\d{3})(\d{0,3})/, "$1.$2.$3");
-            else if (v.length > 3) v = v.replace(/(\d{3})(\d{0,3})/, "$1.$2");
-            input.value = v;
-        }
+            <div class="linha">
+                <div class="col">
+                    <label>Renda</label>
+                    <input id="renda">
+                </div>
 
-        async function consultarOff() {
-            const cpf = document.getElementById("cpf").value.replace(/\D/g, "");
+                <div class="col">
+                    <label>Valor Parcela Máxima</label>
+                    <input id="valor_parcela">
+                </div>
 
-            const box = document.getElementById("resultado");
-            box.innerHTML = "<div class='spinner'></div> Consultando...";
+                <div class="col">
+                    <label>Data de Nascimento</label>
+                    <input id="data_nascimento" placeholder="DD/MM/AAAA">
+                </div>
+            </div>
 
-            const r = await fetch("/api/factaoff/consulta", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ cpf })
-            });
+            <button class="btn btn-consultar" onclick="buscarOperacoesOff()">
+                Carregar Tabelas
+            </button>
 
-            const data = await r.json();
+            <div id="retorno-operacoes" style="display:none;"></div>
+            <div id="lista-tabelas" class="tabela-grid"></div>
+        </div>
+        <div class="card" id="card-simulacao" style="display:none;">
+            <h2>Simulação FACTA</h2>
 
-            if (data.erro) {
-                box.innerHTML = `<div class='erro-box'>${data.html}</div>`;
-                return;
+            <div class="linha">
+                <div class="col">
+                    <label>Valor desejado</label>
+                    <input id="valor_operacao">
+                </div>
+            </div>
+
+            <button class="btn btn-consultar" onclick="confirmarSimulacaoOff()">
+                Simular
+            </button>
+
+            <div id="detalhes-tabela"></div>
+            <div id="retorno-simulacao"></div>
+        </div>
+
+        <div class="card" id="card-etapa6" style="display:none;">
+            <h2>Cadastro de Dados Pessoais</h2>
+
+            <div class="linha">
+                <div class="col">
+                    <label>Nome</label>
+                    <input id="nome">
+                </div>
+
+                <div class="col">
+                    <label>Sexo</label>
+                    <select id="sexo">
+                        <option value="M">Masculino</option>
+                        <option value="F">Feminino</option>
+                    </select>
+                </div>
+
+                <div class="col">
+                    <label>Estado Civil</label>
+                    <select id="estado_civil">
+                        <option value="1">Solteiro(a)</option>
+                        <option value="2">Casado(a)</option>
+                        <option value="3">Divorciado(a)</option>
+                        <option value="4">Viúvo(a)</option>
+                        <option value="5">Separado(a)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="linha">
+                <div class="col">
+                    <label>RG</label>
+                    <input id="rg">
+                </div>
+
+                <div class="col">
+                    <label>Órgão Emissor</label>
+                    <input id="orgao_emissor" value="SSP" readonly>
+                </div>
+
+                <div class="col">
+                    <label>UF RG</label>
+                    <select id="estado_rg">
+                        <option value="AC">AC</option>
+                        <option value="AL">AL</option>
+                        <option value="AP">AP</option>
+                        <option value="AM">AM</option>
+                        <option value="BA">BA</option>
+                        <option value="CE">CE</option>
+                        <option value="DF">DF</option>
+                        <option value="ES">ES</option>
+                        <option value="GO">GO</option>
+                        <option value="MA">MA</option>
+                        <option value="MT">MT</option>
+                        <option value="MS">MS</option>
+                        <option value="MG">MG</option>
+                        <option value="PA">PA</option>
+                        <option value="PB">PB</option>
+                        <option value="PR">PR</option>
+                        <option value="PE">PE</option>
+                        <option value="PI">PI</option>
+                        <option value="RJ">RJ</option>
+                        <option value="RN">RN</option>
+                        <option value="RS">RS</option>
+                        <option value="RO">RO</option>
+                        <option value="RR">RR</option>
+                        <option value="SC">SC</option>
+                        <option value="SP">SP</option>
+                        <option value="SE">SE</option>
+                        <option value="TO">TO</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="linha">
+                <div class="col">
+                    <label>Data Expedição</label>
+                    <input id="data_expedicao" placeholder="DD/MM/AAAA" oninput="mascaraData(this)">
+                </div>
+
+                <div class="col">
+                    <label>Telefone</label>
+                    <input id="celular">
+                </div>
+
+                <input id="renda_et6" type="hidden">
+            </div>
+
+            <h3>Dados Bancários</h3>
+            <div class="linha">
+                <div class="col">
+                    <label>Banco (número)</label>
+                    <input id="banco">
+                </div>
+
+                <div class="col">
+                    <label>Agência</label>
+                    <input id="agencia">
+                </div>
+
+                <div class="col">
+                    <label>Conta</label>
+                    <input id="conta">
+                </div>
+            </div>
+
+            <button class="btn btn-consultar" onclick="enviarEtapa6Off()">
+                Enviar Dados
+            </button>
+
+            <div id="retorno-etapa6"></div>
+        </div>
+
+        <div class="card" id="card-finalizacao" style="display:none;">
+            <h2>Finalização</h2>
+
+            <div id="finalizacao-content">
+            </div>
+        </div>
+
+        <script>
+
+            function aplicarMascaraCPF(input) {
+                let v = input.value.replace(/\D/g, "");
+                if (v.length > 11) v = v.slice(0, 11);
+                if (v.length >= 10) v = v.replace(/(\d{3})(\d{3})(\d{3})(\d{0,2})/, "$1.$2.$3-$4");
+                else if (v.length >= 7) v = v.replace(/(\d{3})(\d{3})(\d{0,3})/, "$1.$2.$3");
+                else if (v.length >= 4) v = v.replace(/(\d{3})(\d{0,3})/, "$1.$2");
+                input.value = v;
             }
 
-            box.innerHTML = data.html;
-        }
+            function mascaraData(input) {
+                let v = input.value.replace(/\D/g, "").slice(0, 8);
+                if (v.length >= 5) v = v.replace(/(\d{2})(\d{2})(\d{0,4})/, "$1/$2/$3");
+                else if (v.length >= 3) v = v.replace(/(\d{2})(\d{0,2})/, "$1/$2");
+                input.value = v;
+            }
 
-    </script>
+            function loading(btn, state = true) {
+                if (!btn) return;
+                if (state) btn.classList.add("btn-loading");
+                else btn.classList.remove("btn-loading");
+            }
+
+            let tabelaSelecionada = null;
+            let ID_SIMULADOR_OFF = null;
+
+            async function consultarOff() {
+
+                const cpf = document.getElementById("cpf_off").value.replace(/\D/g, "");
+                const box = document.getElementById("resultado_off");
+
+                box.innerHTML = "<div class='spinner'></div> Consultando...";
+
+                const r = await fetch("/api/factaoff/consulta", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ cpf })
+                });
+
+                const data = await r.json();
+
+                if (data.erro) {
+                    box.innerHTML = `<div class='erro-box'>${data.html}</div>`;
+                    return;
+                }
+
+                box.innerHTML = "";
+
+
+                preencherCamposOff(data.html);
+            }
+
+            function preencherCamposOff(html) {
+
+                const temp = document.createElement("div");
+                temp.innerHTML = html;
+
+                function extrair(label) {
+                    const linha = [...temp.querySelectorAll(".linha-resultado")]
+                        .find(x => x.innerText.startsWith(label));
+                    if (!linha) return "";
+                    return linha.innerText.split(":")[1].trim();
+                }
+
+                const nome = extrair("Nome");
+                const cpf = extrair("CPF").replace(/\D/g, "");
+                const nasc = extrair("Data de Nascimento");
+                const renda = extrair("Vencimentos").replace("R$", "").replace(".", "").replace(",", ".").trim();
+
+                document.getElementById("card-dados").style.display = "block";
+                document.getElementById("dados-consulta").innerHTML = html;
+
+                document.getElementById("renda").value = renda || "";
+                document.getElementById("data_nascimento").value = nasc || "";
+                document.getElementById("renda_et6").value = renda || "";
+
+                window.CPF_OFF = cpf;
+
+                document.getElementById("card-operacoes").style.display = "block";
+            }
+
+            async function buscarOperacoesOff() {
+
+                const cpf = window.CPF_OFF;
+                const renda = document.getElementById("renda").value;
+                const dn = document.getElementById("data_nascimento").value;
+                const valor_parcela = document.getElementById("valor_parcela").value;
+
+                const r = await fetch("/api/facta/operacoes", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ cpf, renda, data_nascimento: dn, valor_parcela })
+                });
+
+                const data = await r.json();
+
+                const lista = document.getElementById("lista-tabelas");
+                const retorno = document.getElementById("retorno-operacoes");
+
+                lista.innerHTML = "";
+
+                if (!data.tabelas || data.tabelas.length === 0) {
+                    retorno.innerHTML = "<div class='erro-box'>Nenhuma tabela encontrada.</div>";
+                    retorno.style.display = "block";
+                    return;
+                }
+
+                retorno.innerHTML = "<h3>Tabelas disponíveis:</h3>";
+                retorno.style.display = "block";
+
+                data.tabelas.forEach(t => {
+                    const div = document.createElement("div");
+                    div.className = "tabela-card";
+
+                    div.innerHTML = `
+            <h4>${t.tabela}</h4>
+            <div><b>Prazo:</b> ${t.prazo}</div>
+            <div><b>Parcela:</b> R$ ${t.parcela}</div>
+            <div><b>Coeficiente:</b> ${t.coeficiente}</div>
+            <div><b>Valor Líquido:</b> R$ ${t.valor_liquido}</div>
+        `;
+
+                    div.onclick = () => selecionarTabelaOff(t);
+                    lista.appendChild(div);
+                });
+            }
+
+            function selecionarTabelaOff(t) {
+                tabelaSelecionada = t;
+
+                document.getElementById("card-simulacao").style.display = "block";
+
+                document.getElementById("detalhes-tabela").innerHTML = `
+        <div class='resultado-area'>
+            <h3>Tabela Selecionada</h3>
+            <p><b>Prazo:</b> ${t.prazo}</p>
+            <p><b>Parcela:</b> R$ ${t.parcela}</p>
+            <p><b>Coeficiente:</b> ${t.coeficiente}</p>
+            <p><b>Valor Líquido:</b> R$ ${t.valor_liquido}</p>
+        </div>
+    `;
+
+                document.getElementById("valor_operacao").value = t.contrato;
+            }
+
+            async function confirmarSimulacaoOff() {
+
+                if (!tabelaSelecionada) return;
+
+                const cpf = window.CPF_OFF;
+                const valor = document.getElementById("valor_operacao").value;
+                const dn = document.getElementById("data_nascimento").value;
+
+                const payload = {
+                    cpf,
+                    codigo_tabela: tabelaSelecionada.codigoTabela,
+                    prazo: tabelaSelecionada.prazo,
+                    coeficiente: tabelaSelecionada.coeficiente,
+                    valor_parcela: tabelaSelecionada.parcela,
+                    valor_operacao: valor,
+                    data_nascimento: dn
+                };
+
+                const r = await fetch("/api/facta/simular", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await r.json();
+
+                if (data.erro) {
+                    document.getElementById("retorno-simulacao").innerHTML =
+                        `<div class='erro-box'>${data.mensagem}</div>`;
+                    return;
+                }
+
+                ID_SIMULADOR_OFF = data.id_simulador;
+
+                document.getElementById("retorno-simulacao").innerHTML = `
+        <div class='resultado-area'>
+            <h3>Simulação Gravada</h3>
+            <p><b>ID:</b> ${ID_SIMULADOR_OFF}</p>
+        </div>
+    `;
+
+                document.getElementById("card-etapa6").style.display = "block";
+            }
+
+            async function enviarEtapa6Off() {
+
+                const payload = {
+                    id_simulador: ID_SIMULADOR_OFF,
+
+                    cpf: window.CPF_OFF,
+                    nome: document.getElementById("nome").value,
+                    sexo: document.getElementById("sexo").value,
+                    estado_civil: document.getElementById("estado_civil").value,
+
+                    rg: document.getElementById("rg").value,
+                    orgao_emissor: "SSP",
+                    estado_rg: document.getElementById("estado_rg").value,
+                    data_expedicao: document.getElementById("data_expedicao").value,
+
+                    celular: document.getElementById("celular").value,
+
+                    data_nascimento: document.getElementById("data_nascimento").value,
+                    renda: document.getElementById("renda_et6").value,
+
+                    banco: document.getElementById("banco").value,
+                    agencia: document.getElementById("agencia").value,
+                    conta: document.getElementById("conta").value,
+                };
+
+                const r = await fetch("/api/facta/etapa6", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await r.json();
+
+                document.getElementById("retorno-etapa6").innerHTML = `
+        <div class='resultado-area'>${data.mensagem}</div>
+    `;
+
+                if (!data.erro) {
+                    finalizarPropostaOff(data.codigo_cliente);
+                }
+            }
+
+            async function finalizarPropostaOff(codigo_cliente) {
+
+                const r = await fetch("/api/facta/proposta", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        codigo_cliente,
+                        id_simulador: ID_SIMULADOR_OFF
+                    })
+                });
+
+                const data = await r.json();
+
+                const div = document.getElementById("card-finalizacao");
+                div.style.display = "block";
+
+                if (data.erro) {
+                    document.getElementById("finalizacao-content").innerHTML =
+                        `<div class='erro-box'>${data.mensagem}</div>`;
+                    return;
+                }
+
+                const link = data.url_formalizacao;
+
+                document.getElementById("finalizacao-content").innerHTML = `
+        <div class='resultado-area'>
+            <h3>Proposta criada com sucesso!</h3>
+            <p><b>Código Cliente:</b> ${codigo_cliente}</p>
+            <p><b>Link Formalização:</b> <span id="formalizacao-link">${link}</span></p>
+
+            <button class="btn btn-consultar" onclick="copiarFormalizacao()">
+                Copiar Link
+            </button>
+        </div>
+    `;
+            }
+
+            function copiarFormalizacao() {
+                const texto = document.getElementById("formalizacao-link").innerText;
+                navigator.clipboard.writeText(texto).then(() => {
+                    alert("Link copiado com sucesso! 🚀");
+                });
+            }
+
+        </script>
+
+    </div>
 
 </body>
 

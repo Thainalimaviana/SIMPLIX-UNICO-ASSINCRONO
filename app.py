@@ -2366,6 +2366,8 @@ def api_factaoff_consulta():
 
     d = dados[0]
 
+    cache_matriculas[d.get("cpf")] = d.get("matricula")
+
     e = str(d.get("elegivel", "")).strip()
     if e == "1":
         d["elegivel_formatado"] = "SIM"

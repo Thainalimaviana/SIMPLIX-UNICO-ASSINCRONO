@@ -207,7 +207,7 @@
       flex-direction: column;
       align-items: center;
       padding: 12px 0;
-      justify-content: space-between;
+      justify-content: flex-start;
       overflow-y: auto;
       overflow-x: visible;
       scrollbar-width: thin;
@@ -227,6 +227,7 @@
       gap: 12px;
       width: 100%;
       align-items: center;
+      margin-bottom: auto;
     }
 
     .sidebar-footer {
@@ -353,7 +354,6 @@
       scrollbar-width: thin;
       scrollbar-color: rgba(255, 255, 255, 0.20) transparent;
     }
-
   </style>
 </head>
 
@@ -363,68 +363,68 @@
 
   <div class="sidebar-modern">
 
-        <div class="sidebar-logo">
-            <img src="/static/img/logo.png">
-        </div>
+    <div class="sidebar-logo">
+      <img src="/static/img/logo.png">
+    </div>
 
-        <div class="sidebar-items">
+    <div class="sidebar-items">
 
-            <div class="sidebar-item" onclick="window.location.href='/dashboard'" data-label="Dashboard">
-                <span class="material-icons">dashboard</span>
-            </div>
+      <div class="sidebar-item" onclick="window.location.href='/dashboard'" data-label="Dashboard">
+        <span class="material-icons">dashboard</span>
+      </div>
 
-            <div class="sidebar-item" onclick="window.location.href='/index'" data-label="SIMPLIX">
-                <img src="/static/img/simplix.png">
-            </div>
+      <div class="sidebar-item" onclick="window.location.href='/index'" data-label="SIMPLIX">
+        <img src="/static/img/simplix.png">
+      </div>
 
-            <div class="sidebar-item" onclick="window.location.href='/presenca'" data-label="PRESENÇA">
-                <img src="/static/img/presenca.png">
-            </div>
+      <div class="sidebar-item" onclick="window.location.href='/presenca'" data-label="PRESENÇA">
+        <img src="/static/img/presenca.png">
+      </div>
 
-            <div class="sidebar-item" onclick="window.location.href='/c6bank'" data-label="C6 BANK">
-                <img src="/static/img/c6.png" style="width:36px; height:36px; border-radius:6px;">
-            </div>
+      <div class="sidebar-item" onclick="window.location.href='/c6bank'" data-label="C6 BANK">
+        <img src="/static/img/c6.png" style="width:36px; height:36px; border-radius:6px;">
+      </div>
 
 
-            <div class="sidebar-item" onclick="window.location.href='/hub'" data-label="HUB Crédito">
-                <img src="/static/img/hub.png">
-            </div>
+      <div class="sidebar-item" onclick="window.location.href='/hub'" data-label="HUB Crédito">
+        <img src="/static/img/hub.png">
+      </div>
 
-            <div class="sidebar-item" onclick="window.location.href='/v8'" data-label="V8 Sistema">
-                <img src="/static/img/v8.png">
-            </div>
+      <div class="sidebar-item" onclick="window.location.href='/v8'" data-label="V8 Sistema">
+        <img src="/static/img/v8.png">
+      </div>
 
-            <div class="sidebar-item" onclick="window.location.href='/facta'" data-label="FACTA CLT">
-                <img src="/static/img/facta.png">
-            </div>
+      <div class="sidebar-item" onclick="window.location.href='/facta'" data-label="FACTA CLT">
+        <img src="/static/img/facta.png">
+      </div>
 
-            <div class="sidebar-item" onclick="window.location.href='/factaoff'" data-label="FACTA OFF">
-                <img src="/static/img/factaoff.png" style="width:36px; height:36px; border-radius:6px;">
-            </div>
+      <div class="sidebar-item" onclick="window.location.href='/factaoff'" data-label="FACTA OFF">
+        <img src="/static/img/factaoff.png" style="width:36px; height:36px; border-radius:6px;">
+      </div>
 
-            {% if session['role'] == 'admin' %}
-            <div class="sidebar-item" onclick="window.location.href='/usuarios'" data-label="Usuários">
-                <span class="material-icons">groups</span>
-            </div>
+      {% if session['role'] == 'admin' %}
+      <div class="sidebar-item" onclick="window.location.href='/usuarios'" data-label="Usuários">
+        <span class="material-icons">groups</span>
+      </div>
 
-            <div class="sidebar-item" onclick="window.location.href='/register'" data-label="Criar Usuário">
-                <span class="material-icons">person_add</span>
-            </div>
-            {% endif %}
-
-        </div>
-
-        <div class="sidebar-footer">
-            <div class="sidebar-item" id="toggle-theme" data-label="Tema">
-                <span class="material-icons">dark_mode</span>
-            </div>
-
-            <div class="sidebar-item" onclick="window.location.href='/logout'" data-label="Sair">
-                <span class="material-icons">logout</span>
-            </div>
-        </div>
+      <div class="sidebar-item" onclick="window.location.href='/register'" data-label="Criar Usuário">
+        <span class="material-icons">person_add</span>
+      </div>
+      {% endif %}
 
     </div>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-item" id="toggle-theme" data-label="Tema">
+        <span class="material-icons">dark_mode</span>
+      </div>
+
+      <div class="sidebar-item" onclick="window.location.href='/logout'" data-label="Sair">
+        <span class="material-icons">logout</span>
+      </div>
+    </div>
+
+  </div>
   <div class="container">
     <h1>Gerenciar Usuários</h1>
 
