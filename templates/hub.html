@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
     <style>
         .card {
             background: var(--bg-container);
@@ -21,12 +22,6 @@
             color: var(--cor-texto);
             backdrop-filter: blur(8px);
             box-shadow: 0 5px 20px rgba(0, 0, 0, 0.25);
-        }
-
-        h2 {
-            margin-bottom: 18px;
-            font-size: 26px;
-            font-weight: 600;
         }
 
         .linha {
@@ -78,11 +73,6 @@
             color: #000;
         }
 
-        .btn-consultar {
-            background: #00e1ff;
-            color: #000;
-        }
-
         .spinner {
             border: 3px solid rgba(255, 255, 255, 0.3);
             border-top: 3px solid white;
@@ -96,22 +86,6 @@
             to {
                 transform: rotate(360deg)
             }
-        }
-
-        .copy-btn {
-            background: #0aff73;
-            color: #000;
-            padding: 12px 18px;
-            border-radius: 10px;
-            font-weight: bold;
-            border: none;
-            cursor: pointer;
-            transition: .2s;
-        }
-
-        .copy-btn:hover {
-            transform: scale(1.05);
-            background: #06e066;
         }
 
         .resultado-area {
@@ -172,7 +146,6 @@
             justify-content: center;
             align-items: center;
             cursor: pointer;
-
             position: relative;
             transition: 0.25s;
         }
@@ -280,10 +253,73 @@
             scrollbar-color: rgba(255, 255, 255, 0.20) transparent;
         }
 
-        .content,
-        .container,
-        .main {
-            margin-left: 50px !important;
+        .content {
+            margin-left: 90px !important;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 35px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .hub-card {
+            background: linear-gradient(40deg, var(--gradiente-inicio), var(--gradiente-fim));
+            padding: 16px 20px;
+            border-radius: 14px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            font-size: 14px;
+            line-height: 1.4;
+            color: var(--cor-texto);
+            text-align: left;
+            width: 100%;
+            height: fit-content;
+            margin-bottom: 10px;
+        }
+
+        .hub-card h3 {
+            font-size: 17px;
+            margin-bottom: 10px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .hub-card p {
+            margin: 4px 0;
+            font-weight: 500;
+        }
+
+        .hub-card span {
+            font-weight: 600;
+            color: var(--cor-texto);
+        }
+
+        .resultado-area {
+            width: 100%;
+            max-width: 1300px;
+            margin: 30px auto;
+            padding: 0;
+            background: none;
+        }
+
+        .resultado-area .card {
+            max-width: 100%;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .card-form {
+            background: var(--bg-container);
+            padding: 25px;
+            border-radius: 16px;
+            margin-bottom: 25px;
+            width: 100%;
+            max-width: 950px;
+            color: var(--cor-texto);
+            backdrop-filter: blur(8px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.25);
         }
     </style>
 </head>
@@ -311,7 +347,7 @@
             </div>
 
             <div class="sidebar-item" onclick="window.location.href='/c6bank'" data-label="C6 BANK">
-                <img src="/static/img/c6.png" style="width: 36px; height: 36px; border-radius: 6px;">
+                <img src="/static/img/c6.png" style="width:36px;height:36px;border-radius:6px;">
             </div>
 
             <div class="sidebar-item" onclick="window.location.href='/hub'" data-label="HUB Crédito">
@@ -327,10 +363,10 @@
             </div>
 
             <div class="sidebar-item" onclick="window.location.href='/factaoff'" data-label="FACTA OFF">
-                <img src="/static/img/factaoff.png" style="width: 36px; height: 36px; border-radius: 6px;">
+                <img src="/static/img/factaoff.png" style="width:36px;height:36px;border-radius:6px;">
             </div>
 
-            {% if session['role'] == 'admin' %}
+            {% if session.get('role') == 'admin' %}
             <div class="sidebar-item" onclick="window.location.href='/usuarios'" data-label="Usuários">
                 <span class="material-icons">groups</span>
             </div>
@@ -339,7 +375,6 @@
                 <span class="material-icons">person_add</span>
             </div>
             {% endif %}
-
         </div>
 
         <div class="sidebar-footer">
@@ -357,36 +392,36 @@
     <div class="content">
         <h1 class="titulo-tomorrow">HUB Crédito</h1>
 
-        <div class="card">
-            <h2>Gerar link</h2>
+        <div class="card-form">
+            <h2>Gerar Simulação Automática</h2>
 
             <div class="linha">
                 <div class="col">
-                    <label>Nome <span style="color:#ff4d4d;">(obrigatório)</span></label>
-                    <input id="nomeTermo">
+                    <label>Nome</label>
+                    <input id="nome">
                 </div>
                 <div class="col">
-                    <label>CPF <span style="color:#ff4d4d;">(obrigatório)</span></label>
-                    <input id="cpfTermo">
+                    <label>CPF</label>
+                    <input id="cpf">
                 </div>
                 <div class="col">
-                    <label>E-mail <span style="color:#006eff;">(aleatório)</span></label>
-                    <input id="emailTermo">
+                    <label>E-mail</label>
+                    <input id="email">
                 </div>
             </div>
 
             <div class="linha">
                 <div class="col">
-                    <label>Telefone <span style="color:#ff4d4d;">(obrigatório)</span></label>
-                    <input id="telefoneTermo">
+                    <label>Telefone</label>
+                    <input id="telefone">
                 </div>
                 <div class="col">
-                    <label>Data de Nascimento <span style="color:#ff4d4d;">(obrigatório)</span></label>
-                    <input id="nascTermo">
+                    <label>Data de Nascimento</label>
+                    <input id="nascimento">
                 </div>
                 <div class="col">
-                    <label>Sexo <span style="color:#ff4d4d;">(obrigatório)</span></label>
-                    <select id="sexoTermo">
+                    <label>Sexo</label>
+                    <select id="sexo">
                         <option value="">Selecione</option>
                         <option value="Feminino">Feminino</option>
                         <option value="Masculino">Masculino</option>
@@ -394,56 +429,89 @@
                 </div>
             </div>
 
-            <button class="btn btn-gerar" id="btnGerarTermo" onclick="gerarTermo()">
-                <i class="fa fa-file-signature"></i> Gerar Termo
-            </button>
-
-            <div id="resultadoTermo" style="display:none;" class="resultado-area"></div>
-        </div>
-
-        <div class="card">
-            <h2>Consultar Vínculo Trabalhista</h2>
-
             <div class="linha">
                 <div class="col">
-                    <label>CPF</label>
-                    <input id="cpfVinculo">
+                    <label>Valor da Simulação</label>
+                    <input id="valor" placeholder="Ex: 160.00">
+                </div>
+                <div class="col">
+                    <label>Número de Parcelas</label>
+                    <input id="parcelas" placeholder="Ex: 6">
                 </div>
             </div>
 
-            <button class="btn btn-consultar" id="btnVinculo" onclick="buscarVinculo()">
-                <i class="fa fa-search"></i> Consultar Vínculo
+            <button class="btn btn-gerar" id="btnGerar" onclick="gerarHub()">
+                <i class="fa fa-sync"></i> Gerar Simulação
             </button>
-
-            <div id="resultadoVinculo" style="margin-top:25px;"></div>
         </div>
+
+        <div id="resultado" style="display:none;" class="resultado-area"></div>
+
     </div>
 
     <script src="/static/js/theme.js"></script>
 
     <script>
-        const menuToggle = document.getElementById("menuToggle");
-        const sidebar = document.getElementById("sidebar");
-        const content = document.querySelector(".content");
+        function limparTexto(str) {
+            return str.replace(/\D/g, "");
+        }
 
-        menuToggle.onclick = () => {
-            sidebar.classList.toggle("active");
-            content.classList.toggle("active");
-            menuToggle.classList.toggle("mover");
-        };
+        function normalizarCPF(cpf) {
+            return limparTexto(cpf);
+        }
 
-        async function gerarTermo() {
-            const btn = document.getElementById("btnGerarTermo");
-            btn.innerHTML = `<span class='spinner'></span> Gerando...`;
+        function normalizarTelefone(tel) {
+            return limparTexto(tel);
+        }
+
+        function normalizarData(data) {
+            if (!data) return "";
+
+            if (data.includes("/")) {
+                let partes = data.split("/");
+                if (partes.length === 3) {
+                    return `${partes[2]}-${partes[1]}-${partes[0]}`;
+                }
+            }
+
+            if (data.includes("-")) {
+                let partes = data.split("-");
+                if (partes.length === 3 && partes[0].length === 2) {
+                    return `${partes[2]}-${partes[1]}-${partes[0]}`;
+                }
+            }
+
+            return data;
+        }
+
+        function normalizarValor(valor) {
+            if (!valor) return "";
+
+            valor = valor.replace("R$", "").trim();
+            valor = valor.replace(",", ".");
+            valor = valor.replace(/[^0-9.]/g, "");
+
+            return parseFloat(valor);
+        }
+
+        async function gerarHub() {
+            const btn = document.getElementById("btnGerar");
+            const resultado = document.getElementById("resultado");
+
+            btn.innerHTML = `<span class='spinner'></span> Processando...`;
 
             const payload = {
-                nome: nomeTermo.value,
-                cpf: cpfTermo.value,
-                email: emailTermo.value,
-                telefone: telefoneTermo.value,
-                nascimento: nascTermo.value,
-                sexo: sexoTermo.value
+                nome: document.getElementById("nome").value,
+                cpf: normalizarCPF(document.getElementById("cpf").value),
+                email: document.getElementById("email").value,
+                telefone: normalizarTelefone(document.getElementById("telefone").value),
+                nascimento: normalizarData(document.getElementById("nascimento").value),
+                sexo: document.getElementById("sexo").value,
+                valor: normalizarValor(document.getElementById("valor").value),
+                parcelas: parseInt(document.getElementById("parcelas").value)
             };
+
+            console.log("📌 Enviando payload normalizado:", payload);
 
             const r = await fetch("/api/hub/gerar-termo", {
                 method: "POST",
@@ -452,147 +520,92 @@
             });
 
             const data = await r.json();
+            resultado.style.display = "block";
+            resultado.innerHTML = data.html;
 
-            resultadoTermo.style.display = "block";
-            resultadoTermo.innerHTML = data.html;
+            btn.innerHTML = `<i class="fa fa-sync"></i> Gerar Simulação`;
+        }
+    </script>
 
-            btn.innerHTML = `<i class="fa fa-file-signature"></i> Gerar Termo`;
+    <script>
+        function limparTexto(str) {
+            return str.replace(/\D/g, "");
         }
 
-        async function buscarVinculo() {
-            const btn = document.getElementById("btnVinculo");
-            btn.innerHTML = `<span class='spinner'></span> Consultando...`;
-
-            const r = await fetch("/api/hub/vinculo", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ cpf: document.getElementById("cpfVinculo").value })
-            });
-
-            const data = await r.json();
-
-            resultadoVinculo.style.display = "block";
-            resultadoVinculo.innerHTML = data.html;
-
-            if (data.simular === true) {
-                resultadoVinculo.innerHTML += `
-            <div style="margin-top:20px; text-align:center;">
-                <button class="btn btn-gerar" onclick="simularAutomatico()">
-                    <i class="fa fa-calculator"></i> Simular Agora
-                </button>
-            </div>
-        `;
-            }
-
-            btn.innerHTML = `<i class="fa fa-search"></i> Consultar Vínculo`;
+        function normalizarCPF(cpf) {
+            return limparTexto(cpf);
         }
 
-        async function simularAutomatico() {
-            resultadoVinculo.innerHTML += "<br><span style='color:#888'>⏳ Simulando...</span>";
+        function normalizarTelefone(tel) {
+            return limparTexto(tel);
+        }
 
-            const r = await fetch("/api/hub/simulacao", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({})
-            });
+        function normalizarData(data) {
+            if (!data) return "";
 
-            const data = await r.json();
-
-            if (!data.simulacao) {
-                resultadoVinculo.innerHTML += `<div style='margin-top:20px;'>${data.html}</div>`;
-                return;
-            }
-
-            const s = data.simulacao;
-
-            let html = `
-        <div class="card" style="margin-top:25px; background:#fff6c4; color:#000;">
-            <h2 style="font-size:22px; margin-bottom:15px;">Resultado da Simulação</h2>
-
-            <div style="display:flex; flex-wrap:wrap; gap:15px;">
-
-                <div style="flex:1; min-width:250px;">
-                    <b>Valor Liberado:</b><br>
-                    R$ ${Number(s.valorLiberado || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                </div>
-
-                <div style="flex:1; min-width:250px;">
-                    <b>Parcelas:</b><br>
-                    ${s.numeroParcelas || "-"}
-                </div>
-
-                <div style="flex:1; min-width:250px;">
-                    <b>Valor da Parcela:</b><br>
-                    R$ ${Number(s.valorParcela || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                </div>
-
-                <div style="flex:1; min-width:250px;">
-                    <b>Valor Total:</b><br>
-                    R$ ${Number(s.valorTotal || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                </div>
-
-                <div style="flex:1; min-width:250px;">
-                    <b>CET:</b><br>
-                    ${Number(s.cet || 0).toFixed(2)}%
-                </div>
-
-                <div style="flex:1; min-width:250px;">
-                    <b>IOF:</b><br>
-                    R$ ${Number(s.iof || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                </div>
-
-                <div style="flex:1; min-width:250px;">
-                    <b>TAC:</b><br>
-                    R$ ${Number(s.tac || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                </div>
-
-                <div style="flex:1; min-width:250px;">
-                    <b>Seguro:</b><br>
-                    R$ ${Number(s.valorSeguro || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                </div>
-
-                <div style="flex:1; min-width:250px;">
-                    <b>Primeiro Vencimento:</b><br>
-                    ${s.dataPrimeiroVencimento || "-"}
-                </div>
-
-                <div style="flex:1; min-width:250px;">
-                    <b>Conveniada:</b><br>
-                    ${s.nomeConveniada || "-"}
-                </div>
-
-            </div>
-    `;
-
-            if (s.parcelas && s.parcelas.length > 0) {
-                html += `
-            <h3 style="margin-top:25px;">Tabela de Parcelas</h3>
-            <table style="width:100%; border-collapse: collapse; margin-top:10px;">
-                <tr style="background:#ffe9a3;">
-                    <th style="padding:8px; border:1px solid #000;">Parcela</th>
-                    <th style="padding:8px; border:1px solid #000;">Vencimento</th>
-                    <th style="padding:8px; border:1px solid #000;">Valor</th>
-                </tr>
-        `;
-
-                for (let p of s.parcelas) {
-                    html += `
-                <tr>
-                    <td style="padding:8px; border:1px solid #000;">${p.numero}</td>
-                    <td style="padding:8px; border:1px solid #000;">${p.dataVencimento}</td>
-                    <td style="padding:8px; border:1px solid #000;">R$ ${Number(p.valor).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</td>
-                </tr>
-            `;
+            if (data.includes("/")) {
+                let partes = data.split("/");
+                if (partes.length === 3) {
+                    return `${partes[2]}-${partes[1]}-${partes[0]}`;
                 }
-
-                html += "</table>";
             }
 
-            html += "</div>";
+            if (data.includes("-")) {
+                let partes = data.split("-");
+                if (partes.length === 3 && partes[0].length === 2) {
+                    return `${partes[2]}-${partes[1]}-${partes[0]}`;
+                }
+            }
 
-            resultadoVinculo.innerHTML += html;
+            return data;
         }
 
+        function normalizarValor(valor) {
+            if (!valor) return "";
+
+            valor = valor.replace("R$", "").trim();
+
+            valor = valor.replace(",", ".");
+
+            valor = valor.replace(/[^0-9.]/g, "");
+
+            return parseFloat(valor);
+        }
+
+        document.getElementById("hubForm").addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            let nome = document.getElementById("nome").value;
+            let cpf = normalizarCPF(document.getElementById("cpf").value);
+            let email = document.getElementById("email").value;
+            let telefone = normalizarTelefone(document.getElementById("telefone").value);
+            let nascimento = normalizarData(document.getElementById("nascimento").value);
+            let sexo = document.getElementById("sexo").value;
+            let valorSimulacao = normalizarValor(document.getElementById("valorSimulacao").value);
+            let parcelas = parseInt(document.getElementById("parcelas").value);
+
+            fetch("/api/hub/gerar-termo", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    nome,
+                    cpf,
+                    email,
+                    telefone,
+                    nascimento,
+                    sexo,
+                    valor: valorSimulacao,
+                    parcelas: parcelas
+                })
+            })
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById("resultado").innerHTML = data.html;
+                })
+                .catch(err => {
+                    console.error("Erro:", err);
+                });
+        });
     </script>
 
 </body>

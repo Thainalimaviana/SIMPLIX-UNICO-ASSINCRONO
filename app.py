@@ -1345,100 +1345,59 @@ def api_c6_consultar():
 #*************************************************************************************************************
 #HUB
 
-HUB_TOKEN = None
-HUB_EXPIRA = 0
+HUB_USER = "thaina.admin458"      
+HUB_PASS = "Tech@2811"     
+HUB_LOJA_ID = 13546             
+HUB_TIPO_TERMO = "AutorizacaoDataprev"
 
-def safe_json(response):
-    try:
-        return response.json()
-    except Exception:
-        print("\n❌ JSON inválido recebido da API HUB:")
-        print(response.text)
-        return None
+HUB_TOKEN = None
+HUB_TOKEN_EXPIRA = 0
 
 @app.route("/hub")
 def hub_page():
     return render_template("hub.html")
 
-def hub_gerar_token():
-    import time
-    global HUB_TOKEN, HUB_EXPIRA
+def gerar_token_hub():
+    global HUB_TOKEN, HUB_TOKEN_EXPIRA
 
-    if HUB_TOKEN and time.time() < HUB_EXPIRA:
+    agora = time.time()
+    if HUB_TOKEN and agora < HUB_TOKEN_EXPIRA:
         return HUB_TOKEN
 
     url = "https://api.hubcredito.com.br/api/Login"
-
     payload = {
-        "userName": "thaina.admin458",
-        "password": "123456",
+        "userName": HUB_USER,
+        "password": HUB_PASS,
         "grantTypes": "password"
     }
 
-    headers = {"Content-Type": "application/json"}
-
     try:
-        r = requests.post(url, json=payload, headers=headers, timeout=20)
-        print("RAW TOKEN HUB:", r.text)
-        resp = r.json()
-    except Exception:
-        print("❌ ERRO AO PARSEAR TOKEN HUB:", r.text)
-        return None
+        r = requests.post(url, json=payload, timeout=20)
+        data = r.json()
 
-    HUB_TOKEN = resp["value"]["token"]["accessToken"]
-    HUB_EXPIRA = time.time() + 480
+        if not data.get("hasSuccess"):
+            raise Exception(data.get("message", "Erro ao gerar token HUB"))
 
-    print("🔑 Novo token HUB gerado!")
-    return HUB_TOKEN
+        token = data["value"]["token"]["accessToken"]
+        expira = data["value"]["token"]["expiration"]
 
-def normalizar_cpf_hub(cpf):
-    return re.sub(r"\D", "", cpf)
+        HUB_TOKEN = token
+        HUB_TOKEN_EXPIRA = agora + 3500
 
-def normalizar_telefone_hub(tel):
-    tel = re.sub(r"\D", "", tel)
-    if len(tel) < 10:
-        return None
-    return tel
+        return token
 
-def normalizar_data_hub(data):
-    data = data.replace("/", "-")
-    formatos = ["%Y-%m-%d", "%d-%m-%Y", "%d-%m-%y", "%d/%m/%Y", "%d/%m/%y"]
-    for fmt in formatos:
-        try:
-            return datetime.strptime(data, fmt).strftime("%Y-%m-%d")
-        except:
-            pass
-    return None
+    except Exception as e:
+        print("❌ Erro ao gerar token HUB:", e)
+        raise
 
-@app.route("/api/hub/gerar-termo", methods=["POST"])
-def hub_gerar_termo():
-    data = request.get_json()
-
-    nome = data.get("nome")
-    cpf = normalizar_cpf_hub(data.get("cpf"))
-    email = data.get("email")
-    telefone = normalizar_telefone_hub(data.get("telefone"))
-    nascimento = normalizar_data_hub(data.get("nascimento"))
-    sexo = data.get("sexo")
-    loja_id = 13546
-
-    if not telefone:
-        return jsonify({"html": "<b class='status-erro'>Telefone inválido.</b>"}), 400
-
-    token = hub_gerar_token()
-    if not token:
-        return jsonify({"html": "<b class='status-erro'>Erro ao gerar token HUB.</b>"}), 500
+def hub_gerar_termo(nome, cpf, email, telefone, nascimento, sexo):
+    token = gerar_token_hub()
 
     url = "https://api.hubcredito.com.br/api/Clt/gerar-termo-aceite"
 
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "Content-Type": "application/json"
-    }
-
     payload = {
-        "tipoTermo": "AutorizacaoDataprev",
-        "lojaId": loja_id,
+        "tipoTermo": HUB_TIPO_TERMO,
+        "lojaId": HUB_LOJA_ID,
         "nome": nome,
         "cpf": cpf,
         "email": email,
@@ -1447,352 +1406,230 @@ def hub_gerar_termo():
         "sexo": sexo
     }
 
-    r = requests.post(url, json=payload, headers=headers, timeout=20)
+    headers = {"Authorization": f"Bearer {token}"}
 
-    print("\n--- RESPOSTA GERAR TERMO (RAW) ---")
-    print("STATUS:", r.status_code)
-    print("BODY:", r.text)
-    print("----------------------------------\n")
-
-    try:
-        resp = r.json()
-    except:
-        return jsonify({
-            "sucesso": False,
-            "html": """
-                <div style='padding:20px; background:#ffd6d6; color:#b30000;
-                            border-radius:10px; text-align:center;'>
-                    ❌ A API do HUB retornou uma resposta inválida.<br>
-                    Tente novamente em alguns instantes.
-                </div>
-            """
-        })
-
-    termo_id = resp.get("value", {}).get("id")
-    link_assinatura = "https://termo.hubcredito.com.br/"
-
-    html = f"""
-        <b style='font-size:18px;'>Termo criado com sucesso!</b><br><br>
-
-        <div style="display:flex; flex-direction:column; align-items:center; width:100%;">
-
-            <input value="{link_assinatura}" readonly
-                style="
-                    width:90%;
-                    padding:12px 14px;
-                    border-radius:12px;
-                    border:1px solid #bfbfbf;
-                    background: var(--bg-input);
-                    color: var(--cor-texto);
-                    font-size:15px;
-                    margin-bottom:15px;
-                ">
-
-            <button class='copy-btn' onclick="navigator.clipboard.writeText('{link_assinatura}')"
-                style="
-                    background:#0aff73;
-                    color:#000;
-                    padding:12px 20px;
-                    border-radius:12px;
-                    border:none;
-                    cursor:pointer;
-                    font-weight:bold;
-                    font-size:15px;
-                    transition:0.25s;
-                ">
-                <i class="fa fa-copy"></i> Copiar
-            </button>
-
-        </div>
-
-        <br><br>
-        <b>ID Gerado:</b> {termo_id}
-    """
-
-    return jsonify({"html": html, "sucesso": True})
-
-def hub_request_get(url, headers):
-    try:
-        r = requests.get(url, headers=headers, timeout=20)
-        return r
-    except requests.exceptions.ReadTimeout:
-        print("⏳ Timeout (1ª tentativa). Retentando...")
+    for tentativa in range(3):
         try:
-            r = requests.get(url, headers=headers, timeout=20)
-            return r
-        except requests.exceptions.ReadTimeout:
-            print("⛔ Timeout novamente. API HUB muito lenta.")
-            return None
-    except Exception as e:
-        print("❌ ERRO DE CONEXÃO HUB:", e)
-        return None
+            r = requests.post(url, json=payload, headers=headers, timeout=20)
 
-@app.route("/api/hub/vinculo", methods=["POST"])
-def hub_vinculo():
-    data = request.get_json()
-    cpf = normalizar_cpf_hub(data.get("cpf"))
+            if not r.text.strip():
+                print(f"⚠️ Tentativa {tentativa+1}: resposta vazia do gerar termo")
+                time.sleep(2)
+                continue
 
-    token = hub_gerar_token()
-    if not token:
-        return jsonify({
-            "html": """
-                <div style='padding:20px;background:#ffd6d6;color:#b30000;border-radius:10px;text-align:center;'>
-                    ❌ Erro ao gerar token Hub.
-                </div>
-            """,
-            "elegivel": False
-        }), 500
+            data = r.json()
+
+            if not data.get("hasSuccess"):
+                raise Exception(data.get("errors", ["Erro ao gerar termo"])[0])
+
+            termo_id = data["value"]["id"]
+            chave = data["value"]["chaveIdentificadora"]
+
+            print("✔ Termo gerado com sucesso na tentativa", tentativa+1)
+            return termo_id, chave
+
+        except Exception as e:
+            print(f"❌ Erro ao gerar termo (tentativa {tentativa+1}/3): {e}")
+            time.sleep(2)
+
+    raise Exception("API instável: não foi possível gerar o termo após 3 tentativas.")
+
+def hub_autorizar_termo(termo_id, cpf):
+    url = "https://termo.hubcredito.com.br/api/Termo/autorizar"
+
+    payload = {
+        "id": termo_id,
+        "cpf": cpf
+    }
+
+    for tentativa in range(3):
+        try:
+            r = requests.post(url, json=payload, timeout=15)
+
+            if not r.text.strip():
+                print(f"⚠️ Tentativa {tentativa+1}: API retornou vazio, tentando de novo...")
+                time.sleep(1)
+                continue
+
+            data = r.json()
+
+            if not data.get("hasSuccess"):
+                raise Exception(data.get("errors", ["Erro ao autorizar termo"])[0])
+
+            return True
+
+        except Exception as e:
+            print(f"⚠️ Falha tentativa {tentativa+1} ao autorizar termo: {e}")
+            time.sleep(1)
+
+    print("⚠️ API instável: seguindo fluxo sem confirmação de autorização.")
+    return True
+
+
+def hub_consultar_vinculo(cpf):
+    token = gerar_token_hub()
 
     url = f"https://api.hubcredito.com.br/api/Clt/wincred/listar-vinculos?cpfTrabalhador={cpf}"
+    headers = {"Authorization": f"Bearer {token}"}
 
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "Content-Type": "application/json"
-    }
+    r = requests.get(url, headers=headers, timeout=20)
+    data = r.json()
 
-    r = hub_request_get(url, headers)
+    if not data.get("hasSuccess"):
+        raise Exception(data.get("errors", ["Erro ao consultar vínculo"])[0])
 
-    if r is None:
-        return jsonify({
-            "html": """
-                <div style='padding:20px;background:#ffd6d6;color:#b30000;border-radius:10px;
-                text-align:center;font-size:18px;font-weight:bold;'>
-                    ❌ A API Hub demorou demais para responder.<br>Tente novamente.
-                </div>
-            """,
-            "elegivel": False
-        })
+    valor = data.get("value")
 
-    try:
-        resp = r.json()
-    except:
-        print("❌ JSON INVÁLIDO HUB:", r.text)
-        return jsonify({
-            "html": f"""
-                <div style='padding:20px;background:#ffd6d6;color:#b30000;border-radius:10px;text-align:center;'>
-                    ❌ A API Hub retornou resposta inválida.<br>
-                    <small>{r.text}</small>
-                </div>
-            """,
-            "elegivel": False
-        })
+    if isinstance(valor, list):
+        return valor
 
-    print("📌 VÍNCULO HUB:", resp)
+    if isinstance(valor, dict) and "vinculos" in valor:
+        if not valor["vinculos"]:
+            raise Exception("Nenhum vínculo encontrado para este CPF.")
 
-    if not isinstance(resp, dict):
-        return jsonify({
-            "html": f"""
-                <div style='padding:20px;background:#ffd6d6;color:#b30000;border-radius:10px;
-                text-align:center;font-size:18px;font-weight:bold;'>
-                    ❌ A API HUB retornou erro inesperado.<br>
-                    <small>{resp}</small>
-                </div>
-            """,
-            "elegivel": False
-        })
+        return valor
 
-    if resp.get("hasError"):
-        erro_msg = resp.get("errors", ["Erro desconhecido"])[0]
-        return jsonify({
-            "html": f"""
-                <div style='padding:20px;background:#ffd6d6;color:#b30000;border-radius:10px;
-                text-align:center;font-weight:bold;font-size:18px;'>
-                    ❌ {erro_msg}
-                </div>
-            """,
-            "elegivel": False
-        })
+    raise Exception("Retorno inesperado da HUB.")
 
-    try:
-        vinc = resp["value"]["vinculos"][0]
-        idCotacao = resp["value"]["idCotacao"]
-        matricula = vinc["matricula"]
-        inscricao = vinc["inscricaoEmpregador"]["numeroInscricao"]
-        tipo_inscricao = vinc["inscricaoEmpregador"].get("tipoInscricao", 1)
-        elegivel = vinc["elegivel"]
-    except Exception as e:
-        print("❌ ERRO AO LER VÍNCULO:", e)
-        return jsonify({
-            "html": """
-                <div style='padding:20px;background:#ffd6d6;color:#b30000;border-radius:10px;
-                text-align:center;font-size:20px;font-weight:bold;'>
-                    ❌ Cliente não elegível
-                </div>
-            """,
-            "elegivel": False
-        })
+def hub_gerar_cards_html(simulacoes):
+    html = ""
 
-    session["hub_idCotacao"] = idCotacao
-    session["hub_matricula"] = matricula
-    session["hub_inscricao"] = inscricao
-    session["hub_tipo_inscricao"] = tipo_inscricao
-    session["hub_cpf"] = cpf
+    for sim in simulacoes:
+        opcao = sim.get("opcaoProposta", {})
+        tabela = sim.get("tabelaFinanciamento", {})
 
-    html_vinculo = """
-        <div style='padding:20px;font-size:20px;font-weight:bold;
-        color:{cor};background:{bg};border-radius:10px;text-align:center;'>
-            {msg}
+        html += f"""
+        <div class='hub-card'>
+            <h3>{tabela.get("descricao", "Sem descrição")}</h3>
+
+            <p><span>Valor Margem:</span> R$ {sim.get("valorMargem", 0):,.2f}</p>
+            <p><span>Parcelas:</span> {opcao.get("numeroParcelas", "-")}</p>
+            <p><span>Valor Parcela:</span> R$ {opcao.get("valorParcela", 0):,.2f}</p>
+            <p><span>Valor Total:</span> R$ {opcao.get("valorEmprestimoTotal", 0):,.2f}</p>
+            <p><span>CET:</span> {opcao.get("cet", 0)}%</p>
+            <p><span>Seguro:</span> R$ {opcao.get("valorSeguro", 0):,.2f}</p>
+            <p><span>Liberado:</span> R$ {opcao.get("valorDesembolsoTrabalhador", 0):,.2f}</p>
+            <p><span>Proposta ID:</span> {opcao.get("idProposta", "-")}</p>
+            <p><span>Vencimento:</span> {opcao.get("dataDeVencimento", "-")}</p>
         </div>
-    """
+        """
 
-    if elegivel:
-        html_vinculo = html_vinculo.format(cor="#0a7a00", bg="#c8ffcc", msg="✔️ Cliente Elegível")
-    else:
-        html_vinculo = html_vinculo.format(cor="#b30000", bg="#ffd6d6", msg="❌ Cliente Não Elegível")
+    return f"<div class='cards-grid'>{html}</div>"
 
-    return jsonify({
-        "html": html_vinculo,
-        "elegivel": elegivel,
-        "simular": elegivel
-    })
+@app.route("/api/hub/gerar-termo", methods=["POST"])
+def api_hub_gerar_termo():
+    data = request.json
 
-@app.route("/api/hub/simulacao", methods=["POST"])
-def hub_simulacao():
-    cpf = session.get("hub_cpf")
-    idCotacao = session.get("hub_idCotacao")
-    matricula = session.get("hub_matricula")
-    inscricao = session.get("hub_inscricao")
-    tipo_inscricao = session.get("hub_tipo_inscricao", 1)
+    nome = data["nome"]
+    cpf = data["cpf"]
+    email = data.get("email")
+    telefone = data["telefone"]
+    nascimento = data["nascimento"]
+    sexo = data["sexo"]
 
-    if not all([cpf, idCotacao, matricula, inscricao]):
-        return jsonify({
-            "html": """
-                <div style='padding:18px;background:#ffd6d6;color:#b30000;
-                border-radius:10px;text-align:center;font-weight:bold;'>
-                    ❌ Consulte o vínculo antes de simular.
-                </div>
-            """
-        })
-    
-    dados = request.get_json() or {}
-    parcelas_str = str(dados.get("parcelas", "")).strip()
-    valor_str = str(dados.get("valor", "")).replace(",", ".").strip()
+    valor = float(data["valor"])
+    parcelas = int(data["parcelas"])
 
-    parcelas = None
-    valor = None
+    try:
+        try:
+            termo_id, chave = hub_gerar_termo(nome, cpf, email, telefone, nascimento, sexo)
 
-    if not parcelas_str and not valor_str:
-        parcelas = 12 
-    else:
-        if parcelas_str:
             try:
-                parcelas = int(parcelas_str)
-            except:
-                return jsonify({"html": "<div class='resultado-erro'>❌ Número de parcelas inválido.</div>"})
+                hub_autorizar_termo(termo_id, cpf)
+            except Exception as e:
+                print("⚠️ Erro ao autorizar termo, seguindo mesmo assim:", e)
 
-        if valor_str:
-            try:
-                valor = float(valor_str)
-            except:
-                return jsonify({"html": "<div class='resultado-erro'>❌ Valor inválido.</div>"})
+        except Exception as e:
+            msg = str(e).lower()
 
-    token = hub_gerar_token()
-    if not token:
+            if "já possui um termo" in msg or "termo" in msg:
+                print("Cliente já possui termo — seguindo fluxo.")
+            else:
+                return jsonify({
+                    "success": False,
+                    "html": f"""
+                    <div class='hub-card' style='background:#ffdddd;border:1px solid #ffb0b0;'>
+                        <h3 style='color:#b30000;'>Erro</h3>
+                        <p>{str(e)}</p>
+                    </div>
+                    """
+                }), 400
+
+        vinculo = hub_consultar_vinculo(cpf)
+
+        if isinstance(vinculo, list):
+            simulacoes = vinculo
+
+        else:
+            idcotacao = vinculo["idCotacao"]
+            vinc = vinculo["vinculos"][0]
+
+            matricula = vinc["matricula"]
+            numero_empresa = vinc["inscricaoEmpregador"]["numeroInscricao"]
+            codigo_inscricao = vinc["inscricaoEmpregador"]["tipoInscricao"]
+
+            simulacoes = hub_simular(
+                cpf,
+                idcotacao,
+                matricula,
+                codigo_inscricao,
+                numero_empresa,
+                valor,
+                parcelas
+            )
+
+        html = hub_gerar_cards_html(simulacoes)
+
+        return jsonify({"success": True, "html": html})
+
+    except Exception as e:
         return jsonify({
-            "html": """
-                <div style='padding:18px;background:#ffd6d6;color:#b30000;
-                border-radius:10px;text-align:center;'>
-                    ❌ Erro ao gerar token para simulação.
-                </div>
-            """
-        }), 500
+            "success": False,
+            "html": f"<div class='card' style='background:#ffb4b4;padding:15px;'>❌ {str(e)}</div>"
+        }), 400
 
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "Content-Type": "application/json"
-    }
+
+def hub_simular(cpf, idcotacao, matricula, codigo_empregador, numero_empregador, valor, parcelas):
+    token = gerar_token_hub()
+
+    url = "https://api.hubcredito.com.br/api/Clt/wincred/simular"
 
     payload = {
         "cpf": cpf,
-        "lojaId": 13546,
-        "idCotacao": idCotacao,
+        "lojaId": HUB_LOJA_ID,
+        "idCotacao": idcotacao,
+        "numeroParcelas": parcelas,
+        "valor": valor,
         "matricula": matricula,
-        "codigoInscricaoEmpregador": tipo_inscricao,
-        "numeroInscricaoEmpregador": inscricao
+        "codigoInscricaoEmpregador": codigo_empregador,
+        "numeroInscricaoEmpregador": numero_empregador
     }
 
-    if parcelas is not None:
-        payload["numeroParcelas"] = parcelas
-    if valor is not None:
-        payload["valor"] = valor
+    headers = {"Authorization": f"Bearer {token}"}
 
-    print("\n📤 ENVIANDO PAYLOAD PARA SIMULAÇÃO:")
-    print(payload)
+    for tentativa in range(3):
+        try:
+            r = requests.post(url, json=payload, headers=headers, timeout=40)
 
-    try:
-        r = requests.post(
-            "https://api.hubcredito.com.br/api/Clt/wincred/simular",
-            json=payload,
-            headers=headers,
-            timeout=25
-        )
-    except requests.exceptions.ReadTimeout:
-        return jsonify({
-            "html": """
-                <div style='padding:20px;background:#ffd6d6;color:#b30000;
-                border-radius:10px;text-align:center;font-weight:bold;'>
-                    ⛔ A API Hub demorou para responder. Tente novamente.
-                </div>
-            """
-        })
+            if not r.text.strip():
+                print(f"⚠️ Tentativa {tentativa+1}: resposta vazia do simular()")
+                time.sleep(2)
+                continue
 
-    try:
-        resp = r.json()
-    except:
-        print("❌ JSON inválido na simulação:", r.text)
-        return jsonify({
-            "html": f"""
-                <div style='padding:20px;background:#ffd6d6;color:#b30000;
-                border-radius:10px;text-align:center;font-weight:bold;'>
-                    ❌ A API Hub retornou resposta inválida.<br>
-                    <small>{r.text}</small>
-                </div>
-            """
-        })
+            data = r.json()
 
-    print("📌 SIMULAÇÃO HUB:", resp)
+            if not data.get("hasSuccess"):
+                raise Exception(data.get("errors", ["Erro ao simular"])[0])
 
-    if not isinstance(resp, dict):
-        return jsonify({
-            "html": f"""
-                <div style='padding:20px;background:#ffd6d6;color:#b30000;
-                border-radius:10px;text-align:center;font-weight:bold;font-size:18px;'>
-                    ❌ Erro inesperado da Wincred.<br>
-                    <small>{resp}</small>
-                </div>
-            """
-        })
+            print("✔ Simulação OK na tentativa", tentativa+1)
+            return data["value"]
 
-    if resp.get("hasError"):
-        erro = resp.get("errors", ["Erro inesperado"])[0]
-        return jsonify({
-            "html": f"""
-                <div style='padding:20px;background:#ffd6d6;color:#b30000;
-                border-radius:10px;text-align:center;font-weight:bold;font-size:18px;'>
-                    ❌ {erro}
-                </div>
-            """
-        })
+        except Exception as e:
+            print(f"❌ Erro na simulação (tentativa {tentativa+1}/3): {e}")
+            time.sleep(2)
 
-    if not resp.get("value"):
-        return jsonify({
-            "html": """
-                <div style='padding:20px;background:#ffd6d6;color:#b30000;
-                border-radius:10px;text-align:center;font-weight:bold;font-size:18px;'>
-                    ❌ Nenhuma simulação foi encontrada para este CPF.
-                </div>
-            """
-        })
+    raise Exception("API instável: não foi possível concluir a simulação após 3 tentativas.")
 
-    return jsonify({
-        "html": """
-            <div style='padding:20px;background:#ffffb8;color:#575700;
-            border-radius:10px;text-align:center;font-size:20px;font-weight:bold;'>
-                ✔️ Simulação disponível!
-            </div>
-        """,
-        "simulacao": resp["value"]
-    })
 
 #*************************************************************************************************************
 #V8
