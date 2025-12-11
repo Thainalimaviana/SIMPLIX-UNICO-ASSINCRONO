@@ -1585,7 +1585,7 @@ def api_hub_gerar_termo():
     except Exception as e:
         return jsonify({
             "success": False,
-            "html": f"<div class='card' style='background:#ffb4b4;padding:15px;'>❌ {str(e)}</div>"
+            "html": f"<div class='card' style='background:#800000;color:#F5FFFA;padding:15px;'>❌ {str(e)}</div>"
         }), 400
 
 
@@ -1607,29 +1607,39 @@ def hub_simular(cpf, idcotacao, matricula, codigo_empregador, numero_empregador,
 
     headers = {"Authorization": f"Bearer {token}"}
 
-    for tentativa in range(3):
+    TIMEOUT_ERROS = ["Read timed out", "HTTPSConnectionPool", "timeout"]
+
+    for tentativa in range(1, 4):
         try:
             r = requests.post(url, json=payload, headers=headers, timeout=40)
 
             if not r.text.strip():
-                print(f"⚠️ Tentativa {tentativa+1}: resposta vazia do simular()")
+                print(f"⚠️ Tentativa {tentativa}: resposta vazia do simular()")
                 time.sleep(2)
                 continue
 
             data = r.json()
 
             if not data.get("hasSuccess"):
-                raise Exception(data.get("errors", ["Erro ao simular"])[0])
+                erro_api = data.get("errors", ["Erro ao simular"])[0]
+                print("❌ Erro direto da API:", erro_api)
+                raise Exception(erro_api)
 
-            print("✔ Simulação OK na tentativa", tentativa+1)
+            print("✔ Simulação OK na tentativa", tentativa)
             return data["value"]
 
         except Exception as e:
-            print(f"❌ Erro na simulação (tentativa {tentativa+1}/3): {e}")
-            time.sleep(2)
+            msg = str(e)
+
+            if any(txt in msg for txt in TIMEOUT_ERROS):
+                print(f"⚠️ Timeout na tentativa {tentativa}, tentando novamente...")
+                time.sleep(2)
+                continue
+
+            print(f"❌ Erro não relacionado a timeout, interrompendo: {e}")
+            raise Exception(str(e))
 
     raise Exception("API instável: não foi possível concluir a simulação após 3 tentativas.")
-
 
 #*************************************************************************************************************
 #V8
@@ -2016,10 +2026,13 @@ def facta_simular():
 def facta_etapa6():
     data = request.get_json()
     cpf = data.get("cpf")
+    matricula = data.get("matricula")
 
-    matricula = cache_matriculas.get(cpf)
     if not matricula:
-        return {"erro": True, "mensagem": "Matrícula não localizada. Consulte o trabalhador primeiro."}
+        return {
+            "erro": True,
+            "mensagem": "Matrícula não enviada. Escolha uma antes de prosseguir."
+        }
 
     payload = {
         "id_simulador": data.get("id_simulador"),
@@ -2066,8 +2079,6 @@ def facta_etapa6():
     }
 
     resp = facta_post(FACTA_URL_ETAPA6, payload)
-    print("📌 ETAPA 6 FACTA:", resp)
-
     return jsonify({
         "erro": resp.get("erro", False),
         "mensagem": resp.get("mensagem"),
@@ -2203,7 +2214,9 @@ def api_factaoff_consulta():
 
     d = dados[0]
 
-    cache_matriculas[d.get("cpf")] = d.get("matricula")
+    todas_matriculas = [x.get("matricula") for x in dados if x.get("matricula")]
+
+    cache_matriculas[cpf] = todas_matriculas
 
     e = str(d.get("elegivel", "")).strip()
     if e == "1":
@@ -2252,7 +2265,11 @@ def api_factaoff_consulta():
     </div>
 """
 
-    return jsonify({"erro": False, "html": html})
+    return jsonify({
+        "erro": False,
+        "html": html,
+        "matriculas": todas_matriculas
+    })
 
 def formatar_valor(v):
     try:

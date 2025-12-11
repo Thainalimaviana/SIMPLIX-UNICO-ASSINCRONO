@@ -321,6 +321,22 @@
             backdrop-filter: blur(8px);
             box-shadow: 0 5px 20px rgba(0, 0, 0, 0.25);
         }
+
+        select {
+            background: var(--bg-input) !important;
+            color: var(--cor-texto) !important;
+            border: 1px solid #8882 !important;
+        }
+
+        select option {
+            background: var(--bg-container) !important;
+            color: var(--cor-texto) !important;
+        }
+
+        select:focus {
+            outline: none !important;
+            border-color: #00ff88 !important;
+        }
     </style>
 </head>
 
@@ -482,16 +498,6 @@
             }
 
             return data;
-        }
-
-        function normalizarValor(valor) {
-            if (!valor) return "";
-
-            valor = valor.replace("R$", "").trim();
-            valor = valor.replace(",", ".");
-            valor = valor.replace(/[^0-9.]/g, "");
-
-            return parseFloat(valor);
         }
 
         async function gerarHub() {

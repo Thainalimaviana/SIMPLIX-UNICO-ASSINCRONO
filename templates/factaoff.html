@@ -281,6 +281,25 @@
         .main {
             margin-left: 30px !important;
         }
+
+        .select-matricula {
+            width: 280px;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            background: linear-gradient(40deg, var(--gradiente-inicio), var(--gradiente-fim));
+            color: var(--cor-texto);
+            border: 2px solid #00ff88;
+            outline: none;
+            margin-top: 10px;
+        }
+
+        .select-matricula option {
+            background: #ffffff;
+            color: #000;
+            font-size: 15px;
+        }
     </style>
 </head>
 
@@ -712,6 +731,27 @@
                 const data = await r.json();
 
                 if (data.erro) {
+
+                    if (data.matriculas && Array.isArray(data.matriculas)) {
+
+                        let html = `
+            <div class='erro-box'>
+                <b>${data.mensagem}</b><br><br>
+                <label>Selecione a matrícula:</label>
+                <select id="select_matricula" class="select-matricula">
+                    ${data.matriculas.map(m => `<option value="${m}">${m}</option>`).join("")}
+                </select>
+
+                <button class="btn btn-consultar" style="margin-top:15px;" onclick="confirmarMatriculaSelecionada()">
+                    Confirmar Matrícula
+                </button>
+            </div>
+        `;
+
+                        document.getElementById("retorno-simulacao").innerHTML = html;
+                        return;
+                    }
+
                     document.getElementById("retorno-simulacao").innerHTML =
                         `<div class='erro-box'>${data.mensagem}</div>`;
                     return;
@@ -725,6 +765,16 @@
             <p><b>ID:</b> ${ID_SIMULADOR_OFF}</p>
         </div>
     `;
+
+                document.getElementById("card-etapa6").style.display = "block";
+            }
+
+            function confirmarMatriculaSelecionada() {
+                const matricula = document.getElementById("select_matricula").value;
+                window.MATRICULA_SELECIONADA = matricula;
+
+                document.getElementById("retorno-simulacao").innerHTML =
+                    `<div class='resultado-area'>Matrícula selecionada: <b>${matricula}</b></div>`;
 
                 document.getElementById("card-etapa6").style.display = "block";
             }
@@ -745,13 +795,14 @@
                     data_expedicao: document.getElementById("data_expedicao").value,
 
                     celular: document.getElementById("celular").value,
-
                     data_nascimento: document.getElementById("data_nascimento").value,
                     renda: document.getElementById("renda_et6").value,
 
                     banco: document.getElementById("banco").value,
                     agencia: document.getElementById("agencia").value,
                     conta: document.getElementById("conta").value,
+
+                    matricula: window.MATRICULA_SELECIONADA
                 };
 
                 const r = await fetch("/api/facta/etapa6", {
@@ -770,6 +821,7 @@
                     finalizarPropostaOff(data.codigo_cliente);
                 }
             }
+
 
             async function finalizarPropostaOff(codigo_cliente) {
 
