@@ -16,7 +16,7 @@
             background: var(--bg-container);
             padding: 25px;
             border-radius: 16px;
-            margin-bottom: 25px;
+            margin-bottom: 35px;
             width: 100%;
             max-width: 950px;
             color: var(--cor-texto);
@@ -42,9 +42,8 @@
             margin-bottom: 6px;
         }
 
-        input,
-        select {
-            padding: 10px 12px;
+        input {
+            padding: 12px;
             border-radius: 10px;
             border: 1px solid #8882;
             background: var(--bg-input);
@@ -64,13 +63,19 @@
             gap: 8px;
         }
 
-        .btn:hover {
-            transform: scale(1.05);
+        .btn-autorizar {
+            background: #00e66e;
+            color: #000;
         }
 
-        .btn-gerar {
-            background: #0aff73;
+        .btn-consultar {
+            background: #00c8ff;
             color: #000;
+        }
+
+        .btn-limpar {
+            background: #ff5252;
+            color: white;
         }
 
         .spinner {
@@ -92,7 +97,16 @@
             margin-top: 20px;
             padding: 18px;
             border-radius: 10px;
-            background: rgba(0, 0, 0, .08);
+        }
+
+        .hub-card {
+            background: linear-gradient(40deg, var(--gradiente-inicio), var(--gradiente-fim));
+            padding: 16px 20px;
+            border-radius: 14px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            font-size: 14px;
+            line-height: 1.4;
+            color: var(--cor-texto);
         }
 
         .sidebar-modern {
@@ -253,100 +267,41 @@
             scrollbar-color: rgba(255, 255, 255, 0.20) transparent;
         }
 
-        .content {
-            margin-left: 90px !important;
+        .btn-loading {
+            opacity: 0.6;
+            pointer-events: none;
         }
 
-        .cards-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
-            gap: 40px 30px;
-            width: 100%;
-            align-items: stretch;
+        .spinner-mini {
+            border: 3px solid rgba(0, 0, 0, 0.2);
+            border-top: 3px solid black;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            animation: spin .6s linear infinite;
+            display: inline-block;
         }
 
-        .hub-card {
-            background: linear-gradient(40deg, var(--gradiente-inicio), var(--gradiente-fim));
-            padding: 16px 20px;
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .hub-simulacao {
+            background: rgba(0, 0, 0, 0.25);
             border-radius: 14px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            font-size: 14px;
-            line-height: 1.4;
-            color: var(--cor-texto);
-            text-align: left;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            height: 100%;
-            width: 100%;
-            margin-bottom: 10px;
-            min-height: 260px;
-        }
-
-
-        .hub-card h3 {
-            font-size: 17px;
-            margin-bottom: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
             text-align: center;
-            font-weight: 600;
+            line-height: 1.6;
         }
 
-        .hub-card p {
-            margin: 4px 0;
-            font-weight: 500;
-        }
-
-        .hub-card span {
-            font-weight: 600;
-            color: var(--cor-texto);
-        }
-
-        .resultado-area {
-            width: 100%;
-            max-width: 1300px;
-            margin: 40px auto;
-            padding: 20px 10px;
-            background: transparent;
-        }
-
-        .resultado-area .card {
-            max-width: 100%;
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        .card-form {
-            background: var(--bg-container);
-            padding: 25px;
-            border-radius: 16px;
-            margin-bottom: 25px;
-            width: 100%;
-            max-width: 950px;
-            color: var(--cor-texto);
-            backdrop-filter: blur(8px);
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.25);
-        }
-
-        select {
-            background: var(--bg-input) !important;
-            color: var(--cor-texto) !important;
-            border: 1px solid #8882 !important;
-        }
-
-        select option {
-            background: var(--bg-container) !important;
-            color: var(--cor-texto) !important;
-        }
-
-        select:focus {
-            outline: none !important;
-            border-color: #00ff88 !important;
-        }
-
-        .content,
-        .container,
-        .main {
-            margin-left: 30px !important;
+        .hub-simulacao h3 {
+            margin-bottom: 10px;
+            font-size: 18px;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -354,7 +309,6 @@
 <body class="pagina">
 
     <div class="sidebar-modern">
-
         <div class="sidebar-logo">
             <img src="/static/img/logo.png">
         </div>
@@ -392,16 +346,6 @@
             <div class="sidebar-item" onclick="window.location.href='/factaoff'" data-label="FACTA OFF">
                 <img src="/static/img/factaoff.png" style="width:36px;height:36px;border-radius:6px;">
             </div>
-
-            {% if session.get('role') == 'admin' %}
-            <div class="sidebar-item" onclick="window.location.href='/usuarios'" data-label="Usuários">
-                <span class="material-icons">groups</span>
-            </div>
-
-            <div class="sidebar-item" onclick="window.location.href='/register'" data-label="Criar Usuário">
-                <span class="material-icons">person_add</span>
-            </div>
-            {% endif %}
         </div>
 
         <div class="sidebar-footer">
@@ -413,216 +357,175 @@
                 <span class="material-icons">logout</span>
             </div>
         </div>
-
     </div>
 
     <div class="content">
         <h1 class="titulo-tomorrow">HUB Crédito</h1>
 
-        <div class="card-form">
-            <h2>Gerar Simulação Automática</h2>
+        <div class="card">
+            <h2>Autorizar Termo</h2>
 
             <div class="linha">
                 <div class="col">
-                    <label>Nome</label>
-                    <input id="nome">
-                </div>
-                <div class="col">
-                    <label>CPF</label>
-                    <input id="cpf">
-                </div>
-                <div class="col">
-                    <label>E-mail</label>
-                    <input id="email">
+                    <label>CPF (obrigatório)</label>
+                    <input id="cpf_aut" placeholder="00000000000">
                 </div>
             </div>
 
-            <div class="linha">
-                <div class="col">
-                    <label>Telefone</label>
-                    <input id="telefone">
-                </div>
-                <div class="col">
-                    <label>Data de Nascimento</label>
-                    <input id="nascimento">
-                </div>
-                <div class="col">
-                    <label>Sexo</label>
-                    <select id="sexo">
-                        <option value="">Selecione</option>
-                        <option value="Feminino">Feminino</option>
-                        <option value="Masculino">Masculino</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="linha">
-                <div class="col">
-                    <label>Valor da Simulação</label>
-                    <input id="valor" placeholder="Ex: 160.00">
-                </div>
-                <div class="col">
-                    <label>Número de Parcelas</label>
-                    <input id="parcelas" placeholder="Ex: 6">
-                </div>
-            </div>
-
-            <button class="btn btn-gerar" id="btnGerar" onclick="gerarHub()">
-                <i class="fa fa-sync"></i> Gerar Simulação
+            <button class="btn btn-autorizar" onclick="autorizarTermo()">
+                <i class="fa fa-check"></i> Autorizar Termo
             </button>
+
+            <div id="ret_aut" style="margin-top:15px;"></div>
         </div>
 
-        <div id="resultado" style="display:none;" class="resultado-area"></div>
+        <div class="card">
+            <h2>Consultar & Simular WinCred</h2>
 
+            <div class="linha">
+                <div class="col">
+                    <label>CPF</label>
+                    <input id="cpf_sim">
+                </div>
+
+                <div class="col">
+                    <label>Valor</label>
+                    <input id="valor_sim" placeholder="Ex: 160">
+                </div>
+
+                <div class="col">
+                    <label>Parcelas</label>
+                    <input id="parcelas_sim" placeholder="Ex: 6">
+                </div>
+            </div>
+
+            <button class="btn btn-consultar" onclick="consultarSimular()">
+                <i class="fa fa-search"></i> Consultar & Simular
+            </button>
+
+            <button class="btn btn-limpar" onclick="limparTudo()">
+                <i class="fa fa-eraser"></i> Limpar
+            </button>
+
+            <div id="ret_sim" style="margin-top:15px;"></div>
+        </div>
     </div>
 
     <script src="/static/js/theme.js"></script>
 
     <script>
-        function limparTexto(str) {
-            return str.replace(/\D/g, "");
+        function limparTexto(v) {
+            return v.replace(/\D/g, "");
         }
 
-        function normalizarCPF(cpf) {
-            return limparTexto(cpf);
-        }
+        async function autorizarTermo() {
+            const cpf = limparTexto(document.getElementById("cpf_aut").value);
+            const box = document.getElementById("ret_aut");
+            box.innerHTML = "⏳ Processando...";
 
-        function normalizarTelefone(tel) {
-            return limparTexto(tel);
-        }
-
-        function normalizarData(data) {
-            if (!data) return "";
-
-            if (data.includes("/")) {
-                let partes = data.split("/");
-                if (partes.length === 3) {
-                    return `${partes[2]}-${partes[1]}-${partes[0]}`;
-                }
-            }
-
-            if (data.includes("-")) {
-                let partes = data.split("-");
-                if (partes.length === 3 && partes[0].length === 2) {
-                    return `${partes[2]}-${partes[1]}-${partes[0]}`;
-                }
-            }
-
-            return data;
-        }
-
-        async function gerarHub() {
-            const btn = document.getElementById("btnGerar");
-            const resultado = document.getElementById("resultado");
-
-            btn.innerHTML = `<span class='spinner'></span> Processando...`;
-
-            const payload = {
-                nome: document.getElementById("nome").value,
-                cpf: normalizarCPF(document.getElementById("cpf").value),
-                email: document.getElementById("email").value,
-                telefone: normalizarTelefone(document.getElementById("telefone").value),
-                nascimento: normalizarData(document.getElementById("nascimento").value),
-                sexo: document.getElementById("sexo").value,
-                valor: normalizarValor(document.getElementById("valor").value),
-                parcelas: parseInt(document.getElementById("parcelas").value)
-            };
-
-            console.log("📌 Enviando payload normalizado:", payload);
-
-            const r = await fetch("/api/hub/gerar-termo", {
+            const r = await fetch("/api/hub/autorizar-termo", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
+                body: JSON.stringify({ cpf })
             });
 
             const data = await r.json();
-            resultado.style.display = "block";
-            resultado.innerHTML = `<div class="cards-grid">${data.html}</div>`;
 
-            btn.innerHTML = `<i class="fa fa-sync"></i> Gerar Simulação`;
-        }
-    </script>
-
-    <script>
-        function limparTexto(str) {
-            return str.replace(/\D/g, "");
-        }
-
-        function normalizarCPF(cpf) {
-            return limparTexto(cpf);
-        }
-
-        function normalizarTelefone(tel) {
-            return limparTexto(tel);
-        }
-
-        function normalizarData(data) {
-            if (!data) return "";
-
-            if (data.includes("/")) {
-                let partes = data.split("/");
-                if (partes.length === 3) {
-                    return `${partes[2]}-${partes[1]}-${partes[0]}`;
-                }
+            if (!data.success) {
+                box.innerHTML = `<div class="hub-card" style="background:#440000">❌ ${data.error}</div>`;
+                return;
             }
 
-            if (data.includes("-")) {
-                let partes = data.split("-");
-                if (partes.length === 3 && partes[0].length === 2) {
-                    return `${partes[2]}-${partes[1]}-${partes[0]}`;
-                }
-            }
-
-            return data;
+            box.innerHTML = `<div class="hub-card" style="background:#004400">✔ Termo autorizado com sucesso!</div>`;
         }
 
-        function normalizarValor(valor) {
-            if (!valor) return "";
+        async function consultarSimular() {
 
-            valor = valor.replace("R$", "").trim();
+            const cpf = limparTexto(document.getElementById("cpf_sim").value);
+            const valor = parseFloat(document.getElementById("valor_sim").value);
+            const parcelas = parseInt(document.getElementById("parcelas_sim").value);
 
-            valor = valor.replace(",", ".");
+            const box = document.getElementById("ret_sim");
 
-            valor = valor.replace(/[^0-9.]/g, "");
+            const btn = document.querySelector(".btn-consultar");
+            btn.innerHTML = `<span class="spinner-mini"></span> Consultando...`;
+            btn.classList.add("btn-loading");
 
-            return parseFloat(valor);
-        }
+            box.innerHTML = "Consultando vínculos...";
 
-        document.getElementById("hubForm").addEventListener("submit", function (e) {
-            e.preventDefault();
-
-            let nome = document.getElementById("nome").value;
-            let cpf = normalizarCPF(document.getElementById("cpf").value);
-            let email = document.getElementById("email").value;
-            let telefone = normalizarTelefone(document.getElementById("telefone").value);
-            let nascimento = normalizarData(document.getElementById("nascimento").value);
-            let sexo = document.getElementById("sexo").value;
-            let valorSimulacao = normalizarValor(document.getElementById("valorSimulacao").value);
-            let parcelas = parseInt(document.getElementById("parcelas").value);
-
-            fetch("/api/hub/gerar-termo", {
+            const r = await fetch("/api/hub/vinculos-e-simulacao", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    nome,
-                    cpf,
-                    email,
-                    telefone,
-                    nascimento,
-                    sexo,
-                    valor: valorSimulacao,
-                    parcelas: parcelas
-                })
-            })
-                .then(r => r.json())
-                .then(data => {
-                    document.getElementById("resultado").innerHTML = data.html;
-                })
-                .catch(err => {
-                    console.error("Erro:", err);
+                body: JSON.stringify({ cpf, valor, parcelas })
+            });
+
+            const data = await r.json();
+
+            btn.innerHTML = `<i class="fa fa-search"></i> Consultar & Simular`;
+            btn.classList.remove("btn-loading");
+
+            if (!data.success) {
+
+                let msg = "Erro desconhecido.";
+
+                if (Array.isArray(data.errors) && data.errors.length > 0) {
+                    msg = data.errors[0];  
+                }
+                else if (data.error) {
+                    msg = data.error;
+                }
+
+                box.innerHTML = `
+        <div class="hub-card" style="background:#440000">
+            ❌ ${msg}
+        </div>
+    `;
+                return;
+            }
+
+
+            box.innerHTML = `
+        <div class="hub-card" style="background:#004400">
+            ✔ Vínculo encontrado!<br>
+            <b>ID Cotação:</b> ${data.vinculo.idCotacao}<br><br>
+             Gerando simulação...
+        </div>
+    `;
+
+            await new Promise(resolve => setTimeout(resolve, 600));
+
+            let html = `
+    <div class="hub-card">
+        <h3>Vínculo Encontrado</h3>
+        <p><b>ID Cotação:</b> ${data.vinculo.idCotacao}</p>
+    </div>
+`;
+
+            if (Array.isArray(data.simulacao) && data.simulacao.length > 0) {
+                data.simulacao.forEach(s => {
+                    html += `
+                <div class="hub-card hub-simulacao">
+                <h3>${s.tabelaFinanciamento?.descricao || "Simulação"}</h3>
+                <p>Margem: R$ ${s.valorMargem?.toFixed(2)}</p>
+                <p>Parcelas: ${s.opcaoProposta?.numeroParcelas}</p>
+                <p>Valor Parcela: R$ ${s.opcaoProposta?.valorParcela?.toFixed(2)}</p>
+                <p>Total: R$ ${s.opcaoProposta?.valorEmprestimoTotal?.toFixed(2)}</p>
+                <p>CET: ${s.opcaoProposta?.cet}%</p>
+                <p>Liberado: R$ ${s.opcaoProposta?.valorDesembolsoTrabalhador?.toFixed(2)}</p>
+            </div>
+        `;
                 });
-        });
+            }
+
+
+            box.innerHTML = html;
+        }
+        function limparTudo() {
+            document.getElementById("cpf_sim").value = "";
+            document.getElementById("valor_sim").value = "";
+            document.getElementById("parcelas_sim").value = "";
+            document.getElementById("ret_sim").innerHTML = "";
+        }
     </script>
 
 </body>

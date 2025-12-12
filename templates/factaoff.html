@@ -300,6 +300,38 @@
             color: #000;
             font-size: 15px;
         }
+
+        select {
+            background: var(--bg-input);
+            color: var(--cor-texto);
+            border: 2px solid #00ff88;
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 15px;
+            outline: none;
+            width: 100%;
+            cursor: pointer;
+            appearance: none;
+        }
+
+        select::-ms-expand {
+            display: none;
+        }
+
+        select option {
+            background: var(--bg-container);
+            color: var(--cor-texto);
+            padding: 10px;
+        }
+
+        select option:hover {
+            background: #00ff8844;
+        }
+
+        select:-moz-focusring {
+            color: transparent;
+            text-shadow: 0 0 0 var(--cor-texto);
+        }
     </style>
 </head>
 
@@ -609,6 +641,14 @@
 
 
                 preencherCamposOff(data.html);
+
+                window.MATRICULAS_OFF = data.matriculas || [];
+
+                if (window.MATRICULAS_OFF.length === 1) {
+                    window.MATRICULA_UNICA = window.MATRICULAS_OFF[0];
+                } else {
+                    window.MATRICULA_UNICA = null;
+                }
             }
 
             function preencherCamposOff(html) {
@@ -802,7 +842,8 @@
                     agencia: document.getElementById("agencia").value,
                     conta: document.getElementById("conta").value,
 
-                    matricula: window.MATRICULA_SELECIONADA
+                    matricula: window.MATRICULA_SELECIONADA || window.MATRICULA_UNICA
+
                 };
 
                 const r = await fetch("/api/facta/etapa6", {

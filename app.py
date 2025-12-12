@@ -1345,10 +1345,9 @@ def api_c6_consultar():
 #*************************************************************************************************************
 #HUB
 
-HUB_USER = "thaina.admin458"      
-HUB_PASS = "Tech@2811"     
-HUB_LOJA_ID = 13546             
-HUB_TIPO_TERMO = "AutorizacaoDataprev"
+HUB_USER = "thaina.admin458"
+HUB_PASS = "Tech@2811"
+HUB_LOJA_ID = 13546
 
 HUB_TOKEN = None
 HUB_TOKEN_EXPIRA = 0
@@ -1361,6 +1360,7 @@ def gerar_token_hub():
     global HUB_TOKEN, HUB_TOKEN_EXPIRA
 
     agora = time.time()
+
     if HUB_TOKEN and agora < HUB_TOKEN_EXPIRA:
         return HUB_TOKEN
 
@@ -1371,275 +1371,131 @@ def gerar_token_hub():
         "grantTypes": "password"
     }
 
-    try:
-        r = requests.post(url, json=payload, timeout=20)
-        data = r.json()
-
-        if not data.get("hasSuccess"):
-            raise Exception(data.get("message", "Erro ao gerar token HUB"))
-
-        token = data["value"]["token"]["accessToken"]
-        expira = data["value"]["token"]["expiration"]
-
-        HUB_TOKEN = token
-        HUB_TOKEN_EXPIRA = agora + 3500
-
-        return token
-
-    except Exception as e:
-        print("❌ Erro ao gerar token HUB:", e)
-        raise
-
-def hub_gerar_termo(nome, cpf, email, telefone, nascimento, sexo):
-    token = gerar_token_hub()
-
-    url = "https://api.hubcredito.com.br/api/Clt/gerar-termo-aceite"
-
-    payload = {
-        "tipoTermo": HUB_TIPO_TERMO,
-        "lojaId": HUB_LOJA_ID,
-        "nome": nome,
-        "cpf": cpf,
-        "email": email,
-        "telefone": telefone,
-        "dataNascimento": nascimento,
-        "sexo": sexo
-    }
-
-    headers = {"Authorization": f"Bearer {token}"}
-
-    for tentativa in range(3):
-        try:
-            r = requests.post(url, json=payload, headers=headers, timeout=20)
-
-            if not r.text.strip():
-                print(f"⚠️ Tentativa {tentativa+1}: resposta vazia do gerar termo")
-                time.sleep(2)
-                continue
-
-            data = r.json()
-
-            if not data.get("hasSuccess"):
-                raise Exception(data.get("errors", ["Erro ao gerar termo"])[0])
-
-            termo_id = data["value"]["id"]
-            chave = data["value"]["chaveIdentificadora"]
-
-            print("✔ Termo gerado com sucesso na tentativa", tentativa+1)
-            return termo_id, chave
-
-        except Exception as e:
-            print(f"❌ Erro ao gerar termo (tentativa {tentativa+1}/3): {e}")
-            time.sleep(2)
-
-    raise Exception("API instável: não foi possível gerar o termo após 3 tentativas.")
-
-def hub_autorizar_termo(termo_id, cpf):
-    url = "https://termo.hubcredito.com.br/api/Termo/autorizar"
-
-    payload = {
-        "id": termo_id,
-        "cpf": cpf
-    }
-
-    for tentativa in range(3):
-        try:
-            r = requests.post(url, json=payload, timeout=15)
-
-            if not r.text.strip():
-                print(f"⚠️ Tentativa {tentativa+1}: API retornou vazio, tentando de novo...")
-                time.sleep(1)
-                continue
-
-            data = r.json()
-
-            if not data.get("hasSuccess"):
-                raise Exception(data.get("errors", ["Erro ao autorizar termo"])[0])
-
-            return True
-
-        except Exception as e:
-            print(f"⚠️ Falha tentativa {tentativa+1} ao autorizar termo: {e}")
-            time.sleep(1)
-
-    print("⚠️ API instável: seguindo fluxo sem confirmação de autorização.")
-    return True
-
-
-def hub_consultar_vinculo(cpf):
-    token = gerar_token_hub()
-
-    url = f"https://api.hubcredito.com.br/api/Clt/wincred/listar-vinculos?cpfTrabalhador={cpf}"
-    headers = {"Authorization": f"Bearer {token}"}
-
-    r = requests.get(url, headers=headers, timeout=20)
+    r = requests.post(url, json=payload, timeout=20)
     data = r.json()
 
-    if not data.get("hasSuccess"):
-        raise Exception(data.get("errors", ["Erro ao consultar vínculo"])[0])
+    HUB_TOKEN = data["value"]["token"]["accessToken"]
+    HUB_TOKEN_EXPIRA = agora + 3500
 
-    valor = data.get("value")
+    return HUB_TOKEN
 
-    if isinstance(valor, list):
-        return valor
+@app.route("/api/hub/autorizar-termo", methods=["POST"])
+def api_autorizar_termo():
+    cpf = request.json.get("cpf")
+    token = gerar_token_hub()
 
-    if isinstance(valor, dict) and "vinculos" in valor:
-        if not valor["vinculos"]:
-            raise Exception("Nenhum vínculo encontrado para este CPF.")
+    url = "https://api.hubcredito.com.br/api/Clt/aceitar-termo-clt"
+    payload = {
+        "cpf": cpf,
+        "ip": "127.0.0.1",
+        "cidade": "Boa Vista",
+        "latitude": "-0.303",
+        "longitude": "-60.456"
+    }
+    headers = {"Authorization": f"Bearer {token}"}
 
-        return valor
+    r = requests.post(url, json=payload, headers=headers)
 
-    raise Exception("Retorno inesperado da HUB.")
+    if not r.text.strip():
+        return jsonify({"success": True, "mensagem": "Termo aceito com sucesso."})
 
-def hub_gerar_cards_html(simulacoes):
-    html = ""
+    data = r.json()
 
-    for sim in simulacoes:
-        opcao = sim.get("opcaoProposta", {})
-        tabela = sim.get("tabelaFinanciamento", {})
+    if not data.get("hasSuccess", True):
+        return jsonify({"success": False, "error": data.get("errors", ["Erro ao aceitar termo"])})
 
-        html += f"""
-        <div class='hub-card'>
-            <h3>{tabela.get("descricao", "Sem descrição")}</h3>
+    return jsonify({"success": True, "mensagem": "Termo aceito com sucesso"})
 
-            <p><span>Valor Margem:</span> R$ {sim.get("valorMargem", 0):,.2f}</p>
-            <p><span>Parcelas:</span> {opcao.get("numeroParcelas", "-")}</p>
-            <p><span>Valor Parcela:</span> R$ {opcao.get("valorParcela", 0):,.2f}</p>
-            <p><span>Valor Total:</span> R$ {opcao.get("valorEmprestimoTotal", 0):,.2f}</p>
-            <p><span>CET:</span> {opcao.get("cet", 0)}%</p>
-            <p><span>Seguro:</span> R$ {opcao.get("valorSeguro", 0):,.2f}</p>
-            <p><span>Liberado:</span> R$ {opcao.get("valorDesembolsoTrabalhador", 0):,.2f}</p>
-            <p><span>Proposta ID:</span> {opcao.get("idProposta", "-")}</p>
-            <p><span>Vencimento:</span> {opcao.get("dataDeVencimento", "-")}</p>
-        </div>
-        """
-
-    return f"<div class='cards-grid'>{html}</div>"
-
-@app.route("/api/hub/gerar-termo", methods=["POST"])
-def api_hub_gerar_termo():
+@app.route("/api/hub/vinculos-e-simulacao", methods=["POST"])
+def api_hub_vinculos_simulacao():
     data = request.json
-
-    nome = data["nome"]
     cpf = data["cpf"]
-    email = data.get("email")
-    telefone = data["telefone"]
-    nascimento = data["nascimento"]
-    sexo = data["sexo"]
-
     valor = float(data["valor"])
     parcelas = int(data["parcelas"])
 
-    try:
-        try:
-            termo_id, chave = hub_gerar_termo(nome, cpf, email, telefone, nascimento, sexo)
-
-            try:
-                hub_autorizar_termo(termo_id, cpf)
-            except Exception as e:
-                print("⚠️ Erro ao autorizar termo, seguindo mesmo assim:", e)
-
-        except Exception as e:
-            msg = str(e).lower()
-
-            if "já possui um termo" in msg or "termo" in msg:
-                print("Cliente já possui termo — seguindo fluxo.")
-            else:
-                return jsonify({
-                    "success": False,
-                    "html": f"""
-                    <div class='hub-card' style='background:#ffdddd;border:1px solid #ffb0b0;'>
-                        <h3 style='color:#b30000;'>Erro</h3>
-                        <p>{str(e)}</p>
-                    </div>
-                    """
-                }), 400
-
-        vinculo = hub_consultar_vinculo(cpf)
-
-        if isinstance(vinculo, list):
-            simulacoes = vinculo
-
-        else:
-            idcotacao = vinculo["idCotacao"]
-            vinc = vinculo["vinculos"][0]
-
-            matricula = vinc["matricula"]
-            numero_empresa = vinc["inscricaoEmpregador"]["numeroInscricao"]
-            codigo_inscricao = vinc["inscricaoEmpregador"]["tipoInscricao"]
-
-            simulacoes = hub_simular(
-                cpf,
-                idcotacao,
-                matricula,
-                codigo_inscricao,
-                numero_empresa,
-                valor,
-                parcelas
-            )
-
-        html = hub_gerar_cards_html(simulacoes)
-
-        return jsonify({"success": True, "html": html})
-
-    except Exception as e:
-        return jsonify({
-            "success": False,
-            "html": f"<div class='card' style='background:#800000;color:#F5FFFA;padding:15px;'>❌ {str(e)}</div>"
-        }), 400
-
-
-def hub_simular(cpf, idcotacao, matricula, codigo_empregador, numero_empregador, valor, parcelas):
     token = gerar_token_hub()
 
-    url = "https://api.hubcredito.com.br/api/Clt/wincred/simular"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json"
+    }
 
-    payload = {
+    url_v = f"https://api.hubcredito.com.br/api/Clt/wincred/listar-vinculos?cpfTrabalhador={cpf}"
+    r_v = requests.get(url_v, headers=headers)
+
+    print("\n\n🔍 RESPOSTA VÍNCULO:", r_v.status_code, r_v.text, "\n\n")
+
+    if not r_v.text.strip():
+        return jsonify({
+            "success": False,
+            "error": "API de vínculos retornou vazio."
+        }), 400
+
+    try:
+        dados_v = r_v.json()
+    except:
+        return jsonify({
+            "success": False,
+            "error": "Não foi possível decodificar JSON dos vínculos."
+        }), 400
+    
+    if not dados_v.get("hasSuccess"):
+        return jsonify({
+            "success": False,
+            "error": dados_v.get("errors", ["Erro ao consultar vínculos"])
+        }), 400
+
+    if "value" not in dados_v:
+        return jsonify({
+            "success": False,
+            "error": ["Nenhum vínculo encontrado para este CPF."]
+        }), 400
+
+    vinculo = dados_v["value"]
+
+    if not vinculo.get("vinculos"):
+        return jsonify({
+            "success": False,
+            "error": ["O CPF não possui vínculos elegíveis."]
+        }), 400
+
+    idcotacao = vinculo["idCotacao"]
+    vinc = vinculo["vinculos"][0]
+
+
+    matricula = vinc["matricula"]
+    codigo_tipo = vinc["inscricaoEmpregador"]["tipoInscricao"]
+    numero_empresa = vinc["inscricaoEmpregador"]["numeroInscricao"]
+
+    payload_sim = {
         "cpf": cpf,
         "lojaId": HUB_LOJA_ID,
         "idCotacao": idcotacao,
         "numeroParcelas": parcelas,
         "valor": valor,
         "matricula": matricula,
-        "codigoInscricaoEmpregador": codigo_empregador,
-        "numeroInscricaoEmpregador": numero_empregador
+        "codigoInscricaoEmpregador": codigo_tipo,
+        "numeroInscricaoEmpregador": numero_empresa
     }
 
-    headers = {"Authorization": f"Bearer {token}"}
+    url_s = "https://api.hubcredito.com.br/api/Clt/wincred/simular"
+    r_s = requests.post(url_s, json=payload_sim, headers=headers)
 
-    TIMEOUT_ERROS = ["Read timed out", "HTTPSConnectionPool", "timeout"]
+    print("🔍 RESPOSTA SIMULAÇÃO:", r_s.status_code, r_s.text)
 
-    for tentativa in range(1, 4):
-        try:
-            r = requests.post(url, json=payload, headers=headers, timeout=40)
+    try:
+        dados_sim = r_s.json()
+    except:
+        return jsonify({
+            "success": False,
+            "error": "Falha ao ler retorno da simulação."
+        }), 400
 
-            if not r.text.strip():
-                print(f"⚠️ Tentativa {tentativa}: resposta vazia do simular()")
-                time.sleep(2)
-                continue
-
-            data = r.json()
-
-            if not data.get("hasSuccess"):
-                erro_api = data.get("errors", ["Erro ao simular"])[0]
-                print("❌ Erro direto da API:", erro_api)
-                raise Exception(erro_api)
-
-            print("✔ Simulação OK na tentativa", tentativa)
-            return data["value"]
-
-        except Exception as e:
-            msg = str(e)
-
-            if any(txt in msg for txt in TIMEOUT_ERROS):
-                print(f"⚠️ Timeout na tentativa {tentativa}, tentando novamente...")
-                time.sleep(2)
-                continue
-
-            print(f"❌ Erro não relacionado a timeout, interrompendo: {e}")
-            raise Exception(str(e))
-
-    raise Exception("API instável: não foi possível concluir a simulação após 3 tentativas.")
+    return jsonify({
+        "success": True,
+        "vinculo": vinculo,
+        "simulacao": dados_sim.get("value", []) 
+    })
 
 #*************************************************************************************************************
 #V8
@@ -2214,7 +2070,9 @@ def api_factaoff_consulta():
 
     d = dados[0]
 
-    todas_matriculas = [x.get("matricula") for x in dados if x.get("matricula")]
+    todas_matriculas = list(set(
+        x.get("matricula") for x in dados if x.get("matricula")
+    ))
 
     cache_matriculas[cpf] = todas_matriculas
 
