@@ -1860,17 +1860,25 @@ def facta_simular():
         "convenio": "3",
 
         "cpf": data.get("cpf"),
+        "matricula": data.get("matricula"),
+
+        "data_nascimento": data.get("data_nascimento"),
+        "data_admissao": data.get("data_admissao"),
+
+        "categoria_trabalhador": data.get("categoria_trabalhador"),
+
+        "valor_margem_disponivel": data.get("valor_margem_disponivel"),
+        "valor_base_margem": data.get("valor_base_margem"),
+        "valor_vencimentos": data.get("valor_vencimentos"),
+
         "codigo_tabela": data.get("codigo_tabela"),
         "prazo": data.get("prazo"),
         "coeficiente": data.get("coeficiente"),
-
         "valor_parcela": data.get("valor_parcela"),
         "valor_operacao": data.get("valor_operacao"),
 
-        "data_nascimento": data.get("data_nascimento"),
-
         "login_certificado": "96552_biancafaria",
-        "vendedor": "96552_biancafaria",
+        "vendedor": "96552_biancafaria"
     }
 
     resp = facta_post(FACTA_URL_SIMULACAO, payload)

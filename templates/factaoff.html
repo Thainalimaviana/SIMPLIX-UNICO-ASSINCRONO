@@ -644,11 +644,8 @@
 
                 window.MATRICULAS_OFF = data.matriculas || [];
 
-                if (window.MATRICULAS_OFF.length === 1) {
-                    window.MATRICULA_UNICA = window.MATRICULAS_OFF[0];
-                } else {
-                    window.MATRICULA_UNICA = null;
-                }
+                window.MATRICULA_UNICA = window.MATRICULAS_OFF.filter(m => m && m.trim() !== "")[0] || null;
+
             }
 
             function preencherCamposOff(html) {
@@ -759,7 +756,8 @@
                     coeficiente: tabelaSelecionada.coeficiente,
                     valor_parcela: tabelaSelecionada.parcela,
                     valor_operacao: valor,
-                    data_nascimento: dn
+                    data_nascimento: dn,
+                    matricula: window.MATRICULA_UNICA || window.MATRICULA_SELECIONADA || null
                 };
 
                 const r = await fetch("/api/facta/simular", {
@@ -799,6 +797,16 @@
 
                 ID_SIMULADOR_OFF = data.id_simulador;
 
+                if (!ID_SIMULADOR_OFF) {
+                    document.getElementById("retorno-simulacao").innerHTML = `
+        <div class='erro-box'>
+            Erro: O simulador não retornou ID. Possível falta de matrícula.
+        </div>
+    `;
+                    return;
+                }
+
+
                 document.getElementById("retorno-simulacao").innerHTML = `
         <div class='resultado-area'>
             <h3>Simulação Gravada</h3>
@@ -814,9 +822,10 @@
                 window.MATRICULA_SELECIONADA = matricula;
 
                 document.getElementById("retorno-simulacao").innerHTML =
-                    `<div class='resultado-area'>Matrícula selecionada: <b>${matricula}</b></div>`;
+                    `<div class='resultado-area'>Matrícula selecionada: <b>${matricula}</b><br>
+         Reenviando simulação...</div>`;
 
-                document.getElementById("card-etapa6").style.display = "block";
+                confirmarSimulacaoOff();
             }
 
             async function enviarEtapa6Off() {
