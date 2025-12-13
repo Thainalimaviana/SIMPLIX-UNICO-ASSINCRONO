@@ -361,6 +361,25 @@
         .main {
             margin-left: 30px !important;
         }
+
+        .select-matricula {
+            width: 280px;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            background: #ffffffee;
+            color: #000;
+            border: 2px solid #00ff88;
+            outline: none;
+            margin-top: 10px;
+        }
+
+        .select-matricula option {
+            background: #ffffff;
+            color: #000;
+            font-size: 15px;
+        }
     </style>
 </head>
 
@@ -458,7 +477,7 @@
 
             <div class="linha">
                 <div class="col">
-                    <label>Matrícula (Obrigatória)</label>
+                    <label>Matrícula <span style="color:#0027d3f3;">(aleatório)</span></label>
                     <input id="mat_aut">
                 </div>
 
@@ -534,6 +553,12 @@
                     <label>Valor desejado</label>
                     <input id="valor_operacao">
                 </div>
+            </div>
+
+            <div id="box-matriculas" style="display:none; margin-top:20px;">
+                <label>Selecione a Matrícula</label>
+                <select id="select_matricula" class="select-matricula">
+                </select>
             </div>
 
             <button class="btn btn-consultar" onclick="confirmarSimulacao()">Simular</button>
@@ -631,6 +656,14 @@
 
             </div>
 
+            <div class="col">
+                <label>Tipo de Conta</label>
+                <select id="tipo_conta">
+                    <option value="C">Conta Corrente</option>
+                    <option value="P">Conta Poupança</option>
+                </select>
+            </div>
+
             <h3>Dados Bancários</h3>
             <div class="linha">
                 <div class="col">
@@ -648,6 +681,27 @@
                     <input id="conta">
                 </div>
             </div>
+
+            <h3>Chave PIX</h3>
+
+            <div class="linha">
+                <div class="col">
+                    <label>Tipo de Chave PIX</label>
+                    <select id="tipo_chave_pix">
+                        <option value="1">CPF</option>
+                        <option value="2">Telefone</option>
+                        <option value="3">E-mail</option>
+                        <option value="4">Chave Aleatória</option>
+                    </select>
+                </div>
+
+                <div class="col">
+                    <label>Chave PIX</label>
+                    <input id="chave_pix" placeholder="Digite a chave PIX">
+                </div>
+            </div>
+
+
 
             <button class="btn btn-consultar" onclick="enviarEtapa6()">
                 Enviar Dados
@@ -696,7 +750,7 @@
         }
 
         async function solicitarAut() {
-            const btn = event.target;
+            const btn = event.currentTarget;
 
             const payload = {
                 cpf: document.getElementById("cpf_aut").value.replace(/\D/g, ""),
@@ -723,7 +777,7 @@
         }
 
         async function consultarDados() {
-            const btn = event.target;
+            const btn = event.currentTarget;
 
             const cpf = document.getElementById("cpf_consulta").value.replace(/\D/g, "");
 
@@ -777,7 +831,7 @@
         }
 
         async function buscarOperacoes() {
-            const btn = event.target;
+            const btn = event.currentTarget;
 
             const cpf = document.getElementById("cpf_consulta").value.replace(/\D/g, "");
             const renda = document.getElementById("renda").value;
@@ -801,7 +855,7 @@
 
             document.getElementById("retorno-operacoes").innerHTML =
                 "<h3>Tabelas disponíveis:</h3>";
-
+            
             data.tabelas.forEach(t => {
                 let div = document.createElement("div");
                 div.className = "tabela-card";
@@ -841,7 +895,7 @@
         }
 
         async function confirmarSimulacao() {
-            const btn = event.target;
+            const btn = event.currentTarget;
 
             if (!tabelaSelecionada) return;
 
@@ -856,7 +910,8 @@
                 coeficiente: tabelaSelecionada.coeficiente,
                 valor_parcela: tabelaSelecionada.parcela,
                 valor_operacao: valor,
-                data_nascimento: dn
+                data_nascimento: dn,
+                matricula: window.MATRICULA_SELECIONADA || window.MATRICULA_UNICA || null
             };
 
             const data = await safeFetch(btn, "/api/facta/simular", {
@@ -864,6 +919,20 @@
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)
             });
+
+            if (data.matriculas) {
+                let select = document.getElementById("select_matricula");
+                select.innerHTML = data.matriculas.map(m => `<option value="${m}">${m}</option>`).join("");
+
+                document.getElementById("box-matriculas").style.display = "block";
+
+                select.onchange = () => {
+                    window.MATRICULA_SELECIONADA = select.value;
+                    confirmarSimulacao();
+                };
+
+                return;
+            }
 
             if (data.erro) {
                 document.getElementById("retorno-simulacao").innerHTML =
@@ -874,17 +943,34 @@
             window.idSimulador = data.id_simulador;
 
             document.getElementById("retorno-simulacao").innerHTML = `
-            <div class="resultado-area">
-                <h3>Simulação Gravada</h3>
-                <p><b>ID:</b> ${data.id_simulador}</p>
-            </div>
-        `;
+        <div class="resultado-area">
+            <h3>Simulação Gravada</h3>
+            <p><b>ID:</b> ${data.id_simulador}</p>
+        </div>
+    `;
 
             document.getElementById("card-etapa6").style.display = "block";
         }
 
         async function enviarEtapa6() {
-            const btn = event.target;
+            const btn = event.currentTarget;
+
+            const tipoPix = document.getElementById("tipo_chave_pix").value;
+            let chavePix = document.getElementById("chave_pix").value.trim();
+
+            if (tipoPix === "1") {
+                chavePix = chavePix.replace(/\D/g, "");
+            }
+
+            if (tipoPix === "2") {
+                chavePix = "+55" + chavePix.replace(/\D/g, "");
+            }
+
+            if (tipoPix === "4" && chavePix.length !== 36) {
+                document.getElementById("retorno-etapa6").innerHTML =
+                    "<div class='erro-box'>A chave aleatória deve ter 36 caracteres.</div>";
+                return;
+            }
 
             const payload = {
                 id_simulador: window.idSimulador,
@@ -907,6 +993,12 @@
                 banco: document.getElementById("banco").value,
                 agencia: document.getElementById("agencia").value,
                 conta: document.getElementById("conta").value,
+
+                tipo_conta: document.getElementById("tipo_conta").value,
+                tipo_chave_pix: tipoPix,
+                chave_pix: chavePix,
+
+                matricula: window.MATRICULA_SELECIONADA || window.MATRICULA_UNICA
             };
 
             const data = await safeFetch(btn, "/api/facta/etapa6", {

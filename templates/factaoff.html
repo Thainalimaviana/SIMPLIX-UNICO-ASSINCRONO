@@ -332,6 +332,32 @@
             color: transparent;
             text-shadow: 0 0 0 var(--cor-texto);
         }
+
+        .btn-loading {
+            pointer-events: none;
+            opacity: 0.7;
+            position: relative;
+        }
+
+        .btn-loading::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            margin: auto;
+            width: 18px;
+            height: 18px;
+            border: 3px solid #fff;
+            border-top-color: transparent;
+            border-radius: 50%;
+
+            animation: spin 0.7s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
     </style>
 </head>
 
@@ -558,6 +584,18 @@
                 <input id="renda_et6" type="hidden">
             </div>
 
+            <h3>Tipo de Conta</h3>
+            <div class="linha">
+                <div class="col">
+                    <label>Tipo de Conta*</label>
+                    <select id="tipo_conta">
+                        <option value="">Selecione</option>
+                        <option value="C">Conta Corrente</option>
+                        <option value="P">Conta Poupança</option>
+                    </select>
+                </div>
+            </div>
+
             <h3>Dados Bancários</h3>
             <div class="linha">
                 <div class="col">
@@ -576,9 +614,28 @@
                 </div>
             </div>
 
-            <button class="btn btn-consultar" onclick="enviarEtapa6Off()">
+            <h3>Chave PIX</h3>
+            <div class="linha">
+                <div class="col">
+                    <label>Tipo de Chave*</label>
+                    <select id="tipo_chave_pix">
+                        <option value="1">CPF</option>
+                        <option value="2">Telefone</option>
+                        <option value="3">E-mail</option>
+                        <option value="4">Chave Aleatória</option>
+                    </select>
+                </div>
+
+                <div class="col">
+                    <label>Chave PIX*</label>
+                    <input id="chave_pix" placeholder="Informe a chave PIX">
+                </div>
+            </div>
+
+            <button id="btn-etapa6" class="btn btn-consultar" onclick="enviarEtapa6Off()">
                 Enviar Dados
             </button>
+
 
             <div id="retorno-etapa6"></div>
         </div>
@@ -829,6 +886,26 @@
             }
 
             async function enviarEtapa6Off() {
+                const btn = document.getElementById("btn-etapa6");
+                btn.classList.add("btn-loading");
+
+                let tipoPix = document.getElementById("tipo_chave_pix").value;
+                let chavePix = document.getElementById("chave_pix").value.trim();
+
+                if (tipoPix === "2") {
+                    chavePix = "+55" + chavePix.replace(/\D/g, "");
+                }
+
+                if (tipoPix === "1") {
+                    chavePix = chavePix.replace(/\D/g, "");
+                }
+
+                if (tipoPix === "4" && chavePix.length !== 36) {
+                    document.getElementById("retorno-etapa6").innerHTML =
+                        "<div class='erro-box'>A chave aleatória deve ter 36 caracteres.</div>";
+                    btn.classList.remove("btn-loading");
+                    return;
+                }
 
                 const payload = {
                     id_simulador: ID_SIMULADOR_OFF,
@@ -847,13 +924,33 @@
                     data_nascimento: document.getElementById("data_nascimento").value,
                     renda: document.getElementById("renda_et6").value,
 
+                    tipo_conta: document.getElementById("tipo_conta").value,
+
                     banco: document.getElementById("banco").value,
                     agencia: document.getElementById("agencia").value,
                     conta: document.getElementById("conta").value,
 
+                    tipo_chave_pix: tipoPix,
+                    chave_pix: chavePix,
+
                     matricula: window.MATRICULA_SELECIONADA || window.MATRICULA_UNICA
 
                 };
+
+                if (!payload.tipo_chave_pix) {
+                    document.getElementById("retorno-etapa6").innerHTML =
+                        "<div class='erro-box'>Selecione o tipo de chave PIX.</div>";
+                    btn.classList.remove("btn-loading");
+                    return;
+                }
+
+
+                if (!payload.chave_pix.trim()) {
+                    document.getElementById("retorno-etapa6").innerHTML =
+                        "<div class='erro-box'>Informe a chave PIX.</div>";
+                    btn.classList.remove("btn-loading");
+                    return;
+                }
 
                 const r = await fetch("/api/facta/etapa6", {
                     method: "POST",
@@ -870,6 +967,9 @@
                 if (!data.erro) {
                     finalizarPropostaOff(data.codigo_cliente);
                 }
+
+                btn.classList.remove("btn-loading");
+
             }
 
 

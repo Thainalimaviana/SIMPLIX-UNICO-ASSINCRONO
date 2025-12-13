@@ -1798,9 +1798,21 @@ def facta_consulta():
     }
 
     global cache_matriculas
-    cache_matriculas[cpf] = resultado["matricula"]
+    matricula = resultado.get("matricula")
+    matriculas = []
 
-    return jsonify({"erro": False, "dados": resultado})
+    if isinstance(matricula, list):
+        matriculas = matricula
+    elif matricula:
+        matriculas = [matricula]
+
+    cache_matriculas[cpf] = matriculas
+
+    return jsonify({
+        "erro": False,
+        "dados": resultado,
+        "matriculas": matriculas
+    })
 
 
 @app.route("/api/facta/operacoes", methods=["POST"])
@@ -1884,6 +1896,13 @@ def facta_simular():
     resp = facta_post(FACTA_URL_SIMULACAO, payload)
     print("📌 SIMULAÇÃO FACTA:", resp)
 
+    if resp.get("matriculas"):
+        return jsonify({
+            "erro": True,
+            "mensagem": resp.get("mensagem"),
+            "matriculas": resp.get("matriculas")
+        })
+
     return jsonify(resp)
 
 @app.route("/api/facta/etapa6", methods=["POST"])
@@ -1897,6 +1916,15 @@ def facta_etapa6():
             "erro": True,
             "mensagem": "Matrícula não enviada. Escolha uma antes de prosseguir."
         }
+
+    if not data.get("tipo_conta"):
+        return jsonify({"erro": True, "mensagem": "Tipo de conta obrigatório."})
+
+    if not data.get("tipo_chave_pix"):
+        return jsonify({"erro": True, "mensagem": "Selecione o tipo da chave PIX."})
+
+    if not data.get("chave_pix"):
+        return jsonify({"erro": True, "mensagem": "Informe a chave PIX."})
 
     payload = {
         "id_simulador": data.get("id_simulador"),
@@ -1933,13 +1961,13 @@ def facta_etapa6():
 
         "matricula": matricula,
 
-        "tipo_conta": "C",
+        "tipo_conta": data.get("tipo_conta"),
         "banco": data.get("banco"),
         "agencia": data.get("agencia"),
         "conta": data.get("conta"),
 
-        "tipo_chave_pix": 1,
-        "chave_pix": cpf,
+        "tipo_chave_pix": data.get("tipo_chave_pix"),
+        "chave_pix": data.get("chave_pix"),
     }
 
     resp = facta_post(FACTA_URL_ETAPA6, payload)
@@ -2078,6 +2106,9 @@ def api_factaoff_consulta():
 
     d = dados[0]
 
+    updated_at = d.get("updated_at") or d.get("created_at")
+    updated_at_fmt = formatar_data_hora(updated_at) if updated_at else "-"
+
     todas_matriculas = list(set(
         x.get("matricula") for x in dados if x.get("matricula")
     ))
@@ -2128,6 +2159,8 @@ def api_factaoff_consulta():
 
         <div class='linha-resultado'>Exposta Politicamente: {d.get('pessoaExpostaPoliticamente_descricao','-')}</div>
         <div class='linha-resultado'>Possui Alertas: {d.get('possuiAlertas','-')}</div>
+        <div class='linha-resultado'>Última Atualização no Banco: {updated_at_fmt}</div>
+
     </div>
 """
 
@@ -2149,7 +2182,14 @@ def formatar_data(dt):
         return dt.split("-")[2] + "/" + dt.split("-")[1] + "/" + dt.split("-")[0]
     except:
         return dt
-
-
+    
+def formatar_data_hora(dt):
+    try:
+        data, hora = dt.split(" ")
+        y, m, d = data.split("-")
+        return f"{d}/{m}/{y} {hora[:5]}"
+    except:
+        return dt
+   
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=8600)
